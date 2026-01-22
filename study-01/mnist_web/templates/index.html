@@ -1,0 +1,50 @@
+<!-- Created: 2026-01-14 09:30:00 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNIST 숫자 인식</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🔢 MNIST 숫자 인식</h1>
+        <p class="subtitle">마우스로 숫자를 그려보세요!</p>
+        
+        <div class="main-content">
+            <div class="canvas-container">
+                <canvas id="canvas" width="280" height="280"></canvas>
+                <div class="button-group">
+                    <button id="clearBtn" class="btn btn-secondary">지우기</button>
+                    <button id="predictBtn" class="btn btn-primary">인식하기</button>
+                </div>
+            </div>
+            
+            <div class="results-container">
+                <div class="prediction-box">
+                    <h2>예측 결과</h2>
+                    <div id="result" class="result-number">?</div>
+                    <div id="confidence" class="confidence">그림을 그려주세요</div>
+                </div>
+                
+                <div class="probabilities-box">
+                    <h3>확률 분포</h3>
+                    <div id="probabilities" class="probability-bars"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>💡 사용 방법</h3>
+            <ul>
+                <li>마우스를 드래그하여 0-9 사이의 숫자를 그려주세요</li>
+                <li>"인식하기" 버튼을 클릭하면 AI가 숫자를 예측합니다</li>
+                <li>"지우기" 버튼으로 다시 그릴 수 있습니다</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

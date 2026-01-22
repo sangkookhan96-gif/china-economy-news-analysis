@@ -1,0 +1,13 @@
+# Environment variables (API keys)
+.env
+.env.*
+*.env
+# Python
+__pycache__/
+*.py[cod]
+venv/
+env/
+
+# Flask
+instance/
+.webassets-cache

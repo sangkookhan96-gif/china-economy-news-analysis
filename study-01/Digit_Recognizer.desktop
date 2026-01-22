@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Digit Recognizer
+Exec=python3 /home/jeozeohan/vibe_temp/study-01/digit_recognizer.py
+Icon=/home/jeozeohan/vibe_temp/study-01/digit_recognizer.png
+Terminal=false
+Categories=Education;

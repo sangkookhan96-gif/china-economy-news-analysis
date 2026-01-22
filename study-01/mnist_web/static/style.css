@@ -1,0 +1,198 @@
+/* Created: 2026-01-14 09:30:00 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 2.5em;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 40px;
+    font-size: 1.2em;
+}
+
+.main-content {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.canvas-container {
+    flex: 1;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+#canvas {
+    border: 3px solid #667eea;
+    border-radius: 10px;
+    cursor: crosshair;
+    background: white;
+    display: block;
+    width: 100%;
+    height: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn {
+    flex: 1;
+    padding: 15px 30px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #d0d0d0;
+}
+
+.results-container {
+    flex: 1;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.prediction-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.prediction-box h2 {
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.result-number {
+    font-size: 80px;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+.confidence {
+    font-size: 18px;
+}
+
+.probabilities-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid #e0e0e0;
+}
+
+.probabilities-box h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.probability-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.prob-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.prob-label {
+    width: 30px;
+    font-weight: bold;
+}
+
+.prob-bar-container {
+    flex: 1;
+    height: 25px;
+    background: #e0e0e0;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.prob-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.5s ease;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.prob-bar.top {
+    background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);
+}
+
+.prob-value {
+    min-width: 45px;
+    text-align: right;
+    font-size: 14px;
+}
+
+.instructions {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+}
+
+.instructions h3 {
+    margin-bottom: 15px;
+}
+
+.instructions ul {
+    list-style-position: inside;
+    line-height: 1.8;
+}

@@ -1,0 +1,32 @@
+/home/jeozeohan/.local/lib/python3.8/site-packages/torch/cuda/__init__.py:128: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 11040). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at ../c10/cuda/CUDAFunctions.cpp:108.)
+  return torch._C._cuda_getDeviceCount() > 0
+Using device: cpu
+Starting training...
+Epoch [1/5], Step [200/938], Loss: 0.1761, Acc: 87.79%
+Epoch [1/5], Step [400/938], Loss: 0.0797, Acc: 91.99%
+Epoch [1/5], Step [600/938], Loss: 0.1058, Acc: 93.63%
+Epoch [1/5], Step [800/938], Loss: 0.1930, Acc: 94.61%
+Epoch [1/5] completed - Avg Loss: 0.1586
+Epoch [2/5], Step [200/938], Loss: 0.0537, Acc: 98.18%
+Epoch [2/5], Step [400/938], Loss: 0.0205, Acc: 98.19%
+Epoch [2/5], Step [600/938], Loss: 0.0541, Acc: 98.18%
+Epoch [2/5], Step [800/938], Loss: 0.0135, Acc: 98.28%
+Epoch [2/5] completed - Avg Loss: 0.0520
+Epoch [3/5], Step [200/938], Loss: 0.0478, Acc: 98.74%
+Epoch [3/5], Step [400/938], Loss: 0.0049, Acc: 98.81%
+Epoch [3/5], Step [600/938], Loss: 0.0103, Acc: 98.79%
+Epoch [3/5], Step [800/938], Loss: 0.0133, Acc: 98.82%
+Epoch [3/5] completed - Avg Loss: 0.0381
+Epoch [4/5], Step [200/938], Loss: 0.0435, Acc: 99.09%
+Epoch [4/5], Step [400/938], Loss: 0.0360, Acc: 99.08%
+Epoch [4/5], Step [600/938], Loss: 0.0117, Acc: 99.10%
+Epoch [4/5], Step [800/938], Loss: 0.0031, Acc: 99.05%
+Epoch [4/5] completed - Avg Loss: 0.0290
+Epoch [5/5], Step [200/938], Loss: 0.0006, Acc: 99.31%
+Epoch [5/5], Step [400/938], Loss: 0.0039, Acc: 99.23%
+Epoch [5/5], Step [600/938], Loss: 0.0013, Acc: 99.25%
+Epoch [5/5], Step [800/938], Loss: 0.0405, Acc: 99.25%
+Epoch [5/5] completed - Avg Loss: 0.0238
+
+Test Accuracy: 99.05%
+Model saved to mnist_cnn.pth

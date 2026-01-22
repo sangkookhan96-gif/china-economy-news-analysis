@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>할 일 관리</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header class="header">
+            <h1 class="header__title">할 일 관리</h1>
+            <div class="header__progress">
+                <div class="progress-bar">
+                    <div class="progress-bar__fill" id="progressFill"></div>
+                </div>
+                <span class="progress-text" id="progressText">0/0 완료</span>
+            </div>
+        </header>
+
+        <!-- 입력 영역 -->
+        <div class="input-area">
+            <input
+                type="text"
+                class="input-area__text"
+                id="todoInput"
+                placeholder="할 일을 입력하세요"
+            >
+            <select class="input-area__category" id="categorySelect">
+                <option value="업무">업무</option>
+                <option value="개인">개인</option>
+                <option value="공부">공부</option>
+            </select>
+            <button class="input-area__button" id="addButton">추가</button>
+        </div>
+
+        <!-- 필터 탭 -->
+        <nav class="filter-tabs">
+            <button class="filter-tabs__button active" data-filter="전체">전체</button>
+            <button class="filter-tabs__button" data-filter="업무">업무</button>
+            <button class="filter-tabs__button" data-filter="개인">개인</button>
+            <button class="filter-tabs__button" data-filter="공부">공부</button>
+        </nav>
+
+        <!-- 할 일 목록 -->
+        <ul class="todo-list" id="todoList"></ul>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
