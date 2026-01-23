@@ -162,6 +162,41 @@
             flex: 1;
             font-size: 16px;
             color: #333;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .item-text:hover {
+            background: rgba(92, 107, 192, 0.1);
+        }
+
+        .item-text.editing {
+            background: white;
+            outline: none;
+            border: 2px solid #5c6bc0;
+        }
+
+        .edit-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: transparent;
+            color: #5c6bc0;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 4px;
+        }
+
+        .edit-btn:hover {
+            background: #e8eaf6;
+            color: #3949ab;
         }
 
         .delete-btn {
@@ -251,8 +286,9 @@
                 shoppingList.innerHTML = items.map((item, index) => `
                     <li class="item ${item.checked ? 'checked' : ''}" data-index="${index}">
                         <div class="checkbox" onclick="toggleItem(${index})"></div>
-                        <span class="item-text">${escapeHtml(item.text)}</span>
-                        <button class="delete-btn" onclick="deleteItem(${index})">×</button>
+                        <span class="item-text" ondblclick="startEdit(${index})">${escapeHtml(item.text)}</span>
+                        <button class="edit-btn" onclick="startEdit(${index})" title="수정">✎</button>
+                        <button class="delete-btn" onclick="deleteItem(${index})" title="삭제">×</button>
                     </li>
                 `).join('');
             }
@@ -286,6 +322,47 @@
             items.splice(index, 1);
             saveItems();
             renderList();
+        }
+
+        function startEdit(index) {
+            const item = shoppingList.querySelector(`[data-index="${index}"]`);
+            const textSpan = item.querySelector('.item-text');
+            const currentText = items[index].text;
+
+            textSpan.contentEditable = true;
+            textSpan.classList.add('editing');
+            textSpan.textContent = currentText;
+            textSpan.focus();
+
+            // Select all text
+            const range = document.createRange();
+            range.selectNodeContents(textSpan);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // Remove old listeners
+            textSpan.ondblclick = null;
+
+            const saveEdit = () => {
+                const newText = textSpan.textContent.trim();
+                if (newText !== '') {
+                    items[index].text = newText;
+                    saveItems();
+                }
+                renderList();
+            };
+
+            textSpan.onblur = saveEdit;
+            textSpan.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    textSpan.blur();
+                } else if (e.key === 'Escape') {
+                    textSpan.textContent = currentText;
+                    textSpan.blur();
+                }
+            };
         }
 
         addBtn.addEventListener('click', addItem);
