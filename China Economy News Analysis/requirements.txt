@@ -1,0 +1,21 @@
+
+# Core
+anthropic>=0.40.0
+python-dotenv>=1.0.0
+
+# Web Scraping
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+feedparser>=6.0.0
+
+# Scheduling
+schedule>=1.2.0
+
+# Database
+# SQLite is built-in
+
+# Frontend (Phase 3)
+streamlit>=1.30.0
+plotly>=5.18.0
+pandas>=2.1.0
