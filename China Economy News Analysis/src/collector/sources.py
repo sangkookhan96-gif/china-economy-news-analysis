@@ -52,7 +52,7 @@ NEWS_SOURCES = {
         "type": "independent",
         "priority": 1,
         "week": 2,
-        "enabled": False,
+        "enabled": True,
     },
     "36kr": {
         "name": "36氪 (36Kr)",
@@ -68,11 +68,11 @@ NEWS_SOURCES = {
         "name": "虎嗅 (Huxiu)",
         "name_ko": "후시우",
         "url": "https://www.huxiu.com/",
-        "rss": None,
+        "rss": "https://www.huxiu.com/rss/0.xml",
         "type": "tech",
         "priority": 2,
         "week": 2,
-        "enabled": False,
+        "enabled": True,
     },
     # Week 3 - Government channels & additional tech
     "tmtpost": {
@@ -88,12 +88,12 @@ NEWS_SOURCES = {
     "beijing_gov": {
         "name": "北京市政府",
         "name_ko": "베이징시 정부",
-        "url": "http://www.beijing.gov.cn/",
+        "url": "https://www.beijing.gov.cn/",
         "rss": None,
         "type": "government",
         "priority": 1,
         "week": 3,
-        "enabled": False,
+        "enabled": True,
     },
     "shanghai_gov": {
         "name": "上海市政府",
@@ -103,17 +103,17 @@ NEWS_SOURCES = {
         "type": "government",
         "priority": 1,
         "week": 3,
-        "enabled": False,
+        "enabled": True,
     },
     "shenzhen_gov": {
-        "name": "深圳市政府",
-        "name_ko": "선전시 정부",
-        "url": "http://www.sz.gov.cn/",
+        "name": "深圳市工信局",
+        "name_ko": "선전시 공업정보화국",
+        "url": "http://gxj.sz.gov.cn/",
         "rss": None,
         "type": "government",
         "priority": 1,
         "week": 3,
-        "enabled": False,
+        "enabled": True,
     },
 }
 

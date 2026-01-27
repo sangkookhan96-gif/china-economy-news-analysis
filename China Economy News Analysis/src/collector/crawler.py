@@ -186,16 +186,327 @@ class NewsCrawler:
 
         return items
 
-    def fetch_article_content(self, url: str) -> Optional[str]:
-        """Fetch full article content from URL."""
+    def crawl_caixin(self) -> list[dict]:
+        """Crawl Caixin (차이신) - Independent financial media."""
+        items = []
+        seen_urls = set()
+
+        # Crawl multiple Caixin sections
+        sections = [
+            "https://finance.caixin.com/",
+            "https://companies.caixin.com/",
+            "https://www.caixin.com/business/",
+        ]
+
+        for section_url in sections:
+            html = self.fetch_url(section_url)
+            if not html:
+                continue
+
+            soup = BeautifulSoup(html, "lxml")
+
+            for link in soup.select("a"):
+                href = link.get("href", "")
+                title = link.get_text(strip=True)
+
+                if not href or not title or len(title) < 10:
+                    continue
+                if href in seen_urls:
+                    continue
+
+                # Match article URLs: /2026-01-26/xxxxx.html
+                if re.search(r"/\d{4}-\d{2}-\d{2}/\d+\.html", href):
+                    seen_urls.add(href)
+                    items.append({
+                        "source": "caixin",
+                        "original_url": href,
+                        "original_title": title,
+                        "original_content": "",
+                        "published_at": None,
+                    })
+
+                    if len(items) >= MAX_NEWS_PER_SOURCE:
+                        return items
+
+        return items
+
+    def crawl_huxiu(self) -> list[dict]:
+        """Crawl Huxiu (후시우) - Tech media."""
+        items = []
+        url = "https://www.huxiu.com/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        # Huxiu article links pattern
+        for link in soup.select("a[href*='huxiu.com/article']")[:MAX_NEWS_PER_SOURCE * 2]:
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 8:
+                continue
+            if not href.startswith("http"):
+                href = urljoin(url, href)
+
+            # Match article URLs: /article/xxxxx.html
+            if re.search(r"/article/\d+", href):
+                items.append({
+                    "source": "huxiu",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": None,
+                })
+
+        return items
+
+    def crawl_shanghai_gov(self) -> list[dict]:
+        """Crawl Shanghai Government (상하이시 정부) - Policy announcements."""
+        items = []
+        seen_urls = set()
+        base_url = "https://www.shanghai.gov.cn"
+
+        # Multiple pages to crawl
+        pages = [
+            "/nw12344/index.html",  # 정보공개 (Recent Information)
+            "/nw4411/index.html",   # 정책문건 (Policy Documents)
+        ]
+
+        for page in pages:
+            url = base_url + page
+            html = self.fetch_url(url)
+            if not html:
+                continue
+
+            soup = BeautifulSoup(html, "lxml")
+
+            # Find news list items
+            for li in soup.select("ul.tadaty-list li, ul.list-date li"):
+                link = li.select_one("a")
+                if not link:
+                    continue
+
+                href = link.get("href", "")
+                title = link.get("title") or link.get_text(strip=True)
+
+                if not href or not title or len(title) < 8:
+                    continue
+
+                # Build full URL
+                if not href.startswith("http"):
+                    href = urljoin(base_url, href)
+
+                # Skip duplicates
+                if href in seen_urls:
+                    continue
+                seen_urls.add(href)
+
+                # Match Shanghai gov article patterns
+                if re.search(r"/nw\d+/\d{8}/", href) and ".html" in href:
+                    # Parse date from URL if possible
+                    date_match = re.search(r"/(\d{4})(\d{2})(\d{2})/", href)
+                    published_at = None
+                    if date_match:
+                        try:
+                            published_at = datetime(
+                                int(date_match.group(1)),
+                                int(date_match.group(2)),
+                                int(date_match.group(3))
+                            )
+                        except ValueError:
+                            pass
+
+                    items.append({
+                        "source": "shanghai_gov",
+                        "original_url": href,
+                        "original_title": title,
+                        "original_content": "",
+                        "published_at": published_at,
+                    })
+
+                    if len(items) >= MAX_NEWS_PER_SOURCE:
+                        return items
+
+        return items
+
+    def crawl_shenzhen_gov(self) -> list[dict]:
+        """Crawl Shenzhen Government (선전시 정부) - Industry and IT Bureau."""
+        items = []
+        seen_urls = set()
+        base_url = "http://gxj.sz.gov.cn"
+
+        # Main page has news listed
+        html = self.fetch_url(base_url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        # Find news links with titles
+        for link in soup.select("a[href*='content/post_']"):
+            href = link.get("href", "")
+            title = link.get("title") or link.get_text(strip=True)
+
+            # Skip non-news links
+            if not href or not title or len(title) < 8:
+                continue
+            if title in ["查看详情", "业务咨询"]:
+                continue
+
+            # Build full URL
+            if not href.startswith("http"):
+                href = urljoin(base_url, href)
+
+            # Skip duplicates
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            # Match Shenzhen gov article patterns
+            if re.search(r"/content/post_\d+\.html", href):
+                items.append({
+                    "source": "shenzhen_gov",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": None,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    break
+
+        # Also try the policy documents list page
+        policy_url = "https://gxj.sz.gov.cn/xxgk/xxgkml/zcfgjzcjd/gfxwjcx/index.html"
+        html = self.fetch_url(policy_url)
+        if html:
+            soup = BeautifulSoup(html, "lxml")
+            for link in soup.select("a[href*='content/post_']"):
+                href = link.get("href", "")
+                title = link.get("title") or link.get_text(strip=True)
+
+                if not href or not title or len(title) < 8:
+                    continue
+                if href in seen_urls:
+                    continue
+
+                if not href.startswith("http"):
+                    href = urljoin(base_url, href)
+
+                seen_urls.add(href)
+                items.append({
+                    "source": "shenzhen_gov",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": None,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    break
+
+        return items
+
+    def crawl_beijing_gov(self) -> list[dict]:
+        """Crawl Beijing Government (베이징시 정부) - Policy documents."""
+        items = []
+        seen_urls = set()
+        base_url = "https://www.beijing.gov.cn"
+
+        # Policy documents page
+        policy_url = f"{base_url}/zhengce/zhengcefagui/index.html"
+        html = self.fetch_url(policy_url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        # Find policy links in list items
+        for li in soup.select("li"):
+            link = li.select_one("a[href*='.html']")
+            if not link:
+                continue
+
+            href = link.get("href", "")
+            title = link.get("title") or link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            # Build full URL
+            if href.startswith("./"):
+                href = f"{base_url}/zhengce/zhengcefagui/{href[2:]}"
+            elif href.startswith("/"):
+                href = base_url + href
+            elif not href.startswith("http"):
+                href = urljoin(policy_url, href)
+
+            # Skip duplicates
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            # Match Beijing gov article patterns
+            if re.search(r"/\d{6}/t\d{8}_\d+\.html", href):
+                # Parse date from URL
+                date_match = re.search(r"/(\d{4})(\d{2})/t(\d{4})(\d{2})(\d{2})_", href)
+                published_at = None
+                if date_match:
+                    try:
+                        published_at = datetime(
+                            int(date_match.group(3)),
+                            int(date_match.group(4)),
+                            int(date_match.group(5))
+                        )
+                    except ValueError:
+                        pass
+
+                items.append({
+                    "source": "beijing_gov",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": published_at,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    break
+
+        return items
+
+    def fetch_article_content(self, url: str, source: str = "") -> Optional[str]:
+        """Fetch full article content from URL.
+
+        Args:
+            url: Article URL
+            source: Source key for site-specific parsing
+
+        Returns:
+            Article content text or None
+        """
         html = self.fetch_url(url)
         if not html:
             return None
 
         soup = BeautifulSoup(html, "lxml")
 
-        # Common article content selectors
-        content_selectors = [
+        # Site-specific selectors
+        site_selectors = {
+            "people": ["div.rm_txt_con", "div.content", "div.article"],
+            "ce": ["div.TRS_Editor", "div.content", "div.article"],
+            "stcn": ["div.txt_content", "div.article-content", "article"],
+            "caixin": ["div#Main_Content_Val", "div.article-content", "article"],
+            "huxiu": ["div.article-content-wrap", "div.article__content", "article"],
+            "36kr": ["div.article-content", "div.content", "article"],
+            "shanghai_gov": ["div.Article_content", "div.article-con", "div.zwgk-text", "div.content"],
+            "shenzhen_gov": ["div.news_cont_d_wrap", "div.zwgk-text", "div.article-content", "div.content"],
+            "beijing_gov": ["div.view TRS_UEDITOR", "div.xl_news", "div.article-content", "div.content"],
+        }
+
+        # Get selectors for this source or use defaults
+        selectors = site_selectors.get(source, [])
+        selectors.extend([
             "div.article-content",
             "div.content",
             "div.article",
@@ -203,22 +514,64 @@ class NewsCrawler:
             "article",
             "div.text",
             "div.detail",
-        ]
+        ])
 
-        for selector in content_selectors:
+        for selector in selectors:
             content_div = soup.select_one(selector)
             if content_div:
-                # Remove script and style tags
-                for tag in content_div.find_all(["script", "style"]):
+                # Remove unwanted elements
+                for tag in content_div.find_all(["script", "style", "nav", "footer", "aside"]):
                     tag.decompose()
                 text = content_div.get_text(separator="\n", strip=True)
                 if len(text) > 100:
-                    return text
+                    return text[:10000]  # Limit to 10k chars
 
         # Fallback: get all paragraphs
         paragraphs = soup.find_all("p")
         text = "\n".join(p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 20)
-        return text if len(text) > 100 else None
+        return text[:10000] if len(text) > 100 else None
+
+    def enrich_news_content(self, limit: int = 10) -> int:
+        """Fetch full content for news items missing content.
+
+        Args:
+            limit: Maximum number of items to enrich
+
+        Returns:
+            Number of items enriched
+        """
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Get news items without content
+        cursor.execute("""
+            SELECT id, source, original_url FROM news
+            WHERE (original_content IS NULL OR original_content = '')
+            ORDER BY collected_at DESC
+            LIMIT ?
+        """, (limit,))
+
+        items = cursor.fetchall()
+        enriched = 0
+
+        for item in items:
+            news_id, source, url = item["id"], item["source"], item["original_url"]
+            logger.info(f"Fetching content for news {news_id}...")
+
+            content = self.fetch_article_content(url, source)
+            if content:
+                cursor.execute("""
+                    UPDATE news SET original_content = ?, updated_at = ?
+                    WHERE id = ?
+                """, (content, datetime.now(), news_id))
+                enriched += 1
+                logger.info(f"  Content fetched: {len(content)} chars")
+            else:
+                logger.warning(f"  Failed to fetch content")
+
+        conn.commit()
+        conn.close()
+        return enriched
 
     def is_relevant_news(self, title: str, content: str = "") -> bool:
         """Check if news is relevant to target industries or economy."""

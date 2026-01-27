@@ -15,7 +15,12 @@ schedule>=1.2.0
 # Database
 # SQLite is built-in
 
-# Frontend (Phase 3)
+# Frontend (Phase 2)
 streamlit>=1.30.0
 plotly>=5.18.0
 pandas>=2.1.0
+
+# Report Export (Phase 3)
+openpyxl>=3.1.0
+xlsxwriter>=3.1.0
+fpdf2>=2.7.0
