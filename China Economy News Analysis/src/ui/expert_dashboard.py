@@ -15,6 +15,7 @@ from src.utils.notifications import (
     NotificationManager, toggle_bookmark, set_tags, get_tags,
     get_all_tags, get_bookmarked_news
 )
+from src.utils.markdown_review import MarkdownReviewManager
 from config.settings import ANTHROPIC_API_KEY, CLAUDE_MODEL
 
 
@@ -646,9 +647,9 @@ def main():
     unread_count = stats['unread_notifications']
     notification_label = f"🔔 알림 ({unread_count})" if unread_count > 0 else "🔔 알림"
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "🔥 AI 추천 뉴스", "⭐ 북마크", "📝 리뷰 완료",
-        notification_label, "📥 리포트 내보내기"
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "🔥 AI 추천 뉴스", "⭐ 북마크", "📂 Markdown 리뷰",
+        "📝 리뷰 완료", notification_label, "📥 리포트 내보내기"
     ])
 
     with tab1:
@@ -766,35 +767,81 @@ def main():
 
                         st.markdown("---")
 
-                        # Expert comment section
-                        st.markdown("**💬 전문가 코멘터리**")
+                        # Expert comment section - Markdown based with Git
+                        st.markdown("**📝 전문가 논평 (Markdown + Git)**")
 
-                        existing_comment = row.get('expert_comment', '') or ''
+                        md_review_manager = MarkdownReviewManager()
+
+                        # Load existing review or DB comment
+                        existing_md = md_review_manager.load_review(news_id)
+                        existing_db_comment = row.get('expert_comment', '') or ''
+
+                        # Determine what to show in editor
+                        if existing_md:
+                            # Extract just the comment part for editing
+                            expert_comment = md_review_manager.extract_expert_comment(existing_md)
+                            review_file_path = md_review_manager.get_review_path(news_id)
+                            st.caption(f"📁 {review_file_path}")
+                        else:
+                            expert_comment = existing_db_comment
+
                         comment_key = f"comment_{news_id}"
 
-                        expert_comment = st.text_area(
-                            "의견을 입력하세요",
-                            value=existing_comment,
-                            height=100,
+                        expert_comment_input = st.text_area(
+                            "Markdown 형식으로 논평을 입력하세요",
+                            value=expert_comment,
+                            height=150,
                             key=comment_key,
-                            placeholder="이 뉴스에 대한 전문가 의견, 추가 분석, 투자 시사점 등을 입력하세요..."
+                            placeholder="## 핵심 분석\n- 포인트 1\n- 포인트 2\n\n## 투자 시사점\n..."
                         )
 
-                        col_btn1, col_btn2 = st.columns([0.3, 0.7])
+                        col_btn1, col_btn2, col_btn3 = st.columns([0.25, 0.25, 0.5])
 
                         with col_btn1:
-                            if st.button("💾 저장", key=f"save_{news_id}"):
-                                if expert_comment.strip():
-                                    if save_expert_comment(news_id, expert_comment):
-                                        st.success("저장되었습니다!")
-                                        st.rerun()
+                            if st.button("💾 저장 + Git", key=f"save_{news_id}"):
+                                if expert_comment_input.strip():
+                                    # Prepare news data for template
+                                    news_data = dict(row)
+
+                                    # Save to Markdown file with Git commit
+                                    result = md_review_manager.save_review(
+                                        news_id=news_id,
+                                        content=expert_comment_input,
+                                        news=news_data,
+                                        auto_commit=True
+                                    )
+
+                                    # Also save to DB for compatibility
+                                    save_expert_comment(news_id, expert_comment_input)
+
+                                    if result['committed']:
+                                        st.success(f"✅ Git 커밋 완료!")
+                                    else:
+                                        st.warning(result['message'])
+                                    st.rerun()
                                 else:
-                                    st.warning("코멘트를 입력해주세요.")
+                                    st.warning("논평을 입력해주세요.")
 
                         with col_btn2:
+                            if st.button("📄 파일만 저장", key=f"save_file_{news_id}"):
+                                if expert_comment_input.strip():
+                                    news_data = dict(row)
+                                    result = md_review_manager.save_review(
+                                        news_id=news_id,
+                                        content=expert_comment_input,
+                                        news=news_data,
+                                        auto_commit=False
+                                    )
+                                    save_expert_comment(news_id, expert_comment_input)
+                                    st.success(f"📁 {result['file_path']}")
+                                    st.rerun()
+                                else:
+                                    st.warning("논평을 입력해주세요.")
+
+                        with col_btn3:
                             if st.button("🤖 AI 최종 리뷰 생성", key=f"ai_{news_id}"):
-                                if not expert_comment.strip():
-                                    st.warning("먼저 전문가 코멘트를 저장해주세요.")
+                                if not expert_comment_input.strip():
+                                    st.warning("먼저 전문가 논평을 저장해주세요.")
                                 else:
                                     with st.spinner("AI가 리뷰를 생성중입니다..."):
                                         result = generate_ai_final_review(news_id)
@@ -864,6 +911,46 @@ def main():
                         st.rerun()
 
     with tab3:
+        st.subheader("📂 Markdown 리뷰 파일")
+        st.markdown("Git으로 버전 관리되는 Markdown 형식의 전문가 논평입니다.")
+
+        md_manager = MarkdownReviewManager()
+        md_reviews = md_manager.list_reviews(limit=30)
+
+        if not md_reviews:
+            st.info("아직 Markdown 리뷰가 없습니다. 'AI 추천 뉴스' 탭에서 논평을 작성하면 자동으로 생성됩니다.")
+        else:
+            # Group by date
+            reviews_by_date = {}
+            for review in md_reviews:
+                date = review['date']
+                if date not in reviews_by_date:
+                    reviews_by_date[date] = []
+                reviews_by_date[date].append(review)
+
+            for date, reviews in reviews_by_date.items():
+                st.markdown(f"### 📅 {date}")
+
+                for review in reviews:
+                    with st.expander(f"📄 {review['title'][:60]}...", expanded=False):
+                        # Show file path
+                        st.caption(f"📁 `{review['file_path']}`")
+
+                        # Load full content
+                        full_content = md_manager.load_review(review['news_id'])
+                        if full_content:
+                            st.markdown(full_content)
+
+                        # Edit button
+                        col1, col2 = st.columns([0.3, 0.7])
+                        with col1:
+                            if st.button("✏️ 편집", key=f"edit_md_{review['news_id']}"):
+                                st.session_state[f"editing_{review['news_id']}"] = True
+                                st.rerun()
+
+                st.markdown("---")
+
+    with tab4:
         st.subheader("📝 리뷰 완료 뉴스")
 
         conn = get_connection()
@@ -900,7 +987,7 @@ def main():
 
                     st.caption(f"리뷰 시간: {row.get('review_completed_at', '-')}")
 
-    with tab4:
+    with tab5:
         st.subheader("🔔 알림")
 
         # Notification settings
@@ -988,7 +1075,7 @@ def main():
 
                     st.markdown("---")
 
-    with tab5:
+    with tab6:
         st.subheader("📥 리포트 내보내기")
         st.markdown("분석된 뉴스를 Excel 또는 PDF 형식으로 내보냅니다.")
 
