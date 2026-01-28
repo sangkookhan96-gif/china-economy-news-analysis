@@ -195,6 +195,26 @@ def migrate_db():
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_news_expert_review_status ON news(expert_review_status)")
 
+    # Trigger: block expert_reviews insert unless news is queued_today
+    cursor.execute("""
+        CREATE TRIGGER IF NOT EXISTS trg_check_expert_review_status
+        BEFORE INSERT ON expert_reviews
+        FOR EACH ROW
+        BEGIN
+            SELECT
+                RAISE(
+                    ABORT,
+                    'Expert comments can only be written when expert_review_status = queued_today'
+                )
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM news
+                WHERE id = NEW.news_id
+                  AND expert_review_status = 'queued_today'
+            );
+        END;
+    """)
+
     conn.commit()
     conn.close()
     print("Database migration completed.")
