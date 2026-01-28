@@ -170,6 +170,7 @@ def get_eligible_candidates(conn) -> list:
         WHERE
             analyzed_at IS NOT NULL
             AND (expert_review_status = 'none' OR expert_review_status IS NULL)
+            AND expert_review_status != 'skipped'  -- permanently exclude skipped items
             AND importance_score >= 0.65
             AND published_at >= ?
             AND LENGTH(original_content) >= 600

@@ -215,6 +215,19 @@ def migrate_db():
         END;
     """)
 
+    # Trigger: auto-update news status to 'commented' after expert review insert
+    cursor.execute("""
+        CREATE TRIGGER IF NOT EXISTS trg_set_expert_review_commented
+        AFTER INSERT ON expert_reviews
+        FOR EACH ROW
+        BEGIN
+            UPDATE news
+            SET expert_review_status = 'commented',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = NEW.news_id;
+        END;
+    """)
+
     conn.commit()
     conn.close()
     print("Database migration completed.")
