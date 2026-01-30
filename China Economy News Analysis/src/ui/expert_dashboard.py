@@ -952,10 +952,12 @@ def main():
                     reviews_by_date[date] = []
                 reviews_by_date[date].append(review)
 
+            review_idx = 0
             for date, reviews in reviews_by_date.items():
                 st.markdown(f"### 📅 {date}")
 
                 for review in reviews:
+                    review_idx += 1
                     with st.expander(f"📄 {review['title'][:60]}...", expanded=False):
                         # Show file path
                         st.caption(f"📁 `{review['file_path']}`")
@@ -968,7 +970,7 @@ def main():
                         # Edit button
                         col1, col2 = st.columns([0.3, 0.7])
                         with col1:
-                            if st.button("✏️ 편집", key=f"edit_md_{review['news_id']}"):
+                            if st.button("✏️ 편집", key=f"edit_md_{review['news_id']}_{review_idx}"):
                                 st.session_state[f"editing_{review['news_id']}"] = True
                                 st.rerun()
 

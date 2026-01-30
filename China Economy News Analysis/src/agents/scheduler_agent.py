@@ -274,6 +274,27 @@ class SchedulerAgent:
         logger.info(f"  - Daily summary: at 00:00")
         logger.info(f"  - Daily news selection: at 06:00")
 
+    def check_missed_daily_tasks(self):
+        """Check if daily tasks were missed (e.g., after reboot) and run them."""
+        now = datetime.now()
+
+        # Check if daily news selection (06:00) was missed today
+        if now.hour >= 6 and self.stats["last_daily_selection"] is None:
+            # Check DB for today's queued items
+            conn = get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT COUNT(*) as cnt FROM news
+                WHERE expert_review_status = 'queued_today'
+            """)
+            queued = cursor.fetchone()["cnt"]
+            conn.close()
+
+            if queued == 0:
+                logger.info("Missed daily news selection detected (06:00 task). Running now...")
+                self.run_hourly_task()  # Collect and analyze first
+                self.run_daily_news_selection()
+
     def run(self, run_immediately: bool = True):
         """Start the scheduler agent."""
         logger.info("=" * 50)
@@ -291,6 +312,9 @@ class SchedulerAgent:
         if run_immediately:
             logger.info("Running initial collection...")
             self.run_hourly_task()
+
+        # Check for missed daily tasks (e.g., after reboot past 06:00)
+        self.check_missed_daily_tasks()
 
         # Main loop
         logger.info("Entering scheduler loop (Ctrl+C to stop)...")

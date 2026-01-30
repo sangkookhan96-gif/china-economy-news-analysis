@@ -47,6 +47,9 @@ def init_db():
             uncertainty_score REAL,
             expert_explainability_score REAL,
             topic_vector TEXT,
+            content_score REAL,
+            score_breakdown TEXT,
+            score_explanation TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
@@ -113,6 +116,7 @@ def init_db():
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_news_collected ON news(collected_at DESC)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_reviews_news ON expert_reviews(news_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_reviews_completed ON expert_reviews(review_completed_at DESC)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_news_content_score ON news(content_score DESC)")
 
     conn.commit()
     conn.close()
@@ -156,6 +160,19 @@ def migrate_db():
     if 'topic_vector' not in columns:
         cursor.execute("ALTER TABLE news ADD COLUMN topic_vector TEXT")
         print("Added topic_vector column to news table")
+
+    # Content-Based Scoring 컬럼
+    if 'content_score' not in columns:
+        cursor.execute("ALTER TABLE news ADD COLUMN content_score REAL")
+        print("Added content_score column to news table")
+
+    if 'score_breakdown' not in columns:
+        cursor.execute("ALTER TABLE news ADD COLUMN score_breakdown TEXT")
+        print("Added score_breakdown (JSON) column to news table")
+
+    if 'score_explanation' not in columns:
+        cursor.execute("ALTER TABLE news ADD COLUMN score_explanation TEXT")
+        print("Added score_explanation column to news table")
 
     # Create notifications tables if not exist
     cursor.execute("""

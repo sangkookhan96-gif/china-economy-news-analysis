@@ -344,6 +344,9 @@ class NewsCrawler:
 
         soup = BeautifulSoup(html, "lxml")
 
+        # Non-news URL patterns to skip (department pages, org charts, etc.)
+        shenzhen_skip_patterns = ["/jgzn/", "/nsjg/", "/zsjg/", "/ldjs/"]
+
         # Find news links with titles
         for link in soup.select("a[href*='content/post_']"):
             href = link.get("href", "")
@@ -358,6 +361,10 @@ class NewsCrawler:
             # Build full URL
             if not href.startswith("http"):
                 href = urljoin(base_url, href)
+
+            # Skip department/org pages (not news)
+            if any(pat in href for pat in shenzhen_skip_patterns):
+                continue
 
             # Skip duplicates
             if href in seen_urls:
@@ -475,6 +482,505 @@ class NewsCrawler:
 
         return items
 
+    def crawl_cls(self) -> list[dict]:
+        """Crawl CLS (차이롄셔 财联社)."""
+        items = []
+        url = "https://www.cls.cn/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+        seen_urls = set()
+
+        for link in soup.select("a[href*='/detail/']")[:MAX_NEWS_PER_SOURCE * 2]:
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+            if not href.startswith("http"):
+                href = urljoin(url, href)
+            if href in seen_urls:
+                continue
+
+            if re.search(r"/detail/\d+", href):
+                seen_urls.add(href)
+                items.append({
+                    "source": "cls",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": None,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    break
+
+        return items
+
+    def crawl_jiemian(self) -> list[dict]:
+        """Crawl Jiemian News (지에미엔뉴스 界面新闻)."""
+        items = []
+        url = "https://www.jiemian.com/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+        seen_urls = set()
+
+        for link in soup.select("a[href*='/article/']")[:MAX_NEWS_PER_SOURCE * 2]:
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+            if not href.startswith("http"):
+                href = urljoin(url, href)
+            if href in seen_urls:
+                continue
+
+            if re.search(r"/article/\d+\.html", href):
+                seen_urls.add(href)
+                items.append({
+                    "source": "jiemian",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": None,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    break
+
+        return items
+
+    def crawl_yicai(self) -> list[dict]:
+        """Crawl Yicai (디이차이징 第一财经)."""
+        items = []
+        url = "https://www.yicai.com/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+        seen_urls = set()
+
+        for link in soup.select("a[href*='/news/']")[:MAX_NEWS_PER_SOURCE * 2]:
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+            if not href.startswith("http"):
+                href = urljoin(url, href)
+            if href in seen_urls:
+                continue
+
+            if re.search(r"/news/\d+\.html", href):
+                seen_urls.add(href)
+                items.append({
+                    "source": "yicai",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": None,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    break
+
+        return items
+
+    def crawl_sina_finance(self) -> list[dict]:
+        """Crawl Sina Finance (시나 파이낸스 新浪财经)."""
+        items = []
+        url = "https://finance.sina.com.cn/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+        seen_urls = set()
+
+        # Links can be absolute or relative paths with doc-xxx.shtml pattern
+        for link in soup.select("a"):
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            # Match doc-xxx.shtml pattern
+            if not re.search(r"/doc-[a-z0-9]+\.shtml", href):
+                continue
+
+            if not href.startswith("http"):
+                href = urljoin(url, href)
+            if href in seen_urls:
+                continue
+
+            seen_urls.add(href)
+            items.append({
+                "source": "sina_finance",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": None,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
+    def crawl_21jingji(self) -> list[dict]:
+        """Crawl 21st Century Business Herald (21세기경제보도 21世纪经济报道)."""
+        items = []
+        url = "https://www.21jingji.com/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+        seen_urls = set()
+
+        for link in soup.select("a[href*='/article/']")[:MAX_NEWS_PER_SOURCE * 2]:
+            href = link.get("href", "")
+            title = link.get("title") or link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+            if not href.startswith("http"):
+                href = urljoin(url, href)
+            if href in seen_urls:
+                continue
+
+            # Match /article/YYYYMMDD/section/hash.html
+            if re.search(r"/article/\d{8}/\w+/[a-f0-9]+\.html", href):
+                seen_urls.add(href)
+                # Parse date from URL
+                date_match = re.search(r"/article/(\d{4})(\d{2})(\d{2})/", href)
+                published_at = None
+                if date_match:
+                    try:
+                        published_at = datetime(
+                            int(date_match.group(1)),
+                            int(date_match.group(2)),
+                            int(date_match.group(3))
+                        )
+                    except ValueError:
+                        pass
+
+                items.append({
+                    "source": "21jingji",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": published_at,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    break
+
+        return items
+
+    def crawl_xinhua_finance(self) -> list[dict]:
+        """Crawl Xinhua Finance (신화파이낸스 新华财经)."""
+        items = []
+        url = "https://www.cnfin.com/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+        seen_urls = set()
+
+        # Links are protocol-relative: //www.cnfin.com/yw-lb/detail/...
+        for link in soup.select("a"):
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            # Match /detail/YYYYMMDD/id_1.html pattern
+            if not re.search(r"/detail/\d{8}/\d+_1\.html", href):
+                continue
+
+            if href.startswith("//"):
+                href = "https:" + href
+            elif not href.startswith("http"):
+                href = urljoin(url, href)
+            if href in seen_urls:
+                continue
+
+            seen_urls.add(href)
+            # Parse date from URL
+            date_match = re.search(r"/detail/(\d{4})(\d{2})(\d{2})/", href)
+            published_at = None
+            if date_match:
+                try:
+                    published_at = datetime(
+                        int(date_match.group(1)),
+                        int(date_match.group(2)),
+                        int(date_match.group(3))
+                    )
+                except ValueError:
+                    pass
+
+            items.append({
+                "source": "xinhua_finance",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": published_at,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
+    # =================================================================
+    # Week 5: Central Government Sources (중앙정부)
+    # =================================================================
+
+    def crawl_gov_cn(self) -> list[dict]:
+        """Crawl 中国政府网 (국무원) - 최신 정책."""
+        items = []
+        seen_urls = set()
+        base_url = "https://www.gov.cn"
+        page_url = f"{base_url}/zhengce/zuixin/"
+
+        html = self.fetch_url(page_url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        for link in soup.select("a"):
+            href = link.get("href", "")
+            title = link.get("title") or link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            # 기사 URL 패턴: /content/YYYYMM/content_XXXXXXX.htm
+            if not re.search(r"/content/\d{6}/content_\d+\.htm", href):
+                continue
+
+            if not href.startswith("http"):
+                href = urljoin(page_url, href)
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            items.append({
+                "source": "gov_cn",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": None,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
+    def crawl_ndrc(self) -> list[dict]:
+        """Crawl 国家发改委 (발개위) - 뉴스 발표 + 정책 발표."""
+        items = []
+        seen_urls = set()
+
+        pages = [
+            "https://www.ndrc.gov.cn/xwdt/xwfb/",    # 新闻发布 (뉴스 발표)
+            "https://www.ndrc.gov.cn/xxgk/zcfb/",     # 政策发布 (정책 발표)
+        ]
+
+        for page_url in pages:
+            html = self.fetch_url(page_url)
+            if not html:
+                continue
+
+            soup = BeautifulSoup(html, "lxml")
+
+            for link in soup.select("a"):
+                href = link.get("href", "")
+                title = link.get("title") or link.get_text(strip=True)
+
+                if not href or not title or len(title) < 10:
+                    continue
+
+                # 기사 URL 패턴: ./YYYYMM/tYYYYMMDD_XXXXXXX.html (상대경로)
+                # 또는 절대경로 /xwdt/xwfb/YYYYMM/tYYYYMMDD_XXXXXXX.html
+                if not re.search(r"t\d{8}_\d+\.html", href):
+                    continue
+
+                # 상대경로를 page_url 기준으로 해석 (base_url이 아닌 page_url)
+                if not href.startswith("http"):
+                    href = urljoin(page_url, href)
+                if href in seen_urls:
+                    continue
+                seen_urls.add(href)
+
+                items.append({
+                    "source": "ndrc",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": None,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    return items
+
+        return items
+
+    def crawl_mof(self) -> list[dict]:
+        """Crawl 财政部 (재정부) - 재정 뉴스."""
+        items = []
+        seen_urls = set()
+        base_url = "https://www.mof.gov.cn"
+        page_url = f"{base_url}/zhengwuxinxi/caizhengxinwen/"
+
+        html = self.fetch_url(page_url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        for link in soup.select("a"):
+            href = link.get("href", "")
+            title = link.get("title") or link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            # 기사 URL 패턴: /tYYYYMMDD_XXXXXXX.htm
+            if not re.search(r"/t\d{8}_\d+\.htm", href):
+                continue
+
+            if not href.startswith("http"):
+                href = urljoin(page_url, href)
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            items.append({
+                "source": "mof",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": None,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
+    def crawl_pboc(self) -> list[dict]:
+        """Crawl 中国人民银行 (인민은행) - 정책 소통."""
+        items = []
+        seen_urls = set()
+        base_url = "http://www.pbc.gov.cn"
+        # 新闻发布 > 货币政策/金融市场
+        page_url = f"{base_url}/goutongjiaoliu/113456/113469/index.html"
+
+        html = self.fetch_url(page_url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        for link in soup.select("a"):
+            href = link.get("href", "")
+            title = link.get("title") or link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            # 기사 URL 패턴: /XXXXXXXXXXXXXXXXXXX/index.html (19자리 이상 숫자)
+            if not re.search(r"/\d{19,}/index\.html", href):
+                continue
+
+            if not href.startswith("http"):
+                href = urljoin(page_url, href)
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            items.append({
+                "source": "pboc",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": None,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
+    def crawl_mofcom(self) -> list[dict]:
+        """Crawl 商务部 (상무부) - 뉴스 발표 + 정책 해석."""
+        items = []
+        seen_urls = set()
+
+        # 메인 페이지 + 인터뷰/발표 서브도메인
+        pages = [
+            "https://www.mofcom.gov.cn/",
+            "http://interview.mofcom.gov.cn/",
+        ]
+
+        for page_url in pages:
+            html = self.fetch_url(page_url)
+            if not html:
+                continue
+
+            base = page_url.rstrip("/")
+            soup = BeautifulSoup(html, "lxml")
+
+            for link in soup.select("a"):
+                href = link.get("href", "")
+                title = link.get("title") or link.get_text(strip=True)
+
+                if not href or not title or len(title) < 10:
+                    continue
+
+                # 기사 URL 패턴:
+                # /art/YYYY/art_XXXXX (정책/공지)
+                # /detail/YYYYMM/XXXXX.html (인터뷰/기자회견)
+                is_article = (
+                    re.search(r"/art/\d{4}/art_\w+", href) or
+                    re.search(r"/detail/\d{6}/\w+\.html?", href)
+                )
+                if not is_article:
+                    continue
+
+                if not href.startswith("http"):
+                    href = urljoin(base, href)
+                if href in seen_urls:
+                    continue
+                seen_urls.add(href)
+
+                items.append({
+                    "source": "mofcom",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": None,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    return items
+
+        return items
+
     def fetch_article_content(self, url: str, source: str = "") -> Optional[str]:
         """Fetch full article content from URL.
 
@@ -502,6 +1008,18 @@ class NewsCrawler:
             "shanghai_gov": ["div.Article_content", "div.article-con", "div.zwgk-text", "div.content"],
             "shenzhen_gov": ["div.news_cont_d_wrap", "div.zwgk-text", "div.article-content", "div.content"],
             "beijing_gov": ["div.view TRS_UEDITOR", "div.xl_news", "div.article-content", "div.content"],
+            "cls": ["div.detail-content", "div.article-content", "article"],
+            "jiemian": ["div.article-content", "div.article-main", "article"],
+            "yicai": ["div.m-text", "div.article-content", "article"],
+            "sina_finance": ["div.article-content-left", "div#artibody", "div.article"],
+            "21jingji": ["div.article-content", "div.txtContent", "article"],
+            "xinhua_finance": ["div.detail-content", "div.article-content", "article"],
+            # Week 5 중앙정부
+            "gov_cn": ["#UCAP-CONTENT", "div.pages_content", "div.article"],
+            "ndrc": ["div.TRS_Editor", "div.article_con", "div.content"],
+            "mof": ["div.TRS_Editor", "div.content", "article"],
+            "pboc": ["div#zoom", "div.content", "article"],
+            "mofcom": ["div.article-content", "div.content", "div.TRS_Editor"],
         }
 
         # Get selectors for this source or use defaults
@@ -529,7 +1047,24 @@ class NewsCrawler:
         # Fallback: get all paragraphs
         paragraphs = soup.find_all("p")
         text = "\n".join(p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 20)
-        return text[:10000] if len(text) > 100 else None
+        if len(text) > 100:
+            return text[:10000]
+
+        # PDF 첨부파일 자동 감지 및 추출 (중앙정부 사이트에 흔함)
+        try:
+            from src.collector.pdf_extractor import find_pdf_links, extract_pdf_text
+            pdf_links = find_pdf_links(html, url)
+            if pdf_links:
+                logger.info(f"  PDF {len(pdf_links)}개 감지: {url}")
+                for pdf_url in pdf_links[:2]:  # 최대 2개 PDF만 시도
+                    pdf_text = extract_pdf_text(pdf_url, dict(self.session.headers))
+                    if pdf_text and len(pdf_text) > 100:
+                        logger.info(f"  PDF 텍스트 추출 성공: {len(pdf_text)}자")
+                        return pdf_text
+        except Exception as e:
+            logger.debug(f"PDF extraction skipped: {e}")
+
+        return None
 
     def enrich_news_content(self, limit: int = 10) -> int:
         """Fetch full content for news items missing content.

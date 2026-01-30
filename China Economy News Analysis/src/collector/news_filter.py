@@ -1,7 +1,15 @@
-"""뉴스 선정 및 필터링 모듈 - 출처 다양성 + 품질 기반 선정"""
+"""뉴스 선정 및 필터링 모듈 - 출처 다양성 + 품질 기반 선정 + 내용적 점수"""
 
+import logging
 import re
 from collections import defaultdict
+
+from src.collector.content_scorer import ContentScorer
+
+logger = logging.getLogger(__name__)
+
+# 내용적 점수 평가기 (모듈 레벨 싱글턴)
+_content_scorer = ContentScorer()
 
 EXCLUDED_KEYWORDS = ['论评', '专栏', '社论', '观点', '评论', '投稿', '广告', 'PR', '新闻稿', '赞助', '专题', '访谈', '座谈', '论坛', '活动', '开幕']
 DATA_PATTERNS = [r'\d+%', r'\d+亿', r'\d+万', r'\d+兆', r'\d+元', r'\d+\.\d+%']
@@ -25,8 +33,22 @@ BRIEF_NEWS_PATTERNS = [
 # 지방정부 출처
 LOCAL_GOV_SOURCES = ['beijing_gov', 'shanghai_gov', 'shenzhen_gov']
 
-# 중앙 미디어/기관 출처
-CENTRAL_SOURCES = ['xinhua', 'people', 'ce', 'caixin', '36kr', 'stcn', 'huxiu']
+# 출처별 최대 선정 건수 제한 (지정하지 않은 출처는 balance_categories의 기본 로직 적용)
+SOURCE_MAX_COUNT = {
+    'shenzhen_gov': 1,
+}
+
+# 중앙 미디어/기관 출처 (중앙정부 포함 — 중앙 보너스 +5 대상)
+CENTRAL_SOURCES = [
+    'xinhua', 'people', 'ce', 'caixin', '36kr', 'stcn', 'huxiu',
+    'cls', 'jiemian', 'yicai', 'sina_finance',
+    '21jingji', 'xinhua_finance',
+    # Week 5 중앙정부
+    'gov_cn', 'ndrc', 'mof', 'pboc', 'mofcom',
+]
+
+# 중앙정부 출처 (행정 키워드 필터 면제 — 정책 발표문이 필터링되지 않도록)
+CENTRAL_GOV_SOURCES = ['gov_cn', 'ndrc', 'mof', 'pboc', 'mofcom']
 
 CATEGORIES = {
     '정책': ['政策', '政府', '通知', '规划', '强制', '意见'],
@@ -49,7 +71,19 @@ SOURCE_PRIORITY = {
     'huxiu': 8,
     'beijing_gov': 4,
     'shanghai_gov': 4,
-    'shenzhen_gov': 4
+    'shenzhen_gov': 4,
+    'cls': 9,
+    'jiemian': 8,
+    'yicai': 10,
+    'sina_finance': 8,
+    '21jingji': 9,
+    'xinhua_finance': 10,
+    # Week 5 중앙정부
+    'gov_cn': 12,
+    'pboc': 12,
+    'ndrc': 11,
+    'mof': 11,
+    'mofcom': 10,
 }
 
 # 사실 풍부도 관련 키워드
@@ -80,7 +114,7 @@ def is_brief_news(title: str, content: str) -> bool:
         if re.search(pattern, combined):
             return True
     # 제목이 너무 짧고 내용도 짧으면 단신
-    if len(title) < 20 and len(content) < 200:
+    if len(title) < 20 and len(content) < 100:
         return True
     return False
 
@@ -99,15 +133,15 @@ def calculate_fact_richness(title: str, content: str) -> int:
     score += min(fact_count * 2, 8)  # 최대 8점
 
     # 내용 길이 보너스
-    if len(content) > 1000:
+    if len(content) > 500:
         score += 3
-    elif len(content) > 500:
+    elif len(content) > 250:
         score += 1
-    elif len(content) < 200:
+    elif len(content) < 100:
         score -= 5  # 내용이 너무 짧으면 감점
 
     # 제목만 있고 내용이 거의 없으면 감점
-    if len(content) < 100:
+    if len(content) < 50:
         score -= 10
 
     return score
@@ -133,28 +167,37 @@ def calculate_scope_score(title: str, content: str) -> tuple:
         return (7, True)  # 중립
 
 
-def is_factual_news(title: str, content: str) -> bool:
-    """사실 뉴스인지 판단"""
+def is_factual_news(title: str, content: str, source: str = "") -> bool:
+    """사실 뉴스인지 판단.
+
+    중앙정부 출처(CENTRAL_GOV_SOURCES)는 행정 키워드 필터를 면제한다.
+    정책 발표문이 '关于印发', '办公厅关于' 등의 패턴으로 필터링되는 것을 방지.
+    """
     combined = title + content
 
-    # 논설/칼럼 제외
+    # 논설/칼럼 제외 (모든 출처 동일)
     if any(kw in combined for kw in EXCLUDED_KEYWORDS):
         return False
 
-    # 정부 행정 공지 제외
-    if any(kw in combined for kw in GOVERNMENT_ADMIN_KEYWORDS):
-        return False
+    # 정부 행정 공지 제외 — 중앙정부 출처는 면제
+    if source not in CENTRAL_GOV_SOURCES:
+        if any(kw in combined for kw in GOVERNMENT_ADMIN_KEYWORDS):
+            return False
 
     return True
 
 
-def has_analytical_value(title: str, content: str) -> bool:
-    """분석 가치 판단"""
+def has_analytical_value(title: str, content: str, source: str = "") -> bool:
+    """분석 가치 판단.
+
+    중앙정부 출처는 '印发+办公' 통지문 필터를 면제한다.
+    """
     combined = title + content
 
-    # 정부 단순 통지문 제외
-    if '印发' in title and '办公' in title:
-        return False
+    # 정부 단순 통지문 제외 — 중앙정부 출처는 면제
+    if source not in CENTRAL_GOV_SOURCES:
+        if '印发' in title and '办公' in title:
+            return False
 
     if any(re.search(p, combined) for p in DATA_PATTERNS):
         return True
@@ -194,9 +237,9 @@ def filter_news(news_list: list) -> list:
         content = news.get('original_content', '')
         source = news.get('source', '')
 
-        if not is_factual_news(title, content):
+        if not is_factual_news(title, content, source):
             continue
-        if not has_analytical_value(title, content):
+        if not has_analytical_value(title, content, source):
             continue
 
         # 단신 뉴스 제외
@@ -225,16 +268,35 @@ def filter_news(news_list: list) -> list:
         # 국내 뉴스 보너스
         domestic_bonus = 3 if news['is_domestic'] else 0
 
-        # 종합 우선순위 점수
-        news['priority_score'] = source_score + central_bonus + domestic_bonus + fact_score
+        # 형식적 기준 점수 (기존)
+        formal_score = source_score + central_bonus + domestic_bonus + fact_score
+
+        # 내용적 기준 점수 (Content-Based Scoring)
+        content_result = _content_scorer.score(title, content, source)
+        news['content_score'] = content_result['total_score']
+        news['content_breakdown'] = content_result['breakdown']
+        news['content_explanation'] = content_result['explanation']
+
+        # 종합 우선순위 점수: 형식적 기준(40%) + 내용적 기준(60%)
+        # content_score는 0~100 범위이므로 formal_score 스케일(~30)에 맞춰 정규화
+        content_normalized = content_result['total_score'] * 0.3  # 0~30 범위로
+        news['priority_score'] = formal_score * 0.4 + content_normalized * 0.6
 
         filtered.append(news)
 
     return filtered
 
 
+def _exceeds_source_cap(source: str, current_count: int) -> bool:
+    """출처별 최대 건수 제한 초과 여부 확인."""
+    cap = SOURCE_MAX_COUNT.get(source)
+    if cap is not None and current_count >= cap:
+        return True
+    return False
+
+
 def balance_categories(news_list: list, target_count: int = 10, max_local_gov: int = 1) -> list:
-    """카테고리 + 출처 균형 선정 (지방정부 제한, 중요도순 정렬)"""
+    """카테고리 + 출처 균형 선정 (지방정부 제한, 출처별 상한, 중요도순 정렬)"""
     by_category = defaultdict(list)
     by_source = defaultdict(int)
     local_gov_count = 0
@@ -259,6 +321,10 @@ def balance_categories(news_list: list, target_count: int = 10, max_local_gov: i
             for news in by_category[category]:
                 source = news.get('source', '')
                 is_local = news.get('is_local_gov', False)
+
+                # 출처별 최대 건수 제한 체크
+                if _exceeds_source_cap(source, by_source.get(source, 0)):
+                    continue
 
                 # 지방정부 뉴스 제한 체크
                 if is_local and local_gov_count >= max_local_gov:
@@ -292,6 +358,10 @@ def balance_categories(news_list: list, target_count: int = 10, max_local_gov: i
                 break
             source = news.get('source', '')
             is_local = news.get('is_local_gov', False)
+
+            # 출처별 최대 건수 제한 체크
+            if _exceeds_source_cap(source, by_source.get(source, 0)):
+                continue
 
             # 지방정부 뉴스 제한 체크
             if is_local and local_gov_count >= max_local_gov:
