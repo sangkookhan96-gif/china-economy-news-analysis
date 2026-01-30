@@ -358,9 +358,10 @@ class NewsCrawler:
             if title in ["查看详情", "业务咨询"]:
                 continue
 
-            # Build full URL
+            # Build full URL (force HTTP: HTTPS is broken on this server)
             if not href.startswith("http"):
                 href = urljoin(base_url, href)
+            href = href.replace("https://gxj.sz.gov.cn", "http://gxj.sz.gov.cn")
 
             # Skip department/org pages (not news)
             if any(pat in href for pat in shenzhen_skip_patterns):
@@ -401,6 +402,7 @@ class NewsCrawler:
 
                 if not href.startswith("http"):
                     href = urljoin(base_url, href)
+                href = href.replace("https://gxj.sz.gov.cn", "http://gxj.sz.gov.cn")
 
                 seen_urls.add(href)
                 items.append({
