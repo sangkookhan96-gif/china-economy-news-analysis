@@ -31,7 +31,7 @@ BRIEF_NEWS_PATTERNS = [
 ]
 
 # 지방정부 출처
-LOCAL_GOV_SOURCES = ['beijing_gov', 'shanghai_gov', 'shenzhen_gov']
+LOCAL_GOV_SOURCES = ['beijing_gov', 'shanghai_gov', 'shenzhen_gov', 'bbtnews', 'sznews']
 
 # 출처별 최대 선정 건수 제한 (지정하지 않은 출처는 balance_categories의 기본 로직 적용)
 SOURCE_MAX_COUNT = {
@@ -45,6 +45,8 @@ CENTRAL_SOURCES = [
     '21jingji', 'xinhua_finance',
     # Week 5 중앙정부
     'gov_cn', 'ndrc', 'mof', 'pboc', 'mofcom',
+    # Week 6 전국 매체
+    'stdaily', 'cnstock',
 ]
 
 # 중앙정부 출처 (행정 키워드 필터 면제 — 정책 발표문이 필터링되지 않도록)
@@ -83,6 +85,11 @@ SOURCE_PRIORITY = {
     'ndrc': 11,
     'mof': 11,
     'mofcom': 10,
+    # Week 6 지방 언론
+    'bbtnews': 6,
+    'stdaily': 9,
+    'cnstock': 9,
+    'sznews': 5,
 }
 
 # 사실 풍부도 관련 키워드

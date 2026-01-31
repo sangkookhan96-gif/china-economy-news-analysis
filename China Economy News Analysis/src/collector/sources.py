@@ -217,6 +217,47 @@ NEWS_SOURCES = {
         "week": 5,
         "enabled": True,
     },
+    # Week 6 - Local media (지방 언론)
+    "bbtnews": {
+        "name": "北京商报 (Beijing Business Today)",
+        "name_ko": "베이징상보",
+        "url": "http://www.bbtnews.com.cn/",
+        "rss": None,
+        "type": "local_media",
+        "priority": 2,
+        "week": 6,
+        "enabled": True,
+    },
+    "stdaily": {
+        "name": "科技日报 (Science and Technology Daily)",
+        "name_ko": "과학기술일보",
+        "url": "http://www.stdaily.com/",
+        "rss": None,
+        "type": "tech",
+        "priority": 1,
+        "week": 6,
+        "enabled": True,
+    },
+    "cnstock": {
+        "name": "上海证券报 (Shanghai Securities News)",
+        "name_ko": "상하이증권보",
+        "url": "https://www.cnstock.com/",
+        "rss": None,
+        "type": "financial",
+        "priority": 1,
+        "week": 6,
+        "enabled": True,
+    },
+    "sznews": {
+        "name": "深圳新闻网 (Shenzhen News)",
+        "name_ko": "선전뉴스망",
+        "url": "https://www.sznews.com/news/",
+        "rss": None,
+        "type": "local_media",
+        "priority": 2,
+        "week": 6,
+        "enabled": True,
+    },
 }
 
 

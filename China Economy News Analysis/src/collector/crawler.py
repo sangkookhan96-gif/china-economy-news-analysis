@@ -954,6 +954,303 @@ class NewsCrawler:
 
         return items
 
+    # =================================================================
+    # Week 6: Local Media Sources (지방 언론)
+    # =================================================================
+
+    def crawl_bbtnews(self) -> list[dict]:
+        """Crawl 北京商报 (베이징상보) - Beijing Business Today."""
+        items = []
+        seen_urls = set()
+
+        # Main page + finance section
+        pages = [
+            "http://www.bbtnews.com.cn/",
+            "http://www.bbtnews.com.cn/finance/",
+        ]
+
+        for page_url in pages:
+            html = self.fetch_url(page_url)
+            if not html:
+                continue
+
+            soup = BeautifulSoup(html, "lxml")
+
+            for link in soup.select("a"):
+                href = link.get("href", "")
+                title = link.get_text(strip=True)
+
+                if not href or not title or len(title) < 10:
+                    continue
+
+                # URL pattern: /YYYY/MMDD/######.shtml
+                if not re.search(r"/\d{4}/\d{4}/\d+\.shtml", href):
+                    continue
+
+                if not href.startswith("http"):
+                    href = urljoin(page_url, href)
+                if href in seen_urls:
+                    continue
+                seen_urls.add(href)
+
+                # Parse date from URL: /YYYY/MMDD/
+                date_match = re.search(r"/(\d{4})/(\d{2})(\d{2})/", href)
+                published_at = None
+                if date_match:
+                    try:
+                        published_at = datetime(
+                            int(date_match.group(1)),
+                            int(date_match.group(2)),
+                            int(date_match.group(3))
+                        )
+                    except ValueError:
+                        pass
+
+                items.append({
+                    "source": "bbtnews",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": published_at,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    return items
+
+        return items
+
+    def crawl_stdaily(self) -> list[dict]:
+        """Crawl 科技日报 (과학기술일보) - Science and Technology Daily."""
+        items = []
+        seen_urls = set()
+        base_url = "http://www.stdaily.com"
+
+        html = self.fetch_url(base_url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        for link in soup.select("a"):
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            # URL pattern: /web/[section/]YYYY-MM/DD/content_######.html
+            if not re.search(r"/content_\d+\.html", href):
+                continue
+
+            if not href.startswith("http"):
+                href = urljoin(base_url, href)
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            # Parse date from URL: /YYYY-MM/DD/
+            date_match = re.search(r"/(\d{4})-(\d{2})/(\d{2})/", href)
+            published_at = None
+            if date_match:
+                try:
+                    published_at = datetime(
+                        int(date_match.group(1)),
+                        int(date_match.group(2)),
+                        int(date_match.group(3))
+                    )
+                except ValueError:
+                    pass
+
+            items.append({
+                "source": "stdaily",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": published_at,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
+    def crawl_cnstock(self) -> list[dict]:
+        """Crawl 上海证券报 (상하이증권보) - Shanghai Securities News.
+
+        Extracts articles from __NEXT_DATA__ JSON embedded in the page,
+        parsing relative time strings (e.g. '7小时前') into datetimes.
+        """
+        import json as _json
+        from datetime import timedelta
+
+        items = []
+        base_url = "https://www.cnstock.com"
+
+        html = self.fetch_url(f"{base_url}/channel/10005")
+        if not html:
+            return items
+
+        # Extract articles from __NEXT_DATA__ JSON
+        next_data_match = re.search(
+            r'<script[^>]*id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL
+        )
+        if not next_data_match:
+            # Fallback to HTML parsing
+            return self._crawl_cnstock_html(html, base_url)
+
+        try:
+            data = _json.loads(next_data_match.group(1))
+            article_list = data["props"]["pageProps"]["data"]["pageInfo"]["list"]
+        except (ValueError, KeyError):
+            return self._crawl_cnstock_html(html, base_url)
+
+        now = datetime.now()
+        seen_ids = set()
+
+        for card in article_list:
+            # Collect article entries: some cards have childList, others are direct
+            entries = card.get("childList", [])
+            if not entries and card.get("contId"):
+                entries = [card]
+
+            for child in entries:
+                cont_id = str(child.get("contId", ""))
+                title = child.get("name", "").strip()
+                pub_time_str = child.get("pubTime", "")
+
+                if not cont_id or not title or len(title) < 10:
+                    continue
+                if cont_id in seen_ids:
+                    continue
+                seen_ids.add(cont_id)
+
+                published_at = self._parse_cnstock_time(pub_time_str, now)
+
+                items.append({
+                    "source": "cnstock",
+                    "original_url": f"{base_url}/commonDetail/{cont_id}",
+                    "original_title": title,
+                    "original_content": child.get("summary", ""),
+                    "published_at": published_at,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    return items
+
+        return items
+
+    def _crawl_cnstock_html(self, html: str, base_url: str) -> list[dict]:
+        """Fallback HTML-based cnstock crawling."""
+        items = []
+        seen_urls = set()
+        soup = BeautifulSoup(html, "lxml")
+
+        for link in soup.select("a"):
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+            if not href or not title or len(title) < 10:
+                continue
+            if not re.search(r"/commonDetail/\d+", href):
+                continue
+            if not href.startswith("http"):
+                href = urljoin(base_url, href)
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+            items.append({
+                "source": "cnstock",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": None,
+            })
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+        return items
+
+    @staticmethod
+    def _parse_cnstock_time(time_str: str, now: datetime) -> Optional[datetime]:
+        """Parse cnstock relative time strings into datetime."""
+        from datetime import timedelta
+
+        if not time_str:
+            return None
+
+        # Relative: '7小时前', '23分钟前', '1天前'
+        m = re.match(r'(\d+)\s*分钟前', time_str)
+        if m:
+            return now - timedelta(minutes=int(m.group(1)))
+        m = re.match(r'(\d+)\s*小时前', time_str)
+        if m:
+            return now - timedelta(hours=int(m.group(1)))
+        m = re.match(r'(\d+)\s*天前', time_str)
+        if m:
+            return now - timedelta(days=int(m.group(1)))
+
+        # Absolute: '2026-01-30' or '2026-01-30 09:35'
+        for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d"):
+            try:
+                return datetime.strptime(time_str.strip(), fmt)
+            except ValueError:
+                continue
+
+        return None
+
+    def crawl_sznews(self) -> list[dict]:
+        """Crawl 深圳新闻网 (선전뉴스망) - covers 深圳商报 + 深圳晚报."""
+        items = []
+        seen_urls = set()
+        base_url = "https://www.sznews.com"
+
+        html = self.fetch_url(f"{base_url}/news/")
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        for link in soup.select("a"):
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            # URL pattern: /news/content/YYYY-MM/DD/content_######.htm
+            if not re.search(r"/content/\d{4}-\d{2}/\d{2}/content_\d+\.htm", href):
+                continue
+
+            if not href.startswith("http"):
+                href = urljoin(base_url, href)
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            # Parse date from URL: /YYYY-MM/DD/
+            date_match = re.search(r"/(\d{4})-(\d{2})/(\d{2})/", href)
+            published_at = None
+            if date_match:
+                try:
+                    published_at = datetime(
+                        int(date_match.group(1)),
+                        int(date_match.group(2)),
+                        int(date_match.group(3))
+                    )
+                except ValueError:
+                    pass
+
+            items.append({
+                "source": "sznews",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": published_at,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
     def fetch_article_content(self, url: str, source: str = "") -> Optional[str]:
         """Fetch full article content from URL.
 
@@ -993,6 +1290,11 @@ class NewsCrawler:
             "mof": ["div.TRS_Editor", "div.content", "article"],
             "pboc": ["div#zoom", "div.content", "article"],
             "mofcom": ["div.article-content", "div.content", "div.TRS_Editor"],
+            # Week 6 지방 언론
+            "bbtnews": ["div.article-content", "div.content", "article"],
+            "stdaily": ["div.content_area", "div.article-content", "div.content", "article"],
+            "cnstock": ["div.article-content", "div.content", "article"],
+            "sznews": ["div.article-content", "div.content", "article"],
         }
 
         # Get selectors for this source or use defaults
@@ -1113,6 +1415,38 @@ class NewsCrawler:
         except (ValueError, TypeError):
             return None
 
+    @staticmethod
+    def _parse_date_from_url(url: str) -> Optional[datetime]:
+        """Extract published date from URL patterns.
+
+        Supports:
+          - ndrc/mof: tYYYYMMDD_XXXXXXX.html
+          - pboc: YYYYMMDDHHMMSS in path segment
+          - sina_finance: /YYYY-MM-DD/
+          - mofcom: /art/YYYY/art_ (year only, falls back to None)
+          - gov_cn: /content_YYYY-MM/DD/ or tYYYYMMDD
+        """
+        patterns = [
+            # tYYYYMMDD (ndrc, mof, gov_cn)
+            (r't(\d{4})(\d{2})(\d{2})_', lambda m: datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)))),
+            # /YYYY-MM-DD/ (sina_finance)
+            (r'/(\d{4})-(\d{2})-(\d{2})/', lambda m: datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)))),
+            # YYYYMMDD as 8-digit segment in path (pboc)
+            (r'/(\d{4})(\d{2})(\d{2})\d{8,}/', lambda m: datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)))),
+            # /YYYYMM/ folder pattern (ndrc, mof fallback)
+            (r'/(\d{4})(\d{2})/', lambda m: datetime(int(m.group(1)), int(m.group(2)), 1)),
+        ]
+        for pattern, builder in patterns:
+            m = re.search(pattern, url)
+            if m:
+                try:
+                    dt = builder(m)
+                    if datetime(2020, 1, 1) <= dt <= datetime.now():
+                        return dt
+                except (ValueError, OverflowError):
+                    continue
+        return None
+
     def save_news(self, items: list[dict]) -> int:
         """Save news items to database, returns count of new items."""
         conn = get_connection()
@@ -1121,6 +1455,11 @@ class NewsCrawler:
 
         for item in items:
             try:
+                # Fallback: extract published_at from URL if not provided
+                published_at = item.get("published_at")
+                if not published_at:
+                    published_at = self._parse_date_from_url(item["original_url"])
+
                 cursor.execute("""
                     INSERT OR IGNORE INTO news
                     (source, original_url, original_title, original_content, published_at, collected_at)
@@ -1130,7 +1469,7 @@ class NewsCrawler:
                     item["original_url"],
                     item["original_title"],
                     item.get("original_content", ""),
-                    item.get("published_at"),
+                    published_at,
                     datetime.now(),
                 ))
                 if cursor.rowcount > 0:
