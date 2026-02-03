@@ -1176,6 +1176,10 @@ class NewsCrawler:
         if not time_str:
             return None
 
+        # "Just now"
+        if time_str.strip() == '刚刚':
+            return now
+
         # Relative: '7小时前', '23分钟前', '1天前'
         m = re.match(r'(\d+)\s*分钟前', time_str)
         if m:
@@ -1384,24 +1388,57 @@ class NewsCrawler:
         return enriched
 
     def is_relevant_news(self, title: str, content: str = "") -> bool:
-        """Check if news is relevant to target industries or economy."""
+        """Check if news is relevant to target industries or economy.
+
+        Uses a two-tier keyword system:
+        - Strong keywords: 1 match is sufficient (specific economic terms)
+        - Weak keywords: need 2+ matches (generic terms that appear in non-economic news)
+        - Exclusion patterns: reject regardless of keyword matches
+        """
         text = f"{title} {content}"
 
-        # Industry keywords (high priority)
+        # Exclusion: reject titles about crime, accidents, disasters, social topics
+        exclude_patterns = [
+            "死亡", "遇难", "火灾", "地震", "洪水", "暴雨", "塌落", "坍塌",
+            "杀人", "犯罪", "被捕", "逮捕", "判刑", "判处", "刑事", "嫌疑人",
+            "车祸", "事故", "失联", "溺水", "坠楼",
+            "社保如何", "公积金如何", "如何办理", "如何领取",
+            "体育", "娱乐", "选秀", "综艺", "明星",
+        ]
+        for pattern in exclude_patterns:
+            if pattern in title:
+                return False
+
+        # Tier 1 — Strong keywords: 1 match = relevant
+        # Industry-specific keywords
         for keywords in INDUSTRY_KEYWORDS.values():
             for keyword in keywords:
                 if keyword in text:
                     return True
 
-        # General economy keywords (also relevant)
-        economy_keywords = [
-            "经济", "产业", "科技", "创新", "发展", "投资", "市场",
-            "企业", "公司", "政策", "规划", "制造", "工业", "数字",
-            "技术", "智能", "绿色", "高质量", "改革", "金融",
+        # Strong economy keywords (unambiguously economic)
+        strong_keywords = [
+            "经济", "GDP", "产业", "金融", "财政", "货币", "利率",
+            "投资", "融资", "上市", "IPO", "股价", "债券", "基金",
+            "进出口", "贸易", "关税", "汇率", "外资", "外商",
+            "制造业", "工业增加值", "PMI", "CPI", "PPI",
+            "科创", "独角兽", "营收", "利润", "市值",
+            "房地产", "楼市", "土地出让", "保障房", "住房", "保租房",
+            "减税", "降费", "专项债", "财政赤字",
         ]
-        for keyword in economy_keywords:
+        for keyword in strong_keywords:
             if keyword in text:
                 return True
+
+        # Tier 2 — Weak keywords: need 2+ matches
+        weak_keywords = [
+            "发展", "市场", "企业", "公司", "政策", "规划",
+            "创新", "科技", "技术", "数字", "智能", "绿色",
+            "高质量", "改革", "工业", "制造",
+        ]
+        weak_count = sum(1 for keyword in weak_keywords if keyword in text)
+        if weak_count >= 2:
+            return True
 
         return False
 
