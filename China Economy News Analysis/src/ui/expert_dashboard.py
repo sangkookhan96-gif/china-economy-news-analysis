@@ -912,10 +912,13 @@ def main():
                     is_bookmarked = row.get('is_bookmarked') or False
                     bookmark_icon = "⭐" if is_bookmarked else "☆"
 
-                    col1, col2, col3, col4 = st.columns([0.5, 0.2, 0.2, 0.1])
+                    col1, col2, col3, col4, col5 = st.columns([0.45, 0.18, 0.17, 0.1, 0.1])
 
                     with col1:
-                        st.markdown(f"**{title}**")
+                        if has_review:
+                            st.markdown(f"<span style='opacity:0.55'>✔ {title}</span>", unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"**{title}**")
                     with col2:
                         st.caption(f"{badge} ({importance:.2f})")
                     with col3:
@@ -924,6 +927,33 @@ def main():
                         if st.button(bookmark_icon, key=f"bookmark_{news_id}", help="북마크 토글"):
                             toggle_bookmark(news_id)
                             st.rerun()
+                    with col5:
+                        with st.popover("📝", help="빠른 리뷰"):
+                            st.markdown(f"**{(title or '')[:40]}...**")
+                            stance = st.radio(
+                                "AI 분석 평가",
+                                ["동의", "부분동의", "반대"],
+                                key=f"stance_{news_id}",
+                                horizontal=True,
+                            )
+                            quick_comment = st.text_input(
+                                "한줄 코멘트",
+                                key=f"qcomment_{news_id}",
+                                placeholder="핵심 의견을 입력하세요",
+                            )
+                            if st.button("저장", key=f"qsave_{news_id}", type="primary"):
+                                full_comment = f"[{stance}] {quick_comment}" if quick_comment else f"[{stance}]"
+                                save_expert_comment(news_id, full_comment)
+                                # Auto Git commit via MarkdownReviewManager
+                                md_mgr = MarkdownReviewManager()
+                                md_mgr.save_review(
+                                    news_id=news_id,
+                                    content=full_comment,
+                                    news=dict(row),
+                                    auto_commit=True,
+                                )
+                                st.success("저장 완료!")
+                                st.rerun()
 
                     # Expandable details
                     with st.expander("상세 정보 및 리뷰", expanded=False):
