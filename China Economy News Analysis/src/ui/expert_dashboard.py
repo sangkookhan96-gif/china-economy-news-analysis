@@ -240,6 +240,27 @@ def get_statistics() -> dict:
     cursor.execute("SELECT COUNT(*) FROM news WHERE is_bookmarked = TRUE")
     stats['bookmarked'] = cursor.fetchone()[0]
 
+    # Today's queued (selected) news stats
+    cursor.execute("SELECT COUNT(*) FROM news WHERE expert_review_status = 'queued_today'")
+    stats['queued_today'] = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT COUNT(*) FROM news n
+        JOIN expert_reviews er ON n.id = er.news_id
+        WHERE n.expert_review_status = 'queued_today'
+          AND er.expert_comment IS NOT NULL
+    """)
+    stats['queued_reviewed'] = cursor.fetchone()[0]
+
+    stats['queued_pending'] = stats['queued_today'] - stats['queued_reviewed']
+
+    cursor.execute("""
+        SELECT AVG(importance_score) FROM news
+        WHERE expert_review_status = 'queued_today'
+    """)
+    avg = cursor.fetchone()[0]
+    stats['queued_avg_importance'] = round(avg, 2) if avg else 0
+
     # Unread notifications
     try:
         cursor.execute("SELECT COUNT(*) FROM notifications WHERE is_read = FALSE")
@@ -574,6 +595,100 @@ def render_stat_cards(stats):
         """, unsafe_allow_html=True)
 
 
+def render_today_overview(stats):
+    """Render today's selected news overview panel."""
+    queued = stats.get('queued_today', 0)
+    reviewed = stats.get('queued_reviewed', 0)
+    pending = stats.get('queued_pending', 0)
+    avg_imp = stats.get('queued_avg_importance', 0)
+
+    if queued == 0:
+        return
+
+    progress_pct = int((reviewed / queued) * 100) if queued > 0 else 0
+
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+                border-radius: 12px; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem;
+                border-left: 5px solid #1565c0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h3 style="margin: 0 0 0.3rem 0; color: #1565c0; font-size: 1.1rem;">
+                    📌 오늘 선정 뉴스
+                </h3>
+                <p style="margin: 0; color: #555; font-size: 0.85rem;">
+                    전문가 리뷰 대기 중인 뉴스가 <b>{pending}건</b> 있습니다
+                </p>
+            </div>
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                <div style="text-align: center;">
+                    <p style="margin: 0; font-size: 1.8rem; font-weight: 700; color: #1565c0;">{queued}</p>
+                    <p style="margin: 0; font-size: 0.75rem; color: #777;">선정</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="margin: 0; font-size: 1.8rem; font-weight: 700; color: #2e7d32;">{reviewed}</p>
+                    <p style="margin: 0; font-size: 0.75rem; color: #777;">리뷰 완료</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="margin: 0; font-size: 1.8rem; font-weight: 700; color: #e65100;">{pending}</p>
+                    <p style="margin: 0; font-size: 0.75rem; color: #777;">대기</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="margin: 0; font-size: 1.8rem; font-weight: 700; color: #6a1b9a;">{avg_imp:.2f}</p>
+                    <p style="margin: 0; font-size: 0.75rem; color: #777;">평균 중요도</p>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top: 0.8rem; background: #e0e0e0; border-radius: 6px; height: 8px; overflow: hidden;">
+            <div style="width: {progress_pct}%; height: 100%;
+                        background: linear-gradient(90deg, #2e7d32, #66bb6a);
+                        border-radius: 6px; transition: width 0.3s;"></div>
+        </div>
+        <p style="margin: 0.3rem 0 0 0; font-size: 0.75rem; color: #888; text-align: right;">
+            리뷰 진행률 {progress_pct}%
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Compact table of today's selected news
+    df = get_top_news(limit=20, queued_only=True)
+    if not df.empty:
+        table_data = []
+        for _, row in df.iterrows():
+            imp = row['importance_score'] or 0
+            if imp >= 0.8:
+                badge = "🔴"
+            elif imp >= 0.6:
+                badge = "🟠"
+            elif imp >= 0.4:
+                badge = "🟡"
+            else:
+                badge = "🟢"
+
+            has_review = pd.notna(row.get('expert_comment')) and row.get('expert_comment')
+            status = "✅" if has_review else "⏳"
+
+            title = row['translated_title'] or row['original_title'] or ''
+            if len(title) > 50:
+                title = title[:50] + "…"
+
+            table_data.append({
+                "": badge,
+                "제목": title,
+                "중요도": f"{imp:.2f}",
+                "출처": row.get('source', '-'),
+                "산업": row.get('industry_category', '-'),
+                "리뷰": status,
+            })
+
+        st.dataframe(
+            pd.DataFrame(table_data),
+            use_container_width=True,
+            hide_index=True,
+            height=min(len(table_data) * 35 + 38, 400),
+        )
+
+
 def login_page():
     """관리자 로그인 페이지."""
     st.title("🔐 관리자 로그인")
@@ -619,6 +734,9 @@ def main():
     # Render stat cards
     render_stat_cards(stats)
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # Today's selected news overview
+    render_today_overview(stats)
 
     # Sidebar filters
     with st.sidebar:
