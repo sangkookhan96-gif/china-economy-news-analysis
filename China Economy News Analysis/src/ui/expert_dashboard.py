@@ -816,6 +816,7 @@ def main():
             "aerospace": "🚀 항공우주",
             "quantum": "⚛️ 양자기술",
             "materials": "🧱 신소재",
+            "low_carbon": "🌱 저탄소환경",
             "other": "📦 기타"
         }
         industry_options = list(industry_labels.keys())
@@ -859,9 +860,10 @@ def main():
     unread_count = stats['unread_notifications']
     notification_label = f"🔔 알림 ({unread_count})" if unread_count > 0 else "🔔 알림"
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "🔥 AI 추천 뉴스", "⭐ 북마크", "📂 Markdown 리뷰",
-        "📝 리뷰 완료", notification_label, "📥 리포트 내보내기"
+        "📝 리뷰 완료", notification_label, "📥 리포트 내보내기",
+        "📊 카테고리 분석"
     ])
 
     with tab1:
@@ -1523,6 +1525,110 @@ def main():
                             st.info("리뷰 완료된 뉴스가 없습니다.")
                     except Exception as e:
                         st.error(str(e))
+
+    with tab7:
+        st.subheader("📊 카테고리별 뉴스 분석")
+
+        # Fetch category data
+        conn_cat = get_connection()
+        cat_df = pd.read_sql_query("""
+            SELECT
+                COALESCE(industry_category, 'other') as category,
+                COUNT(*) as count,
+                ROUND(AVG(importance_score), 3) as avg_importance
+            FROM news
+            WHERE collected_at >= datetime('now', ? || ' days')
+            GROUP BY COALESCE(industry_category, 'other')
+            ORDER BY count DESC
+        """, conn_cat, params=[f"-{days_range}"])
+        conn_cat.close()
+
+        if cat_df.empty:
+            st.info("해당 기간에 뉴스가 없습니다.")
+        else:
+            # Map category keys to Korean labels (without filter "전체")
+            cat_label_map = {k: v for k, v in industry_labels.items() if k != "전체"}
+            cat_df['label'] = cat_df['category'].map(
+                lambda c: cat_label_map.get(c, f"📦 {c}")
+            )
+
+            col_donut, col_bar = st.columns(2)
+
+            with col_donut:
+                st.markdown("**뉴스 분포 (도넛 차트)**")
+                fig_donut = go.Figure(data=[go.Pie(
+                    labels=cat_df['label'],
+                    values=cat_df['count'],
+                    hole=0.45,
+                    textinfo='label+percent',
+                    textposition='outside',
+                )])
+                fig_donut.update_layout(
+                    showlegend=False,
+                    margin=dict(l=20, r=20, t=30, b=20),
+                    height=380,
+                )
+                st.plotly_chart(fig_donut, use_container_width=True, key="cat_donut")
+
+            with col_bar:
+                st.markdown("**카테고리별 평균 중요도**")
+                cat_sorted = cat_df.sort_values('avg_importance', ascending=True)
+                colors = [
+                    "rgba(220,53,69,0.8)" if v >= 0.8
+                    else "rgba(255,152,0,0.8)" if v >= 0.6
+                    else "rgba(158,158,158,0.6)"
+                    for v in cat_sorted['avg_importance']
+                ]
+                fig_bar = go.Figure(data=[go.Bar(
+                    x=cat_sorted['avg_importance'],
+                    y=cat_sorted['label'],
+                    orientation='h',
+                    marker_color=colors,
+                    text=[f"{v:.2f}" for v in cat_sorted['avg_importance']],
+                    textposition='outside',
+                )])
+                fig_bar.update_layout(
+                    xaxis=dict(range=[0, 1], title="평균 중요도"),
+                    margin=dict(l=20, r=40, t=30, b=20),
+                    height=380,
+                )
+                st.plotly_chart(fig_bar, use_container_width=True, key="cat_bar")
+
+            # Interactive category filter
+            st.markdown("---")
+            st.markdown("**카테고리별 뉴스 보기**")
+            selected_cat = st.selectbox(
+                "카테고리 선택",
+                cat_df['category'].tolist(),
+                format_func=lambda c: cat_label_map.get(c, f"📦 {c}"),
+                key="cat_filter_select",
+            )
+
+            conn_filt = get_connection()
+            filt_df = pd.read_sql_query("""
+                SELECT translated_title, original_title, importance_score,
+                       source, published_at
+                FROM news
+                WHERE COALESCE(industry_category, 'other') = ?
+                  AND collected_at >= datetime('now', ? || ' days')
+                ORDER BY importance_score DESC
+                LIMIT 20
+            """, conn_filt, params=[selected_cat, f"-{days_range}"])
+            conn_filt.close()
+
+            if filt_df.empty:
+                st.info("해당 카테고리 뉴스가 없습니다.")
+            else:
+                for _, frow in filt_df.iterrows():
+                    ftitle = frow['translated_title'] or frow['original_title']
+                    fscore = frow['importance_score'] or 0
+                    if fscore >= 0.8:
+                        fc = "🔴"
+                    elif fscore >= 0.6:
+                        fc = "🟠"
+                    else:
+                        fc = "⚪"
+                    st.write(f"{fc} **{ftitle}** ({fscore:.2f}) — {frow['source']}")
 
 
 if __name__ == "__main__":
