@@ -32,6 +32,9 @@ def get_eligible_candidates(conn) -> list:
     cutoff_time = datetime.now() - timedelta(hours=24)
     cutoff_str = cutoff_time.strftime("%Y-%m-%d %H:%M:%S")
 
+    # Central government sources excluded from expert review
+    excluded_sources = ('ndrc', 'pboc', 'mofcom', 'nbs', 'gov', 'xinhuanet')
+
     cursor.execute("""
         SELECT id, original_title, original_content, published_at, source
         FROM news
@@ -43,8 +46,9 @@ def get_eligible_candidates(conn) -> list:
             AND published_at >= ?
             AND importance_score <= 1.0
             AND COALESCE(translated_title, '') != ''
+            AND source NOT IN (?, ?, ?, ?, ?, ?)
         ORDER BY published_at DESC
-    """, (cutoff_str,))
+    """, (cutoff_str, *excluded_sources))
 
     candidates = []
     for row in cursor.fetchall():

@@ -717,243 +717,6 @@ class NewsCrawler:
         return items
 
     # =================================================================
-    # Week 5: Central Government Sources (중앙정부)
-    # =================================================================
-
-    def crawl_gov_cn(self) -> list[dict]:
-        """Crawl 中国政府网 (국무원) - 최신 정책."""
-        items = []
-        seen_urls = set()
-        base_url = "https://www.gov.cn"
-        page_url = f"{base_url}/zhengce/zuixin/"
-
-        html = self.fetch_url(page_url)
-        if not html:
-            return items
-
-        soup = BeautifulSoup(html, "lxml")
-
-        for link in soup.select("a"):
-            href = link.get("href", "")
-            title = link.get("title") or link.get_text(strip=True)
-
-            if not href or not title or len(title) < 10:
-                continue
-
-            # 기사 URL 패턴: /content/YYYYMM/content_XXXXXXX.htm
-            if not re.search(r"/content/\d{6}/content_\d+\.htm", href):
-                continue
-
-            if not href.startswith("http"):
-                href = urljoin(page_url, href)
-            if href in seen_urls:
-                continue
-            seen_urls.add(href)
-
-            items.append({
-                "source": "gov_cn",
-                "original_url": href,
-                "original_title": title,
-                "original_content": "",
-                "published_at": None,
-            })
-
-            if len(items) >= MAX_NEWS_PER_SOURCE:
-                break
-
-        return items
-
-    def crawl_ndrc(self) -> list[dict]:
-        """Crawl 国家发改委 (발개위) - 뉴스 발표 + 정책 발표."""
-        items = []
-        seen_urls = set()
-
-        pages = [
-            "https://www.ndrc.gov.cn/xwdt/xwfb/",    # 新闻发布 (뉴스 발표)
-            "https://www.ndrc.gov.cn/xxgk/zcfb/",     # 政策发布 (정책 발표)
-        ]
-
-        for page_url in pages:
-            html = self.fetch_url(page_url)
-            if not html:
-                continue
-
-            soup = BeautifulSoup(html, "lxml")
-
-            for link in soup.select("a"):
-                href = link.get("href", "")
-                title = link.get("title") or link.get_text(strip=True)
-
-                if not href or not title or len(title) < 10:
-                    continue
-
-                # 기사 URL 패턴: ./YYYYMM/tYYYYMMDD_XXXXXXX.html (상대경로)
-                # 또는 절대경로 /xwdt/xwfb/YYYYMM/tYYYYMMDD_XXXXXXX.html
-                if not re.search(r"t\d{8}_\d+\.html", href):
-                    continue
-
-                # 상대경로를 page_url 기준으로 해석 (base_url이 아닌 page_url)
-                if not href.startswith("http"):
-                    href = urljoin(page_url, href)
-                if href in seen_urls:
-                    continue
-                seen_urls.add(href)
-
-                items.append({
-                    "source": "ndrc",
-                    "original_url": href,
-                    "original_title": title,
-                    "original_content": "",
-                    "published_at": None,
-                })
-
-                if len(items) >= MAX_NEWS_PER_SOURCE:
-                    return items
-
-        return items
-
-    def crawl_mof(self) -> list[dict]:
-        """Crawl 财政部 (재정부) - 재정 뉴스."""
-        items = []
-        seen_urls = set()
-        base_url = "https://www.mof.gov.cn"
-        page_url = f"{base_url}/zhengwuxinxi/caizhengxinwen/"
-
-        html = self.fetch_url(page_url)
-        if not html:
-            return items
-
-        soup = BeautifulSoup(html, "lxml")
-
-        for link in soup.select("a"):
-            href = link.get("href", "")
-            title = link.get("title") or link.get_text(strip=True)
-
-            if not href or not title or len(title) < 10:
-                continue
-
-            # 기사 URL 패턴: /tYYYYMMDD_XXXXXXX.htm
-            if not re.search(r"/t\d{8}_\d+\.htm", href):
-                continue
-
-            if not href.startswith("http"):
-                href = urljoin(page_url, href)
-            if href in seen_urls:
-                continue
-            seen_urls.add(href)
-
-            items.append({
-                "source": "mof",
-                "original_url": href,
-                "original_title": title,
-                "original_content": "",
-                "published_at": None,
-            })
-
-            if len(items) >= MAX_NEWS_PER_SOURCE:
-                break
-
-        return items
-
-    def crawl_pboc(self) -> list[dict]:
-        """Crawl 中国人民银行 (인민은행) - 정책 소통."""
-        items = []
-        seen_urls = set()
-        base_url = "http://www.pbc.gov.cn"
-        # 新闻发布 > 货币政策/金融市场
-        page_url = f"{base_url}/goutongjiaoliu/113456/113469/index.html"
-
-        html = self.fetch_url(page_url)
-        if not html:
-            return items
-
-        soup = BeautifulSoup(html, "lxml")
-
-        for link in soup.select("a"):
-            href = link.get("href", "")
-            title = link.get("title") or link.get_text(strip=True)
-
-            if not href or not title or len(title) < 10:
-                continue
-
-            # 기사 URL 패턴: /XXXXXXXXXXXXXXXXXXX/index.html (19자리 이상 숫자)
-            if not re.search(r"/\d{19,}/index\.html", href):
-                continue
-
-            if not href.startswith("http"):
-                href = urljoin(page_url, href)
-            if href in seen_urls:
-                continue
-            seen_urls.add(href)
-
-            items.append({
-                "source": "pboc",
-                "original_url": href,
-                "original_title": title,
-                "original_content": "",
-                "published_at": None,
-            })
-
-            if len(items) >= MAX_NEWS_PER_SOURCE:
-                break
-
-        return items
-
-    def crawl_mofcom(self) -> list[dict]:
-        """Crawl 商务部 (상무부) - 뉴스 발표 + 정책 해석."""
-        items = []
-        seen_urls = set()
-
-        # 메인 페이지 + 인터뷰/발표 서브도메인
-        pages = [
-            "https://www.mofcom.gov.cn/",
-            "http://interview.mofcom.gov.cn/",
-        ]
-
-        for page_url in pages:
-            html = self.fetch_url(page_url)
-            if not html:
-                continue
-
-            base = page_url.rstrip("/")
-            soup = BeautifulSoup(html, "lxml")
-
-            for link in soup.select("a"):
-                href = link.get("href", "")
-                title = link.get("title") or link.get_text(strip=True)
-
-                if not href or not title or len(title) < 10:
-                    continue
-
-                # 기사 URL 패턴:
-                # /art/YYYY/art_XXXXX (정책/공지)
-                # /detail/YYYYMM/XXXXX.html (인터뷰/기자회견)
-                is_article = (
-                    re.search(r"/art/\d{4}/art_\w+", href) or
-                    re.search(r"/detail/\d{6}/\w+\.html?", href)
-                )
-                if not is_article:
-                    continue
-
-                if not href.startswith("http"):
-                    href = urljoin(base, href)
-                if href in seen_urls:
-                    continue
-                seen_urls.add(href)
-
-                items.append({
-                    "source": "mofcom",
-                    "original_url": href,
-                    "original_title": title,
-                    "original_content": "",
-                    "published_at": None,
-                })
-
-                if len(items) >= MAX_NEWS_PER_SOURCE:
-                    return items
-
-        return items
-
     # =================================================================
     # Week 6: Local Media Sources (지방 언론)
     # =================================================================
@@ -1288,12 +1051,6 @@ class NewsCrawler:
             "sina_finance": ["div.article-content-left", "div#artibody", "div.article"],
             "21jingji": ["div.article-content", "div.txtContent", "article"],
             "xinhua_finance": ["div.detail-content", "div.article-content", "article"],
-            # Week 5 중앙정부
-            "gov_cn": ["#UCAP-CONTENT", "div.pages_content", "div.article"],
-            "ndrc": ["div.TRS_Editor", "div.article_con", "div.content"],
-            "mof": ["div.TRS_Editor", "div.content", "article"],
-            "pboc": ["div#zoom", "div.content", "article"],
-            "mofcom": ["div.article-content", "div.content", "div.TRS_Editor"],
             # Week 6 지방 언론
             "bbtnews": ["div.article-content", "div.content", "article"],
             "stdaily": ["div.content_area", "div.article-content", "div.content", "article"],
@@ -1456,21 +1213,16 @@ class NewsCrawler:
     def _parse_date_from_url(url: str) -> Optional[datetime]:
         """Extract published date from URL patterns.
 
-        Supports:
-          - ndrc/mof: tYYYYMMDD_XXXXXXX.html
-          - pboc: YYYYMMDDHHMMSS in path segment
-          - sina_finance: /YYYY-MM-DD/
-          - mofcom: /art/YYYY/art_ (year only, falls back to None)
-          - gov_cn: /content_YYYY-MM/DD/ or tYYYYMMDD
+        Supports various URL date patterns (tYYYYMMDD, /YYYY-MM-DD/, etc.)
         """
         patterns = [
-            # tYYYYMMDD (ndrc, mof, gov_cn)
+            # tYYYYMMDD_XXXXXXX.html
             (r't(\d{4})(\d{2})(\d{2})_', lambda m: datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)))),
-            # /YYYY-MM-DD/ (sina_finance)
+            # /YYYY-MM-DD/
             (r'/(\d{4})-(\d{2})-(\d{2})/', lambda m: datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)))),
-            # YYYYMMDD as 8-digit segment in path (pboc)
+            # YYYYMMDDHHMMSS as path segment
             (r'/(\d{4})(\d{2})(\d{2})\d{8,}/', lambda m: datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)))),
-            # /YYYYMM/ folder pattern (ndrc, mof fallback)
+            # /YYYYMM/ folder pattern
             (r'/(\d{4})(\d{2})/', lambda m: datetime(int(m.group(1)), int(m.group(2)), 1)),
         ]
         for pattern, builder in patterns:

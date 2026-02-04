@@ -43,14 +43,12 @@ CENTRAL_SOURCES = [
     'people', 'ce', 'caixin', '36kr', 'stcn', 'huxiu',
     'cls', 'jiemian', 'yicai', 'sina_finance',
     '21jingji', 'xinhua_finance',
-    # Week 5 중앙정부
-    'gov_cn', 'ndrc', 'mof', 'pboc', 'mofcom',
     # Week 6 전국 매체
     'stdaily', 'cnstock',
 ]
 
-# 중앙정부 출처 (행정 키워드 필터 면제 — 정책 발표문이 필터링되지 않도록)
-CENTRAL_GOV_SOURCES = ['gov_cn', 'ndrc', 'mof', 'pboc', 'mofcom']
+# 중앙정부 출처 (현재 비활성 — 향후 재추가 시 사용)
+CENTRAL_GOV_SOURCES = []
 
 CATEGORIES = {
     '정책': ['政策', '政府', '通知', '规划', '强制', '意见'],
@@ -79,12 +77,6 @@ SOURCE_PRIORITY = {
     'sina_finance': 8,
     '21jingji': 9,
     'xinhua_finance': 10,
-    # Week 5 중앙정부
-    'gov_cn': 12,
-    'pboc': 12,
-    'ndrc': 11,
-    'mof': 11,
-    'mofcom': 10,
     # Week 6 지방 언론
     'bbtnews': 6,
     'stdaily': 9,
