@@ -251,21 +251,39 @@ def restore_skipped_news(news_id: int) -> bool:
 def get_reviews_by_status(status: str = 'draft', limit: int = 50) -> pd.DataFrame:
     """Get reviews filtered by publish_status."""
     conn = get_connection()
-    query = """
-        SELECT n.id, n.translated_title, n.original_title, n.original_content,
-               n.importance_score, n.industry_category, n.source, n.summary,
-               n.published_at, n.original_url,
-               er.expert_comment, er.ai_final_review, er.opinion_conflict,
-               er.review_completed_at, er.publish_status, er.admin_note,
-               er.publish_status_updated_at
-        FROM news n
-        JOIN expert_reviews er ON n.id = er.news_id
-        WHERE er.expert_comment IS NOT NULL
-          AND er.publish_status = ?
-        ORDER BY er.review_completed_at DESC
-        LIMIT ?
-    """
-    df = pd.read_sql_query(query, conn, params=[status, limit])
+    # 'discarded' includes legacy 'rejected' status
+    if status == 'discarded':
+        query = """
+            SELECT n.id, n.translated_title, n.original_title, n.original_content,
+                   n.importance_score, n.industry_category, n.source, n.summary,
+                   n.published_at, n.original_url,
+                   er.expert_comment, er.ai_final_review, er.opinion_conflict,
+                   er.review_completed_at, er.publish_status, er.admin_note,
+                   er.publish_status_updated_at
+            FROM news n
+            JOIN expert_reviews er ON n.id = er.news_id
+            WHERE er.expert_comment IS NOT NULL
+              AND er.publish_status IN ('discarded', 'rejected')
+            ORDER BY er.publish_status_updated_at DESC
+            LIMIT ?
+        """
+        df = pd.read_sql_query(query, conn, params=[limit])
+    else:
+        query = """
+            SELECT n.id, n.translated_title, n.original_title, n.original_content,
+                   n.importance_score, n.industry_category, n.source, n.summary,
+                   n.published_at, n.original_url,
+                   er.expert_comment, er.ai_final_review, er.opinion_conflict,
+                   er.review_completed_at, er.publish_status, er.admin_note,
+                   er.publish_status_updated_at
+            FROM news n
+            JOIN expert_reviews er ON n.id = er.news_id
+            WHERE er.expert_comment IS NOT NULL
+              AND er.publish_status = ?
+            ORDER BY er.review_completed_at DESC
+            LIMIT ?
+        """
+        df = pd.read_sql_query(query, conn, params=[status, limit])
     conn.close()
     return df
 
@@ -464,15 +482,15 @@ def get_statistics() -> dict:
         cursor.execute("SELECT COUNT(*) FROM expert_reviews WHERE publish_status = 'published'")
         stats['published_reviews'] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM expert_reviews WHERE publish_status = 'rejected'")
-        stats['rejected_reviews'] = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM expert_reviews WHERE publish_status IN ('rejected', 'discarded')")
+        stats['discarded_reviews'] = cursor.fetchone()[0]
 
         cursor.execute("SELECT COUNT(*) FROM news WHERE expert_review_status = 'skipped'")
         stats['skipped_news'] = cursor.fetchone()[0]
     except:
         stats['pending_approval'] = 0
         stats['published_reviews'] = 0
-        stats['rejected_reviews'] = 0
+        stats['discarded_reviews'] = 0
         stats['skipped_news'] = 0
 
     # Unread notifications
@@ -830,11 +848,11 @@ def render_stat_cards(stats):
         """, unsafe_allow_html=True)
 
     with col9:
-        rejected_count = stats.get('rejected_reviews', 0)
+        discarded_count = stats.get('discarded_reviews', 0)
         st.markdown(f"""
         <div class="stat-card" style="background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);">
-            <p class="stat-number">{rejected_count}</p>
-            <p class="stat-label">반려됨</p>
+            <p class="stat-number">{discarded_count}</p>
+            <p class="stat-label">폐기함</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1101,8 +1119,8 @@ def main():
                         status_badges.append("📢게시됨")
                     elif pub_status == 'draft' and has_review:
                         status_badges.append("⏳승인대기")
-                    elif pub_status == 'rejected':
-                        status_badges.append("❌반려")
+                    elif pub_status in ('rejected', 'discarded'):
+                        status_badges.append("🗑폐기됨")
 
                     status_text = " | ".join(status_badges) if status_badges else "📝 리뷰대기"
 
@@ -1505,12 +1523,17 @@ def main():
         """, conn)
         conn.close()
 
+        # Display persistent feedback for tab4
+        if st.session_state.get("tab4_success_msg"):
+            st.success(st.session_state.pop("tab4_success_msg"))
+
         if reviewed_df.empty:
             st.info("아직 리뷰된 뉴스가 없습니다.")
         else:
             for idx, row in reviewed_df.iterrows():
                 title = row['translated_title'] or row['original_title']
                 conflict_icon = "⚠️" if row.get('opinion_conflict') else "✅"
+                news_id = row['id']
 
                 # Publish status icon
                 pub_st = row.get('publish_status', '')
@@ -1518,8 +1541,8 @@ def main():
                     pub_icon = "📢"
                 elif pub_st == 'draft':
                     pub_icon = "⏳"
-                elif pub_st == 'rejected':
-                    pub_icon = "❌"
+                elif pub_st in ('discarded', 'rejected'):
+                    pub_icon = "🗑"
                 elif pub_st == 'approved':
                     pub_icon = "✅"
                 else:
@@ -1538,6 +1561,13 @@ def main():
 
                     st.caption(f"리뷰 시간: {row.get('review_completed_at', '-')} | 게시상태: {pub_st or '-'}")
 
+                    # 공개 취소 버튼 (published 상태인 경우에만)
+                    if pub_st == 'published':
+                        if st.button("🗑 공개 취소 (폐기함으로)", key=f"tab4_discard_{news_id}"):
+                            if update_publish_status(news_id, 'discarded', '리뷰 완료 탭에서 공개 취소'):
+                                st.session_state["tab4_success_msg"] = f"#{news_id} 공개 취소 → 폐기함 이동"
+                                st.rerun()
+
     with tab_approve:
         st.subheader("✅ 리뷰 승인 관리")
 
@@ -1545,8 +1575,8 @@ def main():
         status_options = {
             'published': '📢 게시됨 (published)',
             'draft': '⏳ 승인대기 (draft)',
-            'rejected': '❌ 반려됨 (rejected)',
             'approved': '✅ 승인됨 (approved)',
+            'discarded': '🗑 폐기함 (반려/공개취소)',
             'skipped': '🚫 비공개 뉴스 (skipped)',
         }
         selected_status = st.selectbox(
@@ -1692,9 +1722,9 @@ def main():
                                     st.rerun()
                         with action_cols[2]:
                             reject_note = st.text_input("반려 사유", key=f"ap_reject_note_{news_id}", placeholder="사유 입력")
-                            if st.button("❌ 반려", key=f"ap_reject_{news_id}"):
-                                if update_publish_status(news_id, 'rejected', reject_note):
-                                    st.session_state["approve_success_msg"] = f"#{news_id} 반려 완료"
+                            if st.button("🗑 반려 (폐기함)", key=f"ap_reject_{news_id}"):
+                                if update_publish_status(news_id, 'discarded', reject_note or '반려'):
+                                    st.session_state["approve_success_msg"] = f"#{news_id} 반려 → 폐기함 이동"
                                     st.rerun()
 
                     elif selected_status == 'approved':
@@ -1704,23 +1734,28 @@ def main():
                                     st.session_state["approve_success_msg"] = f"#{news_id} 게시 완료"
                                     st.rerun()
                         with action_cols[1]:
-                            if st.button("↩ draft로 되돌리기", key=f"ap_todraft_{news_id}"):
-                                if update_publish_status(news_id, 'draft'):
-                                    st.session_state["approve_success_msg"] = f"#{news_id} draft로 되돌림"
+                            if st.button("🗑 폐기함으로", key=f"ap_discard_{news_id}"):
+                                if update_publish_status(news_id, 'discarded', '승인 후 폐기'):
+                                    st.session_state["approve_success_msg"] = f"#{news_id} 폐기함 이동"
                                     st.rerun()
 
                     elif selected_status == 'published':
                         with action_cols[0]:
-                            if st.button("⏸ 게시 취소", key=f"ap_unpublish_{news_id}"):
-                                if update_publish_status(news_id, 'draft'):
-                                    st.session_state["approve_success_msg"] = f"#{news_id} 게시 취소됨"
+                            if st.button("🗑 공개 취소 (폐기함)", key=f"ap_unpublish_{news_id}"):
+                                if update_publish_status(news_id, 'discarded', '공개 취소'):
+                                    st.session_state["approve_success_msg"] = f"#{news_id} 공개 취소 → 폐기함 이동"
                                     st.rerun()
 
-                    elif selected_status == 'rejected':
+                    elif selected_status == 'discarded':
                         with action_cols[0]:
-                            if st.button("↩ draft로 되돌리기", key=f"ap_todraft_{news_id}"):
+                            if st.button("↩ 복원 (draft)", key=f"ap_restore_{news_id}"):
                                 if update_publish_status(news_id, 'draft'):
-                                    st.session_state["approve_success_msg"] = f"#{news_id} draft로 되돌림 (수정 후 재제출)"
+                                    st.session_state["approve_success_msg"] = f"#{news_id} 복원됨 (승인대기)"
+                                    st.rerun()
+                        with action_cols[1]:
+                            if st.button("📢 복원+게시", key=f"ap_restore_pub_{news_id}", type="primary"):
+                                if update_publish_status(news_id, 'published'):
+                                    st.session_state["approve_success_msg"] = f"#{news_id} 복원 및 게시 완료"
                                     st.rerun()
 
     with tab5:
