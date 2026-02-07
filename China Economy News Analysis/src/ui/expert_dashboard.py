@@ -18,8 +18,12 @@ from src.utils.notifications import (
     get_all_tags, get_bookmarked_news
 )
 from src.utils.markdown_review import MarkdownReviewManager
+from src.utils.headline_generator import generate_headline, save_headline, get_headline
 from config.settings import ANTHROPIC_API_KEY, CLAUDE_MODEL
 from src.collector.news_filter import SOURCE_PRIORITY
+
+# Card headline constants
+MAX_HEADLINE_LENGTH = 18
 
 # 8가지 기준 한글 라벨 매핑
 SCORE_AXIS_LABELS = {
@@ -1282,6 +1286,43 @@ def main():
                             if set_tags(news_id, new_tags):
                                 st.success("태그가 저장되었습니다!")
                                 st.rerun()
+
+                        st.markdown("---")
+
+                        # Card headline section
+                        st.markdown("**📱 카드 헤드라인** (모바일용, 최대 18자)")
+
+                        current_headline = row.get('card_headline', '') or ''
+                        news_title = row.get('translated_title') or row.get('original_title') or ''
+
+                        col_hl1, col_hl2 = st.columns([0.8, 0.2])
+
+                        with col_hl1:
+                            headline_input = st.text_input(
+                                "헤드라인",
+                                value=current_headline,
+                                key=f"headline_{news_id}",
+                                max_chars=MAX_HEADLINE_LENGTH,
+                                placeholder="18자 이내의 관심 유발 헤드라인",
+                                label_visibility="collapsed"
+                            )
+                            char_count = len(headline_input)
+                            color = "green" if char_count <= MAX_HEADLINE_LENGTH else "red"
+                            st.caption(f":{color}[{char_count}/{MAX_HEADLINE_LENGTH}자]")
+
+                        with col_hl2:
+                            if st.button("🤖 AI 생성", key=f"gen_hl_{news_id}", help="AI로 헤드라인 자동 생성"):
+                                generated = generate_headline(news_title)
+                                st.session_state[f"headline_{news_id}"] = generated
+                                st.rerun()
+
+                        if headline_input != current_headline:
+                            if st.button("💾 헤드라인 저장", key=f"save_hl_{news_id}"):
+                                if save_headline(news_id, headline_input):
+                                    st.success("헤드라인 저장 완료!")
+                                    st.rerun()
+                                else:
+                                    st.error("헤드라인 저장 실패")
 
                         st.markdown("---")
 

@@ -178,6 +178,11 @@ def migrate_db():
         cursor.execute("ALTER TABLE news ADD COLUMN score_explanation TEXT")
         print("Added score_explanation column to news table")
 
+    # Card headline for mobile UI (max 18 Korean characters = 36 bytes)
+    if 'card_headline' not in columns:
+        cursor.execute("ALTER TABLE news ADD COLUMN card_headline VARCHAR(36)")
+        print("Added card_headline column to news table")
+
     # Create notifications tables if not exist
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS notifications (

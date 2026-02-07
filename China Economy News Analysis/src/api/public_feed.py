@@ -47,6 +47,7 @@ def get_published_news(limit: int = 10, offset: int = 0) -> list[dict]:
     query = """
         SELECT
             n.id,
+            n.card_headline,
             n.translated_title AS headline,
             er.expert_comment AS expert_review,
             n.original_content AS original_article,
@@ -111,6 +112,7 @@ def get_news_by_id(news_id: int) -> Optional[dict]:
     query = """
         SELECT
             n.id,
+            n.card_headline,
             n.translated_title AS headline,
             er.expert_comment AS expert_review,
             n.original_content AS original_article,
@@ -152,6 +154,7 @@ def get_published_news_by_date(target_date: date, limit: int = 50) -> list[dict]
     query = """
         SELECT
             n.id,
+            n.card_headline,
             n.translated_title AS headline,
             er.expert_comment AS expert_review,
             n.original_content AS original_article,
