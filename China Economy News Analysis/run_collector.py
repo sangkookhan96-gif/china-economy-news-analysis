@@ -64,6 +64,7 @@ def main():
                 FROM news
                 WHERE published_at >= ?
                   AND id NOT IN (SELECT news_id FROM expert_reviews)
+                  AND expert_review_status NOT IN ('skipped', 'commented')
                 ORDER BY published_at DESC
             """, (start_time,))
 
