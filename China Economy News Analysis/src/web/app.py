@@ -20,6 +20,7 @@ from src.api.public_feed import (
     get_news_by_id,
     get_published_news_by_date,
     get_available_dates,
+    get_today_headlines,
 )
 
 app = Flask(
@@ -86,9 +87,13 @@ def index():
     # Group by date
     grouped_news = group_news_by_date(news_list)
 
+    # Get today's headlines for summary card
+    today_headlines = get_today_headlines()
+
     return render_template(
         "feed.html",
         grouped_news=grouped_news,
+        today_headlines=today_headlines,
         current_page=page,
         total_pages=total_pages,
         total_count=total_count,

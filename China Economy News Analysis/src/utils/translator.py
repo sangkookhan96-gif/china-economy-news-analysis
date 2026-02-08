@@ -1,4 +1,10 @@
-"""Free Chinese-to-Korean translation using Google Translate."""
+"""Free Chinese-to-Korean translation using Google Translate.
+
+Translation pipeline:
+1. Google Translate (Chinese → Korean)
+2. Post-processing (dictionary replacements, awkward patterns)
+3. Validation (perspective correction: 우리나라 → 중국)
+"""
 
 import logging
 import time
@@ -15,12 +21,41 @@ _MIN_INTERVAL = 0.3
 _last_call_time = 0.0
 
 
-def translate_zh_to_ko(text: str, max_length: int = 5000) -> Optional[str]:
+def _apply_postprocessing(text: str) -> str:
+    """Apply post-processing to translated text.
+
+    Args:
+        text: Translated Korean text
+
+    Returns:
+        Post-processed text
+    """
+    try:
+        from src.utils.title_postprocessor import postprocess
+        from src.utils.title_validator import correct_title
+
+        # Step 1: Apply dictionary and pattern corrections
+        text = postprocess(text)
+
+        # Step 2: Fix perspective expressions (우리나라 → 중국)
+        text = correct_title(text)
+
+        return text
+    except ImportError as e:
+        logger.warning(f"Post-processing modules not available: {e}")
+        return text
+    except Exception as e:
+        logger.warning(f"Post-processing failed: {e}")
+        return text
+
+
+def translate_zh_to_ko(text: str, max_length: int = 5000, apply_postprocess: bool = True) -> Optional[str]:
     """Translate Chinese text to Korean using Google Translate (free).
 
     Args:
         text: Chinese text to translate.
         max_length: Truncate input to this length (Google free limit ~5000 chars).
+        apply_postprocess: Apply post-processing (dictionary, patterns, validation).
 
     Returns:
         Korean translation, or None on failure.
@@ -40,6 +75,11 @@ def translate_zh_to_ko(text: str, max_length: int = 5000) -> Optional[str]:
     try:
         result = _translator.translate(text)
         _last_call_time = time.time()
+
+        # Apply post-processing if enabled
+        if result and apply_postprocess:
+            result = _apply_postprocessing(result)
+
         return result
     except Exception as e:
         logger.warning(f"Translation failed: {e}")

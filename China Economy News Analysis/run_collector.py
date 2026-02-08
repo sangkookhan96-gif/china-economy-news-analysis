@@ -63,6 +63,7 @@ def main():
                 SELECT id, original_title, original_content, published_at, source
                 FROM news
                 WHERE published_at >= ?
+                  AND id NOT IN (SELECT news_id FROM expert_reviews)
                 ORDER BY published_at DESC
             """, (start_time,))
 
@@ -128,6 +129,30 @@ def main():
                     print(f"✗ 번역 실패: {row['original_title'][:40]}")
 
         conn.commit()
+        conn.close()
+
+    # 카드 헤드라인 생성 (18자 이내)
+    if selected_ids:
+        print("\n카드 헤드라인 생성 시작")
+        from src.utils.headline_generator import generate_headline, save_headline
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        for news_id in selected_ids:
+            cursor.execute(
+                "SELECT translated_title, card_headline FROM news WHERE id=?",
+                (news_id,)
+            )
+            row = cursor.fetchone()
+            if row and row['translated_title'] and not row['card_headline']:
+                headline = generate_headline(row['translated_title'])
+                if headline:
+                    save_headline(news_id, headline)
+                    print(f"✓ 헤드라인: {headline}")
+                else:
+                    print(f"✗ 헤드라인 생성 실패: {row['translated_title'][:30]}")
+
         conn.close()
 
     if args.analyze and selected_ids:

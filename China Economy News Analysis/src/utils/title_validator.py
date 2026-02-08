@@ -16,7 +16,14 @@ from typing import Optional
 # Patterns that need correction (Chinese perspective → explicit reference)
 # Format: (pattern, replacement, description)
 CORRECTION_RULES = [
-    # 우리나라 계열
+    # 우리나라 + 조사 계열 (조사 포함 패턴 우선)
+    (r"우리나라는", "중국은", "우리나라는 → 중국은"),
+    (r"우리나라가", "중국이", "우리나라가 → 중국이"),
+    (r"우리나라의", "중국의", "우리나라의 → 중국의"),
+    (r"우리나라를", "중국을", "우리나라를 → 중국을"),
+    (r"우리나라에", "중국에", "우리나라에 → 중국에"),
+    (r"우리나라와", "중국과", "우리나라와 → 중국과"),
+    (r"우리나라도", "중국도", "우리나라도 → 중국도"),
     (r"우리나라", "중국", "우리나라 → 중국"),
     (r"우리 나라", "중국", "우리 나라 → 중국"),
 

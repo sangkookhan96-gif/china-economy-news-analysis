@@ -204,3 +204,72 @@ def get_available_dates() -> list[str]:
     conn.close()
 
     return [row['news_date'] for row in rows if row['news_date']]
+
+
+def get_today_headlines(target_date: Optional[date] = None, period: Optional[str] = None) -> dict:
+    """Get today's headlines summary for the headline card.
+
+    Args:
+        target_date: Date to get headlines for (default: today)
+        period: 'morning' or 'afternoon' (default: auto-detect based on current time)
+
+    Returns:
+        Dictionary with date, title, and sorted headlines list
+    """
+    from datetime import datetime as dt
+
+    if target_date is None:
+        target_date = date.today()
+
+    # Auto-detect period based on current time (14:00 기준)
+    if period is None:
+        current_hour = dt.now().hour
+        period = "afternoon" if current_hour >= 14 else "morning"
+
+    # Set title based on period
+    if period == "morning":
+        title = "오늘 오전 중국경제 뉴스 헤드라인"
+    else:
+        title = "오늘 오후 중국경제 뉴스 헤드라인"
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+        SELECT
+            n.id,
+            COALESCE(n.card_headline, SUBSTR(n.translated_title, 1, 20)) AS headline,
+            n.translated_title AS full_title,
+            n.industry_category AS category,
+            n.importance_score AS importance,
+            er.created_at AS review_date
+        FROM news n
+        INNER JOIN expert_reviews er ON n.id = er.news_id
+        WHERE er.expert_comment IS NOT NULL
+          AND er.publish_status = 'published'
+          AND DATE(er.created_at) = ?
+        ORDER BY n.importance_score DESC, er.created_at DESC
+        LIMIT 10
+    """
+
+    cursor.execute(query, (target_date.isoformat(),))
+    rows = cursor.fetchall()
+    conn.close()
+
+    headlines = []
+    for i, row in enumerate(rows, 1):
+        headlines.append({
+            "rank": i,
+            "id": row["id"],
+            "headline": row["headline"] or row["full_title"][:20] + "…",
+            "category": row["category"] or "",
+            "importance": row["importance"] or 0.5
+        })
+
+    return {
+        "date": target_date.isoformat(),
+        "period": period,
+        "title": title,
+        "count": len(headlines),
+        "headlines": headlines
+    }
