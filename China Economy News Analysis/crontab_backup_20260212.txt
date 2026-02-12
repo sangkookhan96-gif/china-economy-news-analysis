@@ -1,0 +1,15 @@
+@reboot cd /home/jeozeohan/vibe_temp/China\ Economy\ News\ Analysis && /usr/bin/python3 src/agents/scheduler_agent.py >> logs/scheduler.log 2>&1
+0 8 * * * /home/jeozeohan/vibe_temp/China\ Economy\ News\ Analysis/scripts/run_daily_selection.sh cron
+
+# China Economy News Analysis - 2회 크롤링
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# 오전 7시 크롤링
+0 7 * * * cd /home/jeozeohan/vibe_temp/China\ Economy\ News\ Analysis && /usr/bin/python3 run_collector.py --auto >> logs/cron_07.log 2>&1
+
+# 오후 2시 크롤링
+0 14 * * * cd /home/jeozeohan/vibe_temp/China\ Economy\ News\ Analysis && /usr/bin/python3 run_collector.py --auto >> logs/cron_14.log 2>&1
+
+
+
