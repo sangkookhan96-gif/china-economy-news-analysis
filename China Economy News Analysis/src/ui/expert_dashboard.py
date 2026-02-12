@@ -90,7 +90,7 @@ def create_score_radar_chart(breakdown: dict) -> go.Figure:
 
 def get_top_news(limit: int = 10, industry: str = None, days: int = 7,
                  bookmarked_only: bool = False, tag_filter: str = None,
-                 queued_only: bool = False) -> pd.DataFrame:
+                 queued_only: bool = False, edition_filter: str = None) -> pd.DataFrame:
     """Get top news sorted by importance score."""
     conn = get_connection()
 
@@ -109,6 +109,9 @@ def get_top_news(limit: int = 10, industry: str = None, days: int = 7,
 
     if queued_only:
         query += " AND n.expert_review_status = 'queued_today'"
+        if edition_filter and edition_filter != '전체':
+            query += " AND n.edition = ?"
+            params.append(edition_filter)
     else:
         query += " AND n.collected_at >= datetime('now', ?)"
         params.append(f'-{days} days')
@@ -194,12 +197,40 @@ def save_expert_comment(news_id: int, comment: str) -> bool:
             """, (news_id, comment, now, now, status, now, now, now))
 
         conn.commit()
-        return True
+        success = True
     except Exception as e:
         st.error(f"저장 실패: {e}")
-        return False
+        success = False
     finally:
         conn.close()
+
+    # Auto-generate card headline after successful review save
+    if success:
+        _auto_generate_headline(news_id)
+
+    return success
+
+
+def _auto_generate_headline(news_id: int):
+    """Auto-generate card headline if missing after expert review."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT edition, translated_title, card_headline FROM news WHERE id = ?",
+            (news_id,)
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if row and row['translated_title'] and not row['card_headline']:
+            from src.utils.headline_generator import generate_and_save_headline
+            headline = generate_and_save_headline(news_id, row['translated_title'])
+            if headline:
+                st.toast(f"카드 헤드라인 자동 생성: {headline}")
+    except Exception as e:
+        # Non-fatal: log but don't block the review save
+        print(f"Auto headline generation failed for news {news_id}: {e}")
 
 
 def has_original_content(news_id: int) -> bool:
@@ -496,6 +527,17 @@ def get_statistics() -> dict:
         stats['published_reviews'] = 0
         stats['discarded_reviews'] = 0
         stats['skipped_news'] = 0
+
+    # Per-edition queue counts
+    for ed in ['morning', 'afternoon', 'evening']:
+        try:
+            cursor.execute(
+                "SELECT COUNT(*) FROM news WHERE expert_review_status = 'queued_today' AND edition = ?",
+                (ed,)
+            )
+            stats[f'queued_{ed}'] = cursor.fetchone()[0]
+        except:
+            stats[f'queued_{ed}'] = 0
 
     # Unread notifications
     try:
@@ -912,6 +954,10 @@ def render_today_overview(stats):
         </div>
         <p style="margin: 0.3rem 0 0 0; font-size: 0.75rem; color: #888; text-align: right;">
             리뷰 진행률 {progress_pct}%
+            &nbsp;|&nbsp;
+            오전 {stats.get('queued_morning', 0)}건
+            &middot; 오후 {stats.get('queued_afternoon', 0)}건
+            &middot; 저녁 {stats.get('queued_evening', 0)}건
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -1073,13 +1119,23 @@ def main():
     with tab1:
         st.subheader("📋 오늘의 선정 뉴스")
 
+        # Edition filter
+        edition_options = {'전체': '전체 에디션', 'morning': '오전판', 'afternoon': '오후판', 'evening': '저녁/반판'}
+        selected_edition = st.selectbox(
+            "에디션 선택",
+            options=list(edition_options.keys()),
+            format_func=lambda x: edition_options[x],
+            key="edition_filter"
+        )
+
         df = get_top_news(
             limit=news_limit,
             industry=selected_industry,
             days=days_range,
             bookmarked_only=bookmarked_only,
             tag_filter=selected_tag,
-            queued_only=True
+            queued_only=True,
+            edition_filter=selected_edition if selected_edition != '전체' else None,
         )
 
         # Display persistent save feedback from session state
@@ -1141,7 +1197,11 @@ def main():
                         else:
                             st.markdown(f"**{title}**")
                     with col2:
-                        st.caption(f"{badge} ({importance:.2f})")
+                        edition_label = {'morning': '오전', 'afternoon': '오후', 'evening': '저녁'}.get(
+                            row.get('edition', '') or '', ''
+                        )
+                        edition_tag = f"[{edition_label}판] " if edition_label else ""
+                        st.caption(f"{edition_tag}{badge} ({importance:.2f})")
                     with col3:
                         st.caption(status_text)
                     with col4:

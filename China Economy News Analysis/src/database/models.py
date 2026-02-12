@@ -50,6 +50,8 @@ def init_db():
             content_score REAL,
             score_breakdown TEXT,
             score_explanation TEXT,
+            card_headline VARCHAR(36),
+            edition TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
@@ -183,6 +185,11 @@ def migrate_db():
         cursor.execute("ALTER TABLE news ADD COLUMN card_headline VARCHAR(36)")
         print("Added card_headline column to news table")
 
+    # Edition column for 3-edition-per-day publishing (morning/afternoon/evening)
+    if 'edition' not in columns:
+        cursor.execute("ALTER TABLE news ADD COLUMN edition TEXT")
+        print("Added edition column to news table")
+
     # Create notifications tables if not exist
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS notifications (
@@ -239,6 +246,7 @@ def migrate_db():
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_news_expert_review_status ON news(expert_review_status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_news_edition ON news(edition)")
 
     # Trigger: block expert_reviews insert unless news is queued_today
     cursor.execute("""

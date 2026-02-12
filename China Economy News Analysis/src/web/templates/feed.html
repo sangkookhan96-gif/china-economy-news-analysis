@@ -14,16 +14,17 @@ AI로 엄선하고, 중국에 정통한 전문가가 요약해
 정책·시장·산업의 맥락 속에서 중국 경제 뉴스를 설명합니다.</p>
     </div>
 
-    <!-- 오늘의 헤드라인 요약 카드 -->
-    {% if today_headlines and today_headlines.count > 0 %}
+    <!-- 에디션별 헤드라인 요약 카드 -->
+    {% for edition_data in all_edition_headlines %}
+    {% if edition_data.count > 0 %}
     <div class="headline-summary-card">
         <div class="headline-summary-header">
             <span class="headline-icon">📰</span>
-            <h2 class="headline-summary-title">{{ today_headlines.title }}</h2>
-            <span class="headline-count">{{ today_headlines.count }}건</span>
+            <h2 class="headline-summary-title">{{ edition_data.title }}</h2>
+            <span class="headline-count">{{ edition_data.count }}건</span>
         </div>
         <ol class="headline-list">
-            {% for item in today_headlines.headlines %}
+            {% for item in edition_data.headlines %}
             <li class="headline-item {% if item.rank == 1 %}headline-rank-1{% elif item.rank <= 3 %}headline-rank-top{% endif %}">
                 <a href="{{ url_for('news_detail', news_id=item.id) }}">
                     <span class="headline-rank">{{ item.rank }}</span>
@@ -34,6 +35,7 @@ AI로 엄선하고, 중국에 정통한 전문가가 요약해
         </ol>
     </div>
     {% endif %}
+    {% endfor %}
 
     {% if grouped_news.today %}
     <div class="date-group">
