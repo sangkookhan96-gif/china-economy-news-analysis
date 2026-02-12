@@ -1,0 +1,1288 @@
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Serving Flask app 'src.web.app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8502
+ * Running on http://221.146.127.134:8502
+Press CTRL+C to quit
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+127.0.0.1 - - [06/Feb/2026 12:55:24] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [06/Feb/2026 12:55:30] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [06/Feb/2026 12:56:11] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [06/Feb/2026 12:56:11] "GET /static/main.js HTTP/1.1" 200 -
+127.0.0.1 - - [06/Feb/2026 12:56:11] "GET /static/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [06/Feb/2026 12:56:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [06/Feb/2026 12:57:48] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [06/Feb/2026 12:57:49] "GET /static/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [06/Feb/2026 12:57:49] "GET /static/main.js HTTP/1.1" 200 -
+127.0.0.1 - - [06/Feb/2026 12:57:49] "GET /favicon.ico HTTP/1.1" 404 -
+221.146.127.134 - - [06/Feb/2026 12:58:07] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [06/Feb/2026 12:58:07] "GET /static/main.js HTTP/1.1" 304 -
+221.146.127.134 - - [06/Feb/2026 12:58:07] "GET /static/style.css HTTP/1.1" 304 -
+221.146.127.134 - - [06/Feb/2026 12:58:25] "GET /?page=2 HTTP/1.1" 200 -
+221.146.127.134 - - [06/Feb/2026 12:58:25] "GET /static/main.js HTTP/1.1" 304 -
+221.146.127.134 - - [06/Feb/2026 12:58:25] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 13:01:16] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 13:01:16] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 13:01:16] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 13:01:17] "GET /favicon.ico HTTP/1.1" 404 -
+27.0.238.70 - - [06/Feb/2026 13:02:58] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 13:03:21] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 13:03:21] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 13:03:21] "GET /static/main.js HTTP/1.1" 304 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770351342595', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770351350981', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770351360856', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770351366628', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770351381332', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770351386390', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770351400974', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770351422103', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770351442219', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+61.74.27.120 - - [06/Feb/2026 13:24:40] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 13:24:40] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 13:24:40] "GET /static/main.js HTTP/1.1" 304 -
+221.146.127.134 - - [06/Feb/2026 13:56:10] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [06/Feb/2026 13:56:10] "GET /static/style.css HTTP/1.1" 304 -
+221.146.127.134 - - [06/Feb/2026 13:56:10] "GET /static/main.js HTTP/1.1" 304 -
+211.234.198.38 - - [06/Feb/2026 14:01:56] "GET / HTTP/1.1" 200 -
+211.234.198.38 - - [06/Feb/2026 14:01:56] "GET /static/style.css HTTP/1.1" 200 -
+211.234.198.38 - - [06/Feb/2026 14:01:56] "GET /static/main.js HTTP/1.1" 200 -
+211.234.198.38 - - [06/Feb/2026 14:01:57] "GET /favicon.ico HTTP/1.1" 404 -
+211.234.198.38 - - [06/Feb/2026 14:02:52] "GET / HTTP/1.1" 200 -
+211.234.198.38 - - [06/Feb/2026 14:02:53] "GET /static/style.css HTTP/1.1" 200 -
+211.234.198.38 - - [06/Feb/2026 14:02:53] "GET /static/main.js HTTP/1.1" 200 -
+211.234.198.38 - - [06/Feb/2026 14:02:53] "GET /favicon.ico HTTP/1.1" 404 -
+211.234.198.38 - - [06/Feb/2026 14:03:57] "GET /?page=2 HTTP/1.1" 200 -
+211.234.198.38 - - [06/Feb/2026 14:03:57] "GET /static/style.css HTTP/1.1" 304 -
+211.234.198.38 - - [06/Feb/2026 14:03:57] "GET /static/main.js HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:04:18] "GET / HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:04:18] "GET /static/style.css HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:04:18] "GET /static/main.js HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:04:19] "GET /favicon.ico HTTP/1.1" 404 -
+106.241.12.2 - - [06/Feb/2026 14:04:30] "GET /?page=2 HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:04:30] "GET /static/style.css HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:04:30] "GET /static/main.js HTTP/1.1" 304 -
+211.104.145.24 - - [06/Feb/2026 14:04:38] "GET / HTTP/1.1" 200 -
+211.104.145.24 - - [06/Feb/2026 14:04:38] "GET /static/style.css HTTP/1.1" 200 -
+211.104.145.24 - - [06/Feb/2026 14:04:38] "GET /static/main.js HTTP/1.1" 200 -
+211.104.145.24 - - [06/Feb/2026 14:04:39] "GET /favicon.ico HTTP/1.1" 404 -
+106.241.12.2 - - [06/Feb/2026 14:05:24] "GET /news/11051 HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:05:24] "GET /static/style.css HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:05:24] "GET /static/main.js HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:19] "GET /?page=1 HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:06:19] "GET /static/style.css HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:19] "GET /static/main.js HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:23] "GET /archive HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:06:23] "GET /static/style.css HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:23] "GET /static/main.js HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:25] "GET /archive?date=2026-02-04 HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:06:25] "GET /static/style.css HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:25] "GET /static/main.js HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:28] "GET /archive?date=2026-02-05 HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:06:28] "GET /static/style.css HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:28] "GET /static/main.js HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:30] "GET /archive?date=2026-02-06 HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:06:30] "GET /static/style.css HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:30] "GET /static/main.js HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:40] "GET / HTTP/1.1" 200 -
+106.241.12.2 - - [06/Feb/2026 14:06:40] "GET /static/style.css HTTP/1.1" 304 -
+106.241.12.2 - - [06/Feb/2026 14:06:40] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 14:11:26] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 14:11:26] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 14:11:26] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 14:11:27] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [06/Feb/2026 14:12:32] "GET /news/11426 HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 14:12:33] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 14:12:33] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 14:12:41] "GET /news/11428 HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 14:12:41] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 14:12:41] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 14:12:46] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 14:12:46] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 14:12:46] "GET /static/main.js HTTP/1.1" 304 -
+180.229.178.201 - - [06/Feb/2026 14:13:41] "GET / HTTP/1.1" 200 -
+180.229.178.201 - - [06/Feb/2026 14:13:41] "GET /static/main.js HTTP/1.1" 200 -
+180.229.178.201 - - [06/Feb/2026 14:13:41] "GET /static/style.css HTTP/1.1" 200 -
+180.229.178.201 - - [06/Feb/2026 14:13:42] "GET /favicon.ico HTTP/1.1" 404 -
+180.229.178.201 - - [06/Feb/2026 14:14:04] "GET /?page=2 HTTP/1.1" 200 -
+180.229.178.201 - - [06/Feb/2026 14:14:04] "GET /static/style.css HTTP/1.1" 304 -
+180.229.178.201 - - [06/Feb/2026 14:14:04] "GET /static/main.js HTTP/1.1" 304 -
+118.235.15.18 - - [06/Feb/2026 14:14:30] "GET / HTTP/1.1" 200 -
+118.235.15.18 - - [06/Feb/2026 14:14:30] "GET /static/style.css HTTP/1.1" 200 -
+118.235.15.18 - - [06/Feb/2026 14:14:30] "GET /static/main.js HTTP/1.1" 200 -
+118.235.15.18 - - [06/Feb/2026 14:14:31] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.15.230 - - [06/Feb/2026 14:15:06] "GET / HTTP/1.1" 200 -
+118.235.15.230 - - [06/Feb/2026 14:15:06] "GET /static/style.css HTTP/1.1" 200 -
+118.235.15.230 - - [06/Feb/2026 14:15:06] "GET /static/main.js HTTP/1.1" 200 -
+118.235.15.230 - - [06/Feb/2026 14:15:07] "GET /favicon.ico HTTP/1.1" 404 -
+220.75.211.45 - - [06/Feb/2026 14:15:31] "GET / HTTP/1.1" 200 -
+220.75.211.45 - - [06/Feb/2026 14:15:31] "GET /static/style.css HTTP/1.1" 200 -
+220.75.211.45 - - [06/Feb/2026 14:15:31] "GET /static/main.js HTTP/1.1" 200 -
+220.75.211.45 - - [06/Feb/2026 14:15:35] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.15.42 - - [06/Feb/2026 14:15:39] "GET /?page=2 HTTP/1.1" 200 -
+118.235.15.42 - - [06/Feb/2026 14:15:39] "GET /static/style.css HTTP/1.1" 304 -
+118.235.15.42 - - [06/Feb/2026 14:15:39] "GET /static/main.js HTTP/1.1" 304 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/run_collector.py.tmp.60017.1770354966083', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+118.235.14.158 - - [06/Feb/2026 14:16:18] "GET / HTTP/1.1" 200 -
+118.235.14.158 - - [06/Feb/2026 14:16:18] "GET /static/style.css HTTP/1.1" 200 -
+118.235.14.158 - - [06/Feb/2026 14:16:18] "GET /static/main.js HTTP/1.1" 200 -
+118.235.14.158 - - [06/Feb/2026 14:16:18] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.14.158 - - [06/Feb/2026 14:16:20] "GET / HTTP/1.1" 200 -
+118.235.14.158 - - [06/Feb/2026 14:16:20] "GET /static/style.css HTTP/1.1" 304 -
+118.235.14.158 - - [06/Feb/2026 14:16:20] "GET /static/main.js HTTP/1.1" 304 -
+118.235.15.54 - - [06/Feb/2026 14:16:27] "GET / HTTP/1.1" 200 -
+118.235.15.54 - - [06/Feb/2026 14:16:27] "GET /static/style.css HTTP/1.1" 200 -
+118.235.15.54 - - [06/Feb/2026 14:16:27] "GET /static/main.js HTTP/1.1" 200 -
+118.235.15.54 - - [06/Feb/2026 14:16:27] "GET /favicon.ico HTTP/1.1" 404 -
+27.0.238.114 - - [06/Feb/2026 14:18:40] "GET / HTTP/1.1" 200 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770355212035', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/api/public_feed.py.tmp.60017.1770355325482', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/api/public_feed.py.tmp.60017.1770355329186', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/api/public_feed.py.tmp.60017.1770355330898', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/api/public_feed.py.tmp.60017.1770355332518', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/api/public_feed.py.tmp.60017.1770355334057', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770355349847', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770355352026', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770355354190', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/collector/news_filter.py.tmp.60017.1770355492481', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+211.37.114.251 - - [06/Feb/2026 14:27:37] "GET / HTTP/1.1" 200 -
+211.37.114.251 - - [06/Feb/2026 14:27:37] "GET /static/style.css HTTP/1.1" 200 -
+211.37.114.251 - - [06/Feb/2026 14:27:37] "GET /static/main.js HTTP/1.1" 200 -
+211.37.114.251 - - [06/Feb/2026 14:27:38] "GET /favicon.ico HTTP/1.1" 404 -
+40.77.167.85 - - [06/Feb/2026 14:36:58] "GET /robots.txt HTTP/1.1" 404 -
+52.167.144.166 - - [06/Feb/2026 14:37:07] "GET / HTTP/1.1" 200 -
+40.77.178.240 - - [06/Feb/2026 14:37:09] "GET /static/main.js HTTP/1.1" 200 -
+65.55.210.141 - - [06/Feb/2026 14:37:09] "GET /static/style.css HTTP/1.1" 200 -
+14.4.210.193 - - [06/Feb/2026 14:40:16] "GET / HTTP/1.1" 200 -
+14.4.210.193 - - [06/Feb/2026 14:40:16] "GET /static/main.js HTTP/1.1" 200 -
+14.4.210.193 - - [06/Feb/2026 14:40:16] "GET /static/style.css HTTP/1.1" 200 -
+221.140.60.72 - - [06/Feb/2026 14:40:55] "GET / HTTP/1.1" 200 -
+221.140.60.72 - - [06/Feb/2026 14:40:55] "GET /static/style.css HTTP/1.1" 200 -
+221.140.60.72 - - [06/Feb/2026 14:40:55] "GET /static/main.js HTTP/1.1" 200 -
+221.140.60.72 - - [06/Feb/2026 14:40:56] "GET /favicon.ico HTTP/1.1" 404 -
+14.4.210.193 - - [06/Feb/2026 14:41:02] "GET /news/11114 HTTP/1.1" 200 -
+14.4.210.193 - - [06/Feb/2026 14:41:02] "GET /static/main.js HTTP/1.1" 304 -
+14.4.210.193 - - [06/Feb/2026 14:41:02] "GET /static/style.css HTTP/1.1" 304 -
+14.4.210.193 - - [06/Feb/2026 14:41:07] "GET / HTTP/1.1" 200 -
+14.4.210.193 - - [06/Feb/2026 14:41:08] "GET /static/style.css HTTP/1.1" 304 -
+14.4.210.193 - - [06/Feb/2026 14:41:08] "GET /static/main.js HTTP/1.1" 304 -
+14.4.210.193 - - [06/Feb/2026 14:41:24] "GET /archive HTTP/1.1" 200 -
+14.4.210.193 - - [06/Feb/2026 14:41:24] "GET /static/style.css HTTP/1.1" 304 -
+14.4.210.193 - - [06/Feb/2026 14:41:24] "GET /static/main.js HTTP/1.1" 304 -
+14.4.210.193 - - [06/Feb/2026 14:41:31] "GET / HTTP/1.1" 200 -
+14.4.210.193 - - [06/Feb/2026 14:41:31] "GET /static/style.css HTTP/1.1" 304 -
+14.4.210.193 - - [06/Feb/2026 14:41:31] "GET /static/main.js HTTP/1.1" 304 -
+211.241.115.249 - - [06/Feb/2026 14:43:37] "GET / HTTP/1.1" 200 -
+211.241.115.249 - - [06/Feb/2026 14:43:37] "GET /static/style.css HTTP/1.1" 200 -
+211.241.115.249 - - [06/Feb/2026 14:43:37] "GET /static/main.js HTTP/1.1" 200 -
+211.241.115.249 - - [06/Feb/2026 14:43:38] "GET /favicon.ico HTTP/1.1" 404 -
+1.216.255.203 - - [06/Feb/2026 14:45:12] "GET / HTTP/1.1" 200 -
+1.216.255.203 - - [06/Feb/2026 14:45:12] "GET /static/style.css HTTP/1.1" 200 -
+1.216.255.203 - - [06/Feb/2026 14:45:12] "GET /static/main.js HTTP/1.1" 200 -
+1.216.255.203 - - [06/Feb/2026 14:45:13] "GET /favicon.ico HTTP/1.1" 404 -
+211.241.115.249 - - [06/Feb/2026 14:45:25] "GET / HTTP/1.1" 200 -
+211.241.115.249 - - [06/Feb/2026 14:45:25] "GET /static/style.css HTTP/1.1" 200 -
+211.241.115.249 - - [06/Feb/2026 14:45:25] "GET /static/main.js HTTP/1.1" 200 -
+211.241.115.249 - - [06/Feb/2026 14:45:25] "GET /favicon.ico HTTP/1.1" 404 -
+1.216.255.203 - - [06/Feb/2026 14:45:50] "GET /news/11052 HTTP/1.1" 200 -
+1.216.255.203 - - [06/Feb/2026 14:45:50] "GET /static/style.css HTTP/1.1" 304 -
+1.216.255.203 - - [06/Feb/2026 14:45:50] "GET /static/main.js HTTP/1.1" 304 -
+1.216.255.203 - - [06/Feb/2026 14:46:14] "GET / HTTP/1.1" 200 -
+1.216.255.203 - - [06/Feb/2026 14:46:15] "GET /static/style.css HTTP/1.1" 200 -
+1.216.255.203 - - [06/Feb/2026 14:46:15] "GET /static/main.js HTTP/1.1" 200 -
+1.216.255.203 - - [06/Feb/2026 14:46:15] "GET /favicon.ico HTTP/1.1" 404 -
+211.235.72.90 - - [06/Feb/2026 14:46:25] "GET / HTTP/1.1" 200 -
+211.235.72.90 - - [06/Feb/2026 14:46:26] "GET /static/style.css HTTP/1.1" 200 -
+211.235.72.90 - - [06/Feb/2026 14:46:26] "GET /static/main.js HTTP/1.1" 200 -
+211.235.72.90 - - [06/Feb/2026 14:46:27] "GET /favicon.ico HTTP/1.1" 404 -
+1.216.255.203 - - [06/Feb/2026 14:46:49] "GET /news/11501 HTTP/1.1" 200 -
+1.216.255.203 - - [06/Feb/2026 14:46:49] "GET /static/style.css HTTP/1.1" 304 -
+1.216.255.203 - - [06/Feb/2026 14:46:49] "GET /static/main.js HTTP/1.1" 304 -
+211.235.72.112 - - [06/Feb/2026 14:46:52] "GET / HTTP/1.1" 200 -
+211.235.72.112 - - [06/Feb/2026 14:46:52] "GET /static/style.css HTTP/1.1" 200 -
+211.235.72.112 - - [06/Feb/2026 14:46:52] "GET /static/main.js HTTP/1.1" 200 -
+211.235.72.112 - - [06/Feb/2026 14:46:52] "GET /favicon.ico HTTP/1.1" 404 -
+1.216.255.203 - - [06/Feb/2026 14:47:13] "GET /?page=2 HTTP/1.1" 200 -
+1.216.255.203 - - [06/Feb/2026 14:47:13] "GET /static/style.css HTTP/1.1" 304 -
+1.216.255.203 - - [06/Feb/2026 14:47:13] "GET /static/main.js HTTP/1.1" 304 -
+1.216.255.203 - - [06/Feb/2026 14:47:18] "GET /?page=1 HTTP/1.1" 200 -
+1.216.255.203 - - [06/Feb/2026 14:47:19] "GET /static/style.css HTTP/1.1" 304 -
+1.216.255.203 - - [06/Feb/2026 14:47:19] "GET /static/main.js HTTP/1.1" 304 -
+223.63.159.105 - - [06/Feb/2026 14:49:36] "GET / HTTP/1.1" 200 -
+223.63.159.105 - - [06/Feb/2026 14:49:36] "GET /static/style.css HTTP/1.1" 200 -
+223.63.159.105 - - [06/Feb/2026 14:49:36] "GET /static/main.js HTTP/1.1" 200 -
+223.63.159.105 - - [06/Feb/2026 14:49:37] "GET /favicon.ico HTTP/1.1" 404 -
+211.54.50.228 - - [06/Feb/2026 14:53:45] "GET / HTTP/1.1" 200 -
+211.54.50.228 - - [06/Feb/2026 14:53:45] "GET /static/style.css HTTP/1.1" 200 -
+211.54.50.228 - - [06/Feb/2026 14:53:45] "GET /static/main.js HTTP/1.1" 200 -
+211.54.50.228 - - [06/Feb/2026 14:53:46] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [06/Feb/2026 15:00:33] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:00:33] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:00:33] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:00:34] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.3.220 - - [06/Feb/2026 15:01:21] "GET / HTTP/1.1" 200 -
+118.235.3.220 - - [06/Feb/2026 15:01:21] "GET /static/style.css HTTP/1.1" 200 -
+118.235.3.220 - - [06/Feb/2026 15:01:21] "GET /static/main.js HTTP/1.1" 200 -
+118.235.3.220 - - [06/Feb/2026 15:01:22] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [06/Feb/2026 15:04:20] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:04:20] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 15:04:20] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 15:04:24] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:04:24] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 15:04:24] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 15:32:10] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:32:10] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:32:10] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:32:10] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [06/Feb/2026 15:32:31] "GET /news/11501 HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:32:31] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 15:32:31] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 15:33:05] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:33:05] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:33:05] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 15:33:12] "GET /news/11501 HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 16:08:01] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 16:08:01] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 16:08:01] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 16:08:02] "GET /favicon.ico HTTP/1.1" 404 -
+211.234.227.92 - - [06/Feb/2026 16:56:54] "GET / HTTP/1.1" 200 -
+211.234.227.92 - - [06/Feb/2026 16:56:54] "GET /static/style.css HTTP/1.1" 200 -
+211.234.227.92 - - [06/Feb/2026 16:56:55] "GET /static/main.js HTTP/1.1" 200 -
+211.234.227.92 - - [06/Feb/2026 16:56:55] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.6.6 - - [06/Feb/2026 17:01:50] "GET / HTTP/1.1" 200 -
+118.235.6.6 - - [06/Feb/2026 17:01:50] "GET /static/style.css HTTP/1.1" 200 -
+118.235.6.6 - - [06/Feb/2026 17:01:50] "GET /static/main.js HTTP/1.1" 200 -
+118.235.6.6 - - [06/Feb/2026 17:01:51] "GET /favicon.ico HTTP/1.1" 404 -
+1.216.99.227 - - [06/Feb/2026 17:25:18] "GET / HTTP/1.1" 200 -
+1.216.99.227 - - [06/Feb/2026 17:25:18] "GET /static/style.css HTTP/1.1" 200 -
+1.216.99.227 - - [06/Feb/2026 17:25:18] "GET /static/main.js HTTP/1.1" 200 -
+1.216.99.227 - - [06/Feb/2026 17:25:19] "GET /favicon.ico HTTP/1.1" 404 -
+110.70.15.14 - - [06/Feb/2026 18:02:47] "GET / HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:02:47] "GET /static/style.css HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:02:50] "GET /static/main.js HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:03:00] "GET /news/11501 HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:03:01] "GET /static/style.css HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:03:01] "GET /static/main.js HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:03:01] "GET /favicon.ico HTTP/1.1" 404 -
+110.70.15.14 - - [06/Feb/2026 18:03:20] "GET /news/11507 HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:03:20] "GET /static/main.js HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:03:20] "GET /static/style.css HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:03:57] "GET /news/11528 HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:03:57] "GET /static/style.css HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:03:57] "GET /static/main.js HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:04:58] "GET /news/11114 HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:04:59] "GET /static/style.css HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:04:59] "GET /static/main.js HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:06:07] "GET /news/11160 HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:06:10] "GET /news/11160 HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:06:15] "GET /static/style.css HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:06:19] "GET /static/main.js HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:07:29] "GET /news/11163 HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:07:30] "GET /static/style.css HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:07:30] "GET /static/main.js HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:08:12] "GET /news/11052 HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:08:16] "GET /static/style.css HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:08:25] "GET /static/main.js HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:08:48] "GET /news/11051 HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:08:49] "GET /static/style.css HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:08:49] "GET /static/main.js HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:09:48] "GET /news/10632 HTTP/1.1" 200 -
+110.70.15.14 - - [06/Feb/2026 18:09:49] "GET /static/style.css HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:09:53] "GET /static/main.js HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:10:22] "GET /?page=2 HTTP/1.1" 200 -
+118.235.73.98 - - [06/Feb/2026 18:10:30] "GET /static/main.js HTTP/1.1" 304 -
+110.70.15.14 - - [06/Feb/2026 18:10:30] "GET /static/style.css HTTP/1.1" 304 -
+210.96.249.21 - - [06/Feb/2026 18:21:33] "GET / HTTP/1.1" 200 -
+210.96.249.21 - - [06/Feb/2026 18:21:33] "GET /static/style.css HTTP/1.1" 200 -
+210.96.249.21 - - [06/Feb/2026 18:21:33] "GET /static/main.js HTTP/1.1" 200 -
+210.96.249.21 - - [06/Feb/2026 18:21:34] "GET /favicon.ico HTTP/1.1" 404 -
+210.96.249.20 - - [06/Feb/2026 18:24:28] "GET /?page=2 HTTP/1.1" 200 -
+210.96.249.20 - - [06/Feb/2026 18:24:28] "GET /static/style.css HTTP/1.1" 304 -
+210.96.249.20 - - [06/Feb/2026 18:24:28] "GET /static/main.js HTTP/1.1" 304 -
+210.96.249.20 - - [06/Feb/2026 18:26:11] "GET / HTTP/1.1" 200 -
+210.96.249.20 - - [06/Feb/2026 18:26:11] "GET /static/style.css HTTP/1.1" 200 -
+210.96.249.20 - - [06/Feb/2026 18:26:11] "GET /static/main.js HTTP/1.1" 200 -
+210.96.249.20 - - [06/Feb/2026 18:26:11] "GET /favicon.ico HTTP/1.1" 404 -
+210.96.249.20 - - [06/Feb/2026 18:26:20] "GET /archive HTTP/1.1" 200 -
+210.96.249.20 - - [06/Feb/2026 18:26:20] "GET /static/main.js HTTP/1.1" 304 -
+210.96.249.20 - - [06/Feb/2026 18:26:20] "GET /static/style.css HTTP/1.1" 304 -
+210.96.249.20 - - [06/Feb/2026 18:26:22] "GET / HTTP/1.1" 200 -
+210.96.249.20 - - [06/Feb/2026 18:26:23] "GET /static/style.css HTTP/1.1" 304 -
+210.96.249.20 - - [06/Feb/2026 18:26:23] "GET /static/main.js HTTP/1.1" 304 -
+210.96.249.20 - - [06/Feb/2026 18:27:18] "GET /news/11051 HTTP/1.1" 200 -
+210.96.249.20 - - [06/Feb/2026 18:27:18] "GET /static/style.css HTTP/1.1" 304 -
+210.96.249.20 - - [06/Feb/2026 18:27:18] "GET /static/main.js HTTP/1.1" 304 -
+110.70.59.144 - - [06/Feb/2026 18:28:56] "GET / HTTP/1.1" 200 -
+110.70.59.144 - - [06/Feb/2026 18:28:57] "GET /static/style.css HTTP/1.1" 200 -
+110.70.59.144 - - [06/Feb/2026 18:28:57] "GET /static/main.js HTTP/1.1" 200 -
+110.70.59.144 - - [06/Feb/2026 18:28:59] "GET /favicon.ico HTTP/1.1" 404 -
+110.70.59.144 - - [06/Feb/2026 18:29:32] "GET / HTTP/1.1" 200 -
+110.70.59.144 - - [06/Feb/2026 18:29:32] "GET /static/style.css HTTP/1.1" 200 -
+110.70.59.144 - - [06/Feb/2026 18:29:33] "GET /static/main.js HTTP/1.1" 200 -
+110.70.59.144 - - [06/Feb/2026 18:29:33] "GET /favicon.ico HTTP/1.1" 404 -
+211.234.227.32 - - [06/Feb/2026 18:45:06] "GET / HTTP/1.1" 200 -
+211.234.227.32 - - [06/Feb/2026 18:45:06] "GET /static/style.css HTTP/1.1" 200 -
+211.234.227.32 - - [06/Feb/2026 18:45:06] "GET /static/main.js HTTP/1.1" 200 -
+211.234.227.32 - - [06/Feb/2026 18:45:07] "GET /favicon.ico HTTP/1.1" 404 -
+106.101.73.32 - - [06/Feb/2026 19:32:35] "GET / HTTP/1.1" 200 -
+106.101.73.32 - - [06/Feb/2026 19:32:35] "GET /static/style.css HTTP/1.1" 200 -
+106.101.73.32 - - [06/Feb/2026 19:32:35] "GET /static/main.js HTTP/1.1" 200 -
+106.101.73.32 - - [06/Feb/2026 19:32:36] "GET /favicon.ico HTTP/1.1" 404 -
+111.172.7.26 - - [06/Feb/2026 19:42:27] "GET / HTTP/1.1" 200 -
+111.172.7.26 - - [06/Feb/2026 19:42:42] code 400, message Bad request version ('\x02h2\x08http/1.1\x00+\x00\x07\x06ÊÊ\x03\x04\x03\x03\x00')
+111.172.7.26 - - [06/Feb/2026 19:42:42] "\x16\x03\x01\x02\x00\x01\x00\x01ü\x03\x03è]¸\x08|øQÛ¹·æÆzø\x98\x8b°÷ò[\x89ÍÈ[\x9e+#¬tL¡\x17 H5\x03\x9fµý\x08\x86?ÁpëYÐR´G¨\\¸¨êÈÕ +Èë\x83\x02\x93\x98\x00 \x9a\x9a\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x01\x93\x1a\x1a\x00\x00\x00\x0d\x00\x12\x00\x10\x04\x03\x08\x04\x04\x01\x05\x03\x08\x05\x05\x01\x08\x06\x06\x01\x00#\x00\x00\x00-\x00\x02\x01\x01ÿ\x01\x00\x01\x00\x00\x10\x00\x0e\x00\x0c\x02h2\x08http/1.1\x00+\x00\x07\x06ÊÊ\x03\x04\x03\x03\x00" HTTPStatus.BAD_REQUEST -
+111.172.7.26 - - [06/Feb/2026 19:42:43] code 400, message Bad request version ('ÚÚ\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x01\x93ªª\x00\x00\x00')
+111.172.7.26 - - [06/Feb/2026 19:42:43] "\x16\x03\x01\x02\x00\x01\x00\x01ü\x03\x03_¥¿6QôñÊ\x8a§äE\x06\x1c\x0c\x9dªÎMÇ9\x94åÈy6i¢\x99Ê9¨ \x8a\x83.>\x86\x04s\x86ào-aFJAQ[\x14\x05ªå\x80\x81!ÀSÞ@Îú\x1c^\x00 ÚÚ\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x01\x93ªª\x00\x00\x00" HTTPStatus.BAD_REQUEST -
+118.235.66.177 - - [06/Feb/2026 20:34:16] "GET / HTTP/1.1" 200 -
+118.235.66.177 - - [06/Feb/2026 20:34:16] "GET /static/style.css HTTP/1.1" 200 -
+118.235.66.177 - - [06/Feb/2026 20:34:17] "GET /static/main.js HTTP/1.1" 200 -
+118.235.66.177 - - [06/Feb/2026 20:34:20] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.66.177 - - [06/Feb/2026 20:35:20] "GET / HTTP/1.1" 200 -
+118.235.66.177 - - [06/Feb/2026 20:35:20] "GET /static/style.css HTTP/1.1" 200 -
+118.235.66.177 - - [06/Feb/2026 20:35:20] "GET /static/main.js HTTP/1.1" 200 -
+118.235.66.177 - - [06/Feb/2026 20:35:20] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.66.67 - - [06/Feb/2026 20:48:13] "GET / HTTP/1.1" 200 -
+118.235.66.67 - - [06/Feb/2026 20:48:13] "GET /static/style.css HTTP/1.1" 200 -
+118.235.66.67 - - [06/Feb/2026 20:48:13] "GET /static/main.js HTTP/1.1" 200 -
+118.235.66.67 - - [06/Feb/2026 20:48:14] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.66.67 - - [06/Feb/2026 20:48:46] "GET /news/11507 HTTP/1.1" 200 -
+118.235.66.67 - - [06/Feb/2026 20:48:46] "GET /static/style.css HTTP/1.1" 304 -
+118.235.66.67 - - [06/Feb/2026 20:48:46] "GET /static/main.js HTTP/1.1" 304 -
+118.235.66.67 - - [06/Feb/2026 20:49:55] "GET / HTTP/1.1" 200 -
+118.235.66.67 - - [06/Feb/2026 20:49:55] "GET /static/style.css HTTP/1.1" 200 -
+118.235.66.67 - - [06/Feb/2026 20:49:55] "GET /static/main.js HTTP/1.1" 200 -
+118.235.66.67 - - [06/Feb/2026 20:49:56] "GET /favicon.ico HTTP/1.1" 404 -
+175.208.131.143 - - [06/Feb/2026 21:11:41] "GET / HTTP/1.1" 200 -
+175.208.131.143 - - [06/Feb/2026 21:11:42] "GET /static/style.css HTTP/1.1" 200 -
+175.208.131.143 - - [06/Feb/2026 21:11:43] "GET /static/main.js HTTP/1.1" 200 -
+118.235.13.168 - - [06/Feb/2026 21:11:59] "GET /favicon.ico HTTP/1.1" 404 -
+27.0.238.70 - - [06/Feb/2026 21:14:07] "GET / HTTP/1.1" 200 -
+182.227.106.91 - - [06/Feb/2026 21:23:24] "GET / HTTP/1.1" 200 -
+182.227.106.91 - - [06/Feb/2026 21:23:24] "GET /static/style.css HTTP/1.1" 200 -
+182.227.106.91 - - [06/Feb/2026 21:23:24] "GET /static/main.js HTTP/1.1" 200 -
+182.227.106.91 - - [06/Feb/2026 21:23:25] "GET /favicon.ico HTTP/1.1" 404 -
+106.101.74.134 - - [06/Feb/2026 21:48:02] "GET / HTTP/1.1" 200 -
+106.101.74.134 - - [06/Feb/2026 21:48:02] "GET /static/style.css HTTP/1.1" 200 -
+106.101.74.134 - - [06/Feb/2026 21:48:02] "GET /static/main.js HTTP/1.1" 200 -
+106.101.74.134 - - [06/Feb/2026 21:48:03] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [06/Feb/2026 21:58:02] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 21:58:02] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 21:58:02] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 21:58:03] "GET /favicon.ico HTTP/1.1" 404 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770383211232', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770383218597', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770383239358', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770383255733', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770383256813', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770383259409', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770383260884', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770383274326', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.60017.1770383298574', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+61.74.27.120 - - [06/Feb/2026 22:13:40] "GET /?page=2 HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 22:13:40] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 22:13:40] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [06/Feb/2026 22:18:39] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 22:18:39] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 22:18:39] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [06/Feb/2026 22:18:40] "GET /favicon.ico HTTP/1.1" 404 -
+211.234.194.204 - - [06/Feb/2026 22:42:22] "GET / HTTP/1.1" 200 -
+211.234.194.204 - - [06/Feb/2026 22:42:23] "GET /static/style.css HTTP/1.1" 200 -
+211.234.194.204 - - [06/Feb/2026 22:42:23] "GET /static/main.js HTTP/1.1" 200 -
+211.234.194.204 - - [06/Feb/2026 22:42:24] "GET /favicon.ico HTTP/1.1" 404 -
+ * Detected change in '/usr/lib/python3.10/config-3.10-x86_64-linux-gnu/python-config.py.dpkg-new', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/usr/lib/python3.10/__phello__.foo.py.dpkg-new', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+61.74.27.120 - - [07/Feb/2026 08:14:25] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 08:14:25] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 08:14:25] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 08:14:26] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [07/Feb/2026 08:25:25] "GET /?page=2 HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 08:25:26] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 08:25:26] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 08:25:37] "GET /?page=1 HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 08:25:37] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 08:25:37] "GET /static/main.js HTTP/1.1" 304 -
+27.0.238.182 - - [07/Feb/2026 08:36:24] "GET / HTTP/1.1" 200 -
+220.117.97.253 - - [07/Feb/2026 08:36:26] "GET / HTTP/1.1" 200 -
+220.117.97.253 - - [07/Feb/2026 08:36:27] "GET /static/style.css HTTP/1.1" 200 -
+220.117.97.253 - - [07/Feb/2026 08:36:27] "GET /static/main.js HTTP/1.1" 200 -
+220.117.97.253 - - [07/Feb/2026 08:36:27] "GET /favicon.ico HTTP/1.1" 404 -
+220.117.97.253 - - [07/Feb/2026 08:36:36] "GET /news/11833 HTTP/1.1" 200 -
+220.117.97.253 - - [07/Feb/2026 08:36:36] "GET /static/style.css HTTP/1.1" 304 -
+220.117.97.253 - - [07/Feb/2026 08:36:36] "GET /static/main.js HTTP/1.1" 304 -
+220.117.97.253 - - [07/Feb/2026 08:37:07] "GET /news/11658 HTTP/1.1" 200 -
+220.117.97.253 - - [07/Feb/2026 08:37:07] "GET /static/style.css HTTP/1.1" 304 -
+220.117.97.253 - - [07/Feb/2026 08:37:07] "GET /static/main.js HTTP/1.1" 304 -
+118.235.40.80 - - [07/Feb/2026 08:40:03] "GET /?page=2 HTTP/1.1" 200 -
+118.235.40.80 - - [07/Feb/2026 08:40:04] "GET /static/style.css HTTP/1.1" 304 -
+118.235.40.80 - - [07/Feb/2026 08:40:04] "GET /static/main.js HTTP/1.1" 304 -
+119.70.199.245 - - [07/Feb/2026 08:56:43] "GET / HTTP/1.1" 200 -
+119.70.199.245 - - [07/Feb/2026 08:56:43] "GET /static/style.css HTTP/1.1" 200 -
+119.70.199.245 - - [07/Feb/2026 08:56:43] "GET /static/main.js HTTP/1.1" 200 -
+119.70.199.245 - - [07/Feb/2026 08:56:44] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.0.120 - - [07/Feb/2026 09:56:13] "GET / HTTP/1.1" 200 -
+118.235.0.120 - - [07/Feb/2026 09:56:13] "GET /static/style.css HTTP/1.1" 200 -
+118.235.0.120 - - [07/Feb/2026 09:56:13] "GET /static/main.js HTTP/1.1" 200 -
+118.235.0.120 - - [07/Feb/2026 09:56:14] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.0.120 - - [07/Feb/2026 09:58:06] "GET / HTTP/1.1" 200 -
+118.235.0.120 - - [07/Feb/2026 09:58:06] "GET /static/style.css HTTP/1.1" 200 -
+118.235.0.120 - - [07/Feb/2026 09:58:06] "GET /static/main.js HTTP/1.1" 200 -
+118.235.0.120 - - [07/Feb/2026 09:58:06] "GET /favicon.ico HTTP/1.1" 404 -
+39.117.86.171 - - [07/Feb/2026 10:17:05] "GET / HTTP/1.1" 200 -
+39.117.86.171 - - [07/Feb/2026 10:17:05] "GET /static/style.css HTTP/1.1" 200 -
+39.117.86.171 - - [07/Feb/2026 10:17:05] "GET /static/main.js HTTP/1.1" 200 -
+39.117.86.171 - - [07/Feb/2026 10:17:07] "GET /favicon.ico HTTP/1.1" 404 -
+39.117.86.171 - - [07/Feb/2026 10:17:35] "GET / HTTP/1.1" 200 -
+39.117.86.171 - - [07/Feb/2026 10:17:35] "GET /static/style.css HTTP/1.1" 200 -
+39.117.86.171 - - [07/Feb/2026 10:17:35] "GET /static/main.js HTTP/1.1" 200 -
+39.117.86.171 - - [07/Feb/2026 10:17:37] "GET /favicon.ico HTTP/1.1" 404 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/database/models.py.tmp.48341.1770427437732', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770427507244', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.48341.1770427635733', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/ui/expert_dashboard.py.tmp.48341.1770427694872', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/api/public_feed.py.tmp.48341.1770427710905', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/api/public_feed.py.tmp.48341.1770427728736', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/api/public_feed.py.tmp.48341.1770427742432', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/title_validator.py.tmp.48341.1770428358023', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+61.74.27.120 - - [07/Feb/2026 10:42:08] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 10:42:09] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 10:42:09] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 10:42:10] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [07/Feb/2026 10:42:26] "GET /?page=2 HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 10:42:26] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 10:42:26] "GET /static/main.js HTTP/1.1" 304 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/chinese_dictionary.py.tmp.48341.1770429243634', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/title_postprocessor.py.tmp.48341.1770429288810', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/political_sensitivity_checker.py.tmp.48341.1770429899848', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+106.101.197.236 - - [07/Feb/2026 12:26:47] "GET / HTTP/1.1" 200 -
+106.101.197.236 - - [07/Feb/2026 12:26:47] "GET /static/style.css HTTP/1.1" 200 -
+106.101.197.236 - - [07/Feb/2026 12:26:48] "GET /static/main.js HTTP/1.1" 200 -
+106.101.197.236 - - [07/Feb/2026 12:26:49] "GET /favicon.ico HTTP/1.1" 404 -
+106.101.197.236 - - [07/Feb/2026 12:28:33] "GET /?page=2 HTTP/1.1" 200 -
+106.101.197.236 - - [07/Feb/2026 12:28:33] "GET /static/style.css HTTP/1.1" 304 -
+106.101.197.236 - - [07/Feb/2026 12:28:33] "GET /static/main.js HTTP/1.1" 304 -
+106.101.203.116 - - [07/Feb/2026 12:28:46] "GET /?page=1 HTTP/1.1" 200 -
+106.101.203.116 - - [07/Feb/2026 12:28:46] "GET /static/style.css HTTP/1.1" 304 -
+106.101.203.116 - - [07/Feb/2026 12:28:46] "GET /static/main.js HTTP/1.1" 304 -
+106.101.197.58 - - [07/Feb/2026 12:28:59] "GET /news/11114 HTTP/1.1" 200 -
+106.101.197.58 - - [07/Feb/2026 12:28:59] "GET /static/main.js HTTP/1.1" 304 -
+106.101.197.58 - - [07/Feb/2026 12:28:59] "GET /static/style.css HTTP/1.1" 304 -
+211.231.103.105 - - [07/Feb/2026 12:42:08] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 13:21:41] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 13:21:41] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 13:21:41] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 13:21:42] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [07/Feb/2026 13:21:46] "GET /archive HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 13:21:46] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 13:21:46] "GET /static/main.js HTTP/1.1" 304 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/translator.py.tmp.48341.1770442373192', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/title_validator.py.tmp.48341.1770442439893', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/chinese_dictionary.py.tmp.48341.1770442591130', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/chinese_dictionary.py.tmp.48341.1770442723480', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+61.74.27.120 - - [07/Feb/2026 14:43:56] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:43:56] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:43:56] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:43:57] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [07/Feb/2026 14:44:09] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:44:09] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 14:44:09] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 14:45:40] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:45:40] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:45:40] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:45:41] "GET /favicon.ico HTTP/1.1" 404 -
+221.146.127.134 - - [07/Feb/2026 14:48:51] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [07/Feb/2026 14:48:51] "GET /static/style.css HTTP/1.1" 200 -
+221.146.127.134 - - [07/Feb/2026 14:48:51] "GET /static/main.js HTTP/1.1" 304 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/run_collector.py.tmp.48341.1770443715300', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+61.74.27.120 - - [07/Feb/2026 14:57:34] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:57:34] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 14:57:34] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 14:57:37] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:57:37] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 14:57:37] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 14:57:40] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:57:40] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:57:40] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 14:57:41] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.14.88 - - [07/Feb/2026 16:34:25] "GET / HTTP/1.1" 200 -
+118.235.14.88 - - [07/Feb/2026 16:34:25] "GET /static/style.css HTTP/1.1" 200 -
+118.235.14.88 - - [07/Feb/2026 16:34:25] "GET /static/main.js HTTP/1.1" 200 -
+118.235.14.88 - - [07/Feb/2026 16:34:26] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.15.28 - - [07/Feb/2026 16:35:04] "GET /news/11962 HTTP/1.1" 200 -
+118.235.15.28 - - [07/Feb/2026 16:35:04] "GET /static/style.css HTTP/1.1" 304 -
+118.235.15.28 - - [07/Feb/2026 16:35:04] "GET /static/main.js HTTP/1.1" 304 -
+122.43.159.153 - - [07/Feb/2026 16:36:17] "GET /?page=2 HTTP/1.1" 200 -
+122.43.159.153 - - [07/Feb/2026 16:36:17] "GET /?page=2 HTTP/1.1" 200 -
+122.43.159.153 - - [07/Feb/2026 16:36:31] "GET /?page=2 HTTP/1.1" 200 -
+118.235.5.222 - - [07/Feb/2026 16:37:04] "GET /?page=2 HTTP/1.1" 200 -
+118.235.5.222 - - [07/Feb/2026 16:37:04] "GET /static/main.js HTTP/1.1" 304 -
+118.235.5.222 - - [07/Feb/2026 16:37:04] "GET /static/style.css HTTP/1.1" 304 -
+211.231.103.105 - - [07/Feb/2026 16:54:35] "GET / HTTP/1.1" 200 -
+180.229.178.201 - - [07/Feb/2026 20:38:06] "GET / HTTP/1.1" 200 -
+180.229.178.201 - - [07/Feb/2026 20:38:07] "GET /static/main.js HTTP/1.1" 200 -
+180.229.178.201 - - [07/Feb/2026 20:38:07] "GET /static/style.css HTTP/1.1" 200 -
+180.229.178.201 - - [07/Feb/2026 20:38:07] "GET /favicon.ico HTTP/1.1" 404 -
+211.231.103.104 - - [07/Feb/2026 21:03:15] "GET / HTTP/1.1" 200 -
+40.77.167.85 - - [07/Feb/2026 22:03:14] "GET /robots.txt HTTP/1.1" 404 -
+52.167.144.232 - - [07/Feb/2026 22:03:19] "GET / HTTP/1.1" 200 -
+52.167.144.202 - - [07/Feb/2026 22:05:02] "GET /archive HTTP/1.1" 200 -
+52.167.144.202 - - [07/Feb/2026 22:05:02] "GET /?page=2 HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 23:05:58] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 23:05:58] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 23:05:58] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 23:05:59] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [07/Feb/2026 23:06:22] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 23:06:22] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 23:06:22] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 23:06:22] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [07/Feb/2026 23:06:48] "GET /?page=2 HTTP/1.1" 200 -
+61.74.27.120 - - [07/Feb/2026 23:06:48] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [07/Feb/2026 23:06:48] "GET /static/main.js HTTP/1.1" 304 -
+27.0.238.117 - - [08/Feb/2026 05:43:56] "GET / HTTP/1.1" 200 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/run_collector.py.tmp.48341.1770502801443', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+221.146.127.134 - - [08/Feb/2026 07:55:23] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [08/Feb/2026 07:55:23] "GET /static/style.css HTTP/1.1" 304 -
+221.146.127.134 - - [08/Feb/2026 07:55:23] "GET /static/main.js HTTP/1.1" 304 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770505784417', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/api/public_feed.py.tmp.48341.1770505837999', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/web/app.py.tmp.48341.1770505975110', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/web/app.py.tmp.48341.1770505983967', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+127.0.0.1 - - [08/Feb/2026 08:21:46] "GET / HTTP/1.1" 200 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770507323144', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+127.0.0.1 - - [08/Feb/2026 08:42:20] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [08/Feb/2026 08:42:20] "GET /static/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [08/Feb/2026 08:42:20] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:43:18] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:43:18] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:43:18] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:43:19] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [08/Feb/2026 08:43:32] "GET /news/12177 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:43:32] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:43:32] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:44:41] "GET /news/12177 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:44:41] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:44:41] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:44:45] "GET /news/12177 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:44:45] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:44:45] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:44:48] "GET /news/12226 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:44:48] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:44:48] "GET /static/main.js HTTP/1.1" 304 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770508148727', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770508194984', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770508377220', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770508394061', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770508403011', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770508451275', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770508469938', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+61.74.27.120 - - [08/Feb/2026 08:55:51] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:55:51] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:55:51] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:55:52] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [08/Feb/2026 08:55:56] "GET /news/12226 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:55:56] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:55:56] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:56:21] "GET /news/12226 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:56:21] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:56:21] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:56:29] "GET /news/12226 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 08:56:29] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 08:56:29] "GET /static/main.js HTTP/1.1" 304 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/api/public_feed.py.tmp.48341.1770508803559', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+127.0.0.1 - - [08/Feb/2026 09:00:30] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [08/Feb/2026 09:01:11] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [08/Feb/2026 09:01:11] "GET /static/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [08/Feb/2026 09:01:11] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 09:08:53] "GET /news/12177 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:08:54] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 09:08:54] "GET /static/main.js HTTP/1.1" 304 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770509358445', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770509392372', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/utils/headline_generator.py.tmp.48341.1770509419099', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+61.74.27.120 - - [08/Feb/2026 09:12:43] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:12:43] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:12:43] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:12:44] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [08/Feb/2026 09:14:03] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:14:03] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:14:03] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:14:04] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [08/Feb/2026 09:14:32] "GET /news/11958 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:14:32] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 09:14:32] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 09:19:24] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:19:24] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:19:24] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 09:19:24] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [08/Feb/2026 09:19:56] "GET /news/12226 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:19:56] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 09:19:56] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 09:30:55] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:30:55] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 09:30:55] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 09:30:55] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [08/Feb/2026 09:31:35] "GET /?page=2 HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 09:31:35] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [08/Feb/2026 09:31:35] "GET /static/main.js HTTP/1.1" 304 -
+27.0.238.71 - - [08/Feb/2026 10:12:07] "GET / HTTP/1.1" 200 -
+202.14.90.162 - - [08/Feb/2026 12:13:34] "GET / HTTP/1.1" 200 -
+202.14.90.162 - - [08/Feb/2026 12:13:34] "GET /static/style.css HTTP/1.1" 200 -
+202.14.90.162 - - [08/Feb/2026 12:13:34] "GET /static/main.js HTTP/1.1" 200 -
+202.14.90.162 - - [08/Feb/2026 12:13:35] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [08/Feb/2026 14:32:52] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 14:32:52] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 14:32:52] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 14:32:53] "GET /favicon.ico HTTP/1.1" 404 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/run_collector.py.tmp.48341.1770528917635', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+118.235.15.7 - - [08/Feb/2026 18:08:02] "GET / HTTP/1.1" 200 -
+118.235.15.7 - - [08/Feb/2026 18:08:02] "GET /static/style.css HTTP/1.1" 200 -
+118.235.15.7 - - [08/Feb/2026 18:08:02] "GET /static/main.js HTTP/1.1" 200 -
+118.235.15.7 - - [08/Feb/2026 18:08:03] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.15.7 - - [08/Feb/2026 18:09:13] "GET / HTTP/1.1" 200 -
+118.235.15.7 - - [08/Feb/2026 18:09:13] "GET /static/style.css HTTP/1.1" 200 -
+118.235.15.7 - - [08/Feb/2026 18:09:13] "GET /static/main.js HTTP/1.1" 200 -
+118.235.15.7 - - [08/Feb/2026 18:09:13] "GET /favicon.ico HTTP/1.1" 404 -
+27.0.238.186 - - [08/Feb/2026 19:52:36] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 19:55:58] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 19:55:58] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 19:55:58] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [08/Feb/2026 19:55:59] "GET /favicon.ico HTTP/1.1" 404 -
+52.167.144.157 - - [08/Feb/2026 20:15:15] "GET / HTTP/1.1" 200 -
+211.234.188.144 - - [09/Feb/2026 05:45:16] "GET / HTTP/1.1" 200 -
+211.234.188.144 - - [09/Feb/2026 05:45:16] "GET /static/style.css HTTP/1.1" 200 -
+211.234.188.144 - - [09/Feb/2026 05:45:16] "GET /static/main.js HTTP/1.1" 200 -
+211.234.188.144 - - [09/Feb/2026 05:45:57] "GET /news/12340 HTTP/1.1" 200 -
+211.234.188.144 - - [09/Feb/2026 05:45:57] "GET /static/style.css HTTP/1.1" 304 -
+211.234.188.144 - - [09/Feb/2026 05:45:57] "GET /static/main.js HTTP/1.1" 304 -
+211.234.188.144 - - [09/Feb/2026 05:46:05] "GET / HTTP/1.1" 200 -
+211.234.188.144 - - [09/Feb/2026 05:46:05] "GET /static/style.css HTTP/1.1" 304 -
+211.234.188.144 - - [09/Feb/2026 05:46:05] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [09/Feb/2026 08:07:18] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 08:07:18] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 08:07:18] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 08:07:19] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [09/Feb/2026 08:08:34] "GET /news/12470 HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 08:08:34] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [09/Feb/2026 08:08:34] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [09/Feb/2026 08:09:03] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 08:09:03] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [09/Feb/2026 08:09:03] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [09/Feb/2026 08:09:16] "GET /news/12460 HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 08:09:17] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [09/Feb/2026 08:09:17] "GET /static/main.js HTTP/1.1" 304 -
+118.235.65.55 - - [09/Feb/2026 08:23:04] "GET / HTTP/1.1" 200 -
+118.235.65.55 - - [09/Feb/2026 08:23:04] "GET /static/style.css HTTP/1.1" 200 -
+118.235.65.55 - - [09/Feb/2026 08:23:04] "GET /static/main.js HTTP/1.1" 200 -
+118.235.65.55 - - [09/Feb/2026 08:23:05] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.66.8 - - [09/Feb/2026 08:23:36] "GET /news/12459 HTTP/1.1" 200 -
+118.235.66.8 - - [09/Feb/2026 08:23:36] "GET /static/style.css HTTP/1.1" 304 -
+118.235.66.8 - - [09/Feb/2026 08:23:36] "GET /static/main.js HTTP/1.1" 304 -
+118.235.65.47 - - [09/Feb/2026 08:24:19] "GET / HTTP/1.1" 200 -
+118.235.65.47 - - [09/Feb/2026 08:24:20] "GET /static/style.css HTTP/1.1" 304 -
+118.235.65.47 - - [09/Feb/2026 08:24:20] "GET /static/main.js HTTP/1.1" 304 -
+118.235.65.47 - - [09/Feb/2026 08:24:27] "GET /archive HTTP/1.1" 200 -
+118.235.65.47 - - [09/Feb/2026 08:24:27] "GET /static/style.css HTTP/1.1" 304 -
+118.235.65.47 - - [09/Feb/2026 08:24:27] "GET /static/main.js HTTP/1.1" 304 -
+118.235.65.47 - - [09/Feb/2026 08:24:31] "GET /archive?date=2026-02-09 HTTP/1.1" 200 -
+118.235.65.47 - - [09/Feb/2026 08:24:31] "GET /static/style.css HTTP/1.1" 304 -
+118.235.65.47 - - [09/Feb/2026 08:24:31] "GET /static/main.js HTTP/1.1" 304 -
+118.235.66.39 - - [09/Feb/2026 08:24:39] "GET /archive?date=2026-02-08 HTTP/1.1" 200 -
+118.235.66.39 - - [09/Feb/2026 08:24:39] "GET /static/style.css HTTP/1.1" 304 -
+118.235.66.39 - - [09/Feb/2026 08:24:39] "GET /static/main.js HTTP/1.1" 304 -
+40.77.167.61 - - [09/Feb/2026 10:12:24] "GET /news/11487 HTTP/1.1" 200 -
+27.0.238.70 - - [09/Feb/2026 13:14:47] "GET / HTTP/1.1" 200 -
+52.167.144.192 - - [09/Feb/2026 14:05:05] "GET /news/11833 HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 14:34:52] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 14:34:52] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 14:34:52] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 14:34:53] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [09/Feb/2026 15:09:26] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 15:09:26] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 15:09:26] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 15:09:27] "GET /favicon.ico HTTP/1.1" 404 -
+27.0.238.114 - - [09/Feb/2026 15:11:45] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 15:16:57] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 15:16:57] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [09/Feb/2026 15:16:57] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [09/Feb/2026 15:17:18] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [09/Feb/2026 15:17:18] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [09/Feb/2026 15:17:18] "GET /static/main.js HTTP/1.1" 304 -
+52.167.144.166 - - [09/Feb/2026 16:01:33] "GET /news/11986 HTTP/1.1" 200 -
+52.167.144.181 - - [09/Feb/2026 16:36:51] "GET /news/11507 HTTP/1.1" 200 -
+211.231.103.105 - - [09/Feb/2026 17:12:14] "GET / HTTP/1.1" 200 -
+182.214.232.146 - - [09/Feb/2026 17:22:54] "GET / HTTP/1.1" 200 -
+182.214.232.146 - - [09/Feb/2026 17:22:54] "GET /static/style.css HTTP/1.1" 200 -
+182.214.232.146 - - [09/Feb/2026 17:22:54] "GET /static/main.js HTTP/1.1" 200 -
+182.214.232.146 - - [09/Feb/2026 17:22:55] "GET /favicon.ico HTTP/1.1" 404 -
+52.167.144.25 - - [09/Feb/2026 17:55:36] "GET /?page=2 HTTP/1.1" 200 -
+52.167.144.232 - - [09/Feb/2026 18:11:28] "GET /news/11501 HTTP/1.1" 200 -
+118.235.7.254 - - [09/Feb/2026 18:15:51] "GET / HTTP/1.1" 200 -
+118.235.7.254 - - [09/Feb/2026 18:15:51] "GET /static/style.css HTTP/1.1" 200 -
+118.235.7.254 - - [09/Feb/2026 18:15:51] "GET /static/main.js HTTP/1.1" 200 -
+118.235.7.254 - - [09/Feb/2026 18:15:52] "GET /favicon.ico HTTP/1.1" 404 -
+40.77.167.70 - - [09/Feb/2026 18:16:01] "GET /?page=1 HTTP/1.1" 200 -
+40.77.167.70 - - [09/Feb/2026 18:21:41] "GET / HTTP/1.1" 200 -
+40.77.167.6 - - [09/Feb/2026 21:25:27] "GET /news/11962 HTTP/1.1" 200 -
+40.77.167.85 - - [09/Feb/2026 22:19:31] "GET /robots.txt HTTP/1.1" 404 -
+52.167.144.25 - - [09/Feb/2026 22:19:35] "GET /news/11715 HTTP/1.1" 200 -
+211.234.195.208 - - [10/Feb/2026 00:20:29] "GET / HTTP/1.1" 200 -
+211.234.195.208 - - [10/Feb/2026 00:20:29] "GET /static/style.css HTTP/1.1" 200 -
+211.234.195.208 - - [10/Feb/2026 00:20:29] "GET /static/main.js HTTP/1.1" 200 -
+211.234.195.208 - - [10/Feb/2026 00:20:30] "GET /favicon.ico HTTP/1.1" 404 -
+211.234.195.208 - - [10/Feb/2026 00:20:59] "GET / HTTP/1.1" 200 -
+211.234.195.208 - - [10/Feb/2026 00:20:59] "GET /static/style.css HTTP/1.1" 200 -
+211.234.195.208 - - [10/Feb/2026 00:20:59] "GET /static/main.js HTTP/1.1" 200 -
+211.234.195.208 - - [10/Feb/2026 00:21:00] "GET /favicon.ico HTTP/1.1" 404 -
+52.167.144.238 - - [10/Feb/2026 04:55:19] "GET /news/11658 HTTP/1.1" 200 -
+40.77.167.41 - - [10/Feb/2026 06:04:26] "GET /news/11965 HTTP/1.1" 200 -
+61.74.27.120 - - [10/Feb/2026 07:58:24] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [10/Feb/2026 07:58:24] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [10/Feb/2026 07:58:24] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [10/Feb/2026 07:58:25] "GET /favicon.ico HTTP/1.1" 404 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/collector/news_filter.py.tmp.48341.1770705264290', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+221.146.127.134 - - [10/Feb/2026 15:34:55] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [10/Feb/2026 15:34:55] "GET /static/style.css HTTP/1.1" 200 -
+221.146.127.134 - - [10/Feb/2026 15:34:55] "GET /static/main.js HTTP/1.1" 304 -
+40.77.167.3 - - [10/Feb/2026 16:41:30] "GET /?page=2 HTTP/1.1" 200 -
+210.92.27.120 - - [10/Feb/2026 18:22:23] "GET / HTTP/1.1" 200 -
+210.92.27.120 - - [10/Feb/2026 18:22:23] "GET /static/style.css HTTP/1.1" 200 -
+210.92.27.120 - - [10/Feb/2026 18:22:23] "GET /static/main.js HTTP/1.1" 200 -
+210.92.27.120 - - [10/Feb/2026 18:22:24] "GET /favicon.ico HTTP/1.1" 404 -
+40.77.167.48 - - [10/Feb/2026 19:18:07] "GET / HTTP/1.1" 200 -
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/collector/news_filter.py.tmp.48341.1770719634940', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/collector/news_filter.py.tmp.48341.1770719650468', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/collector/news_filter.py.tmp.48341.1770719710204', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+ * Detected change in '/home/jeozeohan/vibe_temp/China Economy News Analysis/src/collector/news_filter.py.tmp.48341.1770719721939', reloading
+Starting public news feed server on http://0.0.0.0:8502
+Press Ctrl+C to stop
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 122-030-291
+14.35.102.248 - - [10/Feb/2026 20:51:32] "GET / HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 20:51:32] "GET /static/main.js HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 20:51:32] "GET /static/style.css HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 20:51:33] "GET /favicon.ico HTTP/1.1" 404 -
+14.35.102.248 - - [10/Feb/2026 20:53:04] "GET /?page=2 HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 20:53:04] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 20:53:04] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 20:53:47] "GET /news/12600 HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 20:53:47] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 20:53:47] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 20:54:21] "GET / HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 20:54:21] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 20:54:21] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 20:54:23] "GET /news/12883 HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 20:54:23] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 20:54:23] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:10:40] "GET / HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:10:40] "GET /static/style.css HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:10:40] "GET /static/main.js HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:10:41] "GET /favicon.ico HTTP/1.1" 404 -
+14.35.102.248 - - [10/Feb/2026 23:11:05] "GET /?page=2 HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:11:05] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:11:05] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:11:27] "GET / HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:11:27] "GET /static/style.css HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:11:27] "GET /static/main.js HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:11:27] "GET /favicon.ico HTTP/1.1" 404 -
+14.35.102.248 - - [10/Feb/2026 23:12:18] "GET /archive HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:12:18] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:18] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:20] "GET / HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:12:20] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:20] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:20] "GET /archive HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:12:20] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:20] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:25] "GET /archive?date=2026-02-05 HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:12:25] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:25] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:29] "GET / HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:12:29] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:29] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:56] "GET /news/12855 HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:12:56] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:12:56] "GET /static/main.js HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:13:00] "GET /news/12698 HTTP/1.1" 200 -
+14.35.102.248 - - [10/Feb/2026 23:13:00] "GET /static/style.css HTTP/1.1" 304 -
+14.35.102.248 - - [10/Feb/2026 23:13:00] "GET /static/main.js HTTP/1.1" 304 -
+157.55.39.10 - - [11/Feb/2026 06:17:13] "GET /?page=2 HTTP/1.1" 200 -
+221.146.127.134 - - [11/Feb/2026 07:53:18] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [11/Feb/2026 07:53:19] "GET /static/style.css HTTP/1.1" 304 -
+221.146.127.134 - - [11/Feb/2026 07:53:19] "GET /static/main.js HTTP/1.1" 304 -
+39.7.47.253 - - [11/Feb/2026 08:24:17] "GET / HTTP/1.1" 200 -
+39.7.47.253 - - [11/Feb/2026 08:24:17] "GET /static/style.css HTTP/1.1" 200 -
+39.7.47.253 - - [11/Feb/2026 08:24:17] "GET /static/main.js HTTP/1.1" 200 -
+39.7.47.253 - - [11/Feb/2026 08:24:19] "GET /favicon.ico HTTP/1.1" 404 -
+40.77.167.76 - - [11/Feb/2026 09:01:21] "GET /?page=1 HTTP/1.1" 200 -
+118.235.11.130 - - [11/Feb/2026 10:39:32] "GET / HTTP/1.1" 200 -
+118.235.11.130 - - [11/Feb/2026 10:39:33] "GET /static/style.css HTTP/1.1" 200 -
+118.235.11.130 - - [11/Feb/2026 10:39:33] "GET /static/main.js HTTP/1.1" 200 -
+118.235.11.130 - - [11/Feb/2026 10:39:34] "GET /favicon.ico HTTP/1.1" 404 -
+118.235.11.172 - - [11/Feb/2026 10:40:20] "GET /news/12961 HTTP/1.1" 200 -
+118.235.11.172 - - [11/Feb/2026 10:40:20] "GET /static/style.css HTTP/1.1" 304 -
+118.235.11.172 - - [11/Feb/2026 10:40:20] "GET /static/main.js HTTP/1.1" 304 -
+118.235.73.38 - - [11/Feb/2026 11:51:39] "GET / HTTP/1.1" 200 -
+118.235.73.38 - - [11/Feb/2026 11:51:39] "GET /static/style.css HTTP/1.1" 200 -
+118.235.73.38 - - [11/Feb/2026 11:51:39] "GET /static/main.js HTTP/1.1" 200 -
+118.235.73.38 - - [11/Feb/2026 11:51:40] "GET /favicon.ico HTTP/1.1" 404 -
+40.77.167.48 - - [11/Feb/2026 12:01:47] "GET /news/12458 HTTP/1.1" 200 -
+52.167.144.235 - - [11/Feb/2026 12:05:00] "GET /news/12177 HTTP/1.1" 200 -
+27.0.238.70 - - [11/Feb/2026 14:26:40] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [11/Feb/2026 15:10:47] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [11/Feb/2026 15:10:47] "GET /static/style.css HTTP/1.1" 304 -
+221.146.127.134 - - [11/Feb/2026 15:10:47] "GET /static/main.js HTTP/1.1" 304 -
+61.74.27.120 - - [11/Feb/2026 15:24:41] "GET / HTTP/1.1" 200 -
+61.74.27.120 - - [11/Feb/2026 15:24:41] "GET /static/style.css HTTP/1.1" 200 -
+61.74.27.120 - - [11/Feb/2026 15:24:41] "GET /static/main.js HTTP/1.1" 200 -
+61.74.27.120 - - [11/Feb/2026 15:24:42] "GET /favicon.ico HTTP/1.1" 404 -
+61.74.27.120 - - [11/Feb/2026 15:25:02] "GET /news/13103 HTTP/1.1" 200 -
+61.74.27.120 - - [11/Feb/2026 15:25:02] "GET /static/style.css HTTP/1.1" 304 -
+61.74.27.120 - - [11/Feb/2026 15:25:02] "GET /static/main.js HTTP/1.1" 304 -
+40.77.167.149 - - [11/Feb/2026 17:52:41] "GET /news/11958 HTTP/1.1" 200 -
+52.167.144.142 - - [11/Feb/2026 18:42:47] "GET /news/12340 HTTP/1.1" 200 -
+52.167.144.197 - - [11/Feb/2026 19:25:09] "GET /news/12363 HTTP/1.1" 200 -
+211.231.103.93 - - [11/Feb/2026 19:48:31] "GET / HTTP/1.1" 200 -
+40.77.167.74 - - [11/Feb/2026 21:02:20] "GET /news/12460 HTTP/1.1" 200 -
+193.46.255.160 - - [11/Feb/2026 21:32:44] code 400, message Bad request version ('À\x14À')
+193.46.255.160 - - [11/Feb/2026 21:32:44] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03>=^\x09V±©lÒçÍß\x12Ü(ñ\x95\x9d}\x85ÿ_@1Ó\x00\x05Û¾\x0d]ç\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+40.77.167.57 - - [11/Feb/2026 21:32:52] "GET /?page=3 HTTP/1.1" 200 -
+40.77.167.85 - - [11/Feb/2026 22:32:46] "GET /robots.txt HTTP/1.1" 404 -
+52.167.144.216 - - [11/Feb/2026 22:32:48] "GET /news/12603 HTTP/1.1" 200 -
+40.77.167.23 - - [11/Feb/2026 22:38:48] "GET /news/12459 HTTP/1.1" 200 -
+40.77.167.247 - - [11/Feb/2026 22:52:51] "GET /?page=2 HTTP/1.1" 200 -
+52.167.144.181 - - [11/Feb/2026 23:47:46] "GET / HTTP/1.1" 200 -
+40.77.167.41 - - [12/Feb/2026 00:12:37] "GET /news/12600 HTTP/1.1" 200 -
+52.167.144.170 - - [12/Feb/2026 01:37:16] "GET /?page=1 HTTP/1.1" 200 -
+52.167.144.18 - - [12/Feb/2026 03:46:08] "GET /news/12225 HTTP/1.1" 200 -
+52.167.144.198 - - [12/Feb/2026 04:41:02] "GET /news/12226 HTTP/1.1" 200 -
+40.77.167.3 - - [12/Feb/2026 05:01:05] "GET /news/12218 HTTP/1.1" 200 -
+40.77.167.15 - - [12/Feb/2026 05:12:45] "GET /news/11986 HTTP/1.1" 200 -
+52.167.144.142 - - [12/Feb/2026 05:44:39] "GET / HTTP/1.1" 200 -
+40.77.167.8 - - [12/Feb/2026 05:57:10] "GET /news/12601 HTTP/1.1" 200 -
+221.146.127.134 - - [12/Feb/2026 08:06:45] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [12/Feb/2026 08:06:45] "GET /static/style.css HTTP/1.1" 304 -
+221.146.127.134 - - [12/Feb/2026 08:06:45] "GET /static/main.js HTTP/1.1" 304 -
+118.235.15.140 - - [12/Feb/2026 08:19:55] "GET / HTTP/1.1" 200 -
+118.235.15.140 - - [12/Feb/2026 08:19:56] "GET /static/style.css HTTP/1.1" 200 -
+118.235.15.140 - - [12/Feb/2026 08:19:56] "GET /static/main.js HTTP/1.1" 200 -
+118.235.15.140 - - [12/Feb/2026 08:19:57] "GET /favicon.ico HTTP/1.1" 404 -
+27.0.238.117 - - [12/Feb/2026 08:23:35] "GET / HTTP/1.1" 200 -
+40.77.167.71 - - [12/Feb/2026 10:56:43] "GET /?page=2 HTTP/1.1" 200 -
+52.167.144.156 - - [12/Feb/2026 10:57:08] "GET /static/main.js HTTP/1.1" 200 -
+52.167.144.156 - - [12/Feb/2026 10:57:09] "GET /static/style.css HTTP/1.1" 200 -
+27.0.238.187 - - [12/Feb/2026 11:25:09] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 11:32:53] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 11:32:53] "GET /static/style.css HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 11:32:53] "GET /static/main.js HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 11:32:54] "GET /favicon.ico HTTP/1.1" 404 -
+211.108.26.160 - - [12/Feb/2026 11:32:58] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 11:32:58] "GET /static/style.css HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 11:32:58] "GET /static/main.js HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 11:32:59] "GET /favicon.ico HTTP/1.1" 404 -
+211.108.26.160 - - [12/Feb/2026 11:33:01] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 11:33:01] "GET /static/style.css HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 11:33:01] "GET /static/main.js HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 11:33:02] "GET /favicon.ico HTTP/1.1" 404 -
+52.167.144.229 - - [12/Feb/2026 11:43:14] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:15:21] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:15:21] "GET /static/style.css HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:15:21] "GET /static/main.js HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:15:22] "GET /favicon.ico HTTP/1.1" 404 -
+211.108.26.160 - - [12/Feb/2026 13:16:00] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:16:00] "GET /static/style.css HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:16:00] "GET /static/main.js HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:16:00] "GET /favicon.ico HTTP/1.1" 404 -
+211.108.26.160 - - [12/Feb/2026 13:16:03] "GET /archive HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:16:03] "GET /static/style.css HTTP/1.1" 304 -
+211.108.26.160 - - [12/Feb/2026 13:16:03] "GET /static/main.js HTTP/1.1" 304 -
+211.108.26.160 - - [12/Feb/2026 13:16:06] "GET /archive?date=2026-02-11 HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:16:06] "GET /static/style.css HTTP/1.1" 304 -
+211.108.26.160 - - [12/Feb/2026 13:16:06] "GET /static/main.js HTTP/1.1" 304 -
+211.108.26.160 - - [12/Feb/2026 13:16:10] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:16:10] "GET /static/style.css HTTP/1.1" 304 -
+211.108.26.160 - - [12/Feb/2026 13:16:10] "GET /static/main.js HTTP/1.1" 304 -
+211.108.26.160 - - [12/Feb/2026 13:16:15] "GET /news/13199 HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:16:15] "GET /static/style.css HTTP/1.1" 304 -
+211.108.26.160 - - [12/Feb/2026 13:16:15] "GET /static/main.js HTTP/1.1" 304 -
+211.108.26.160 - - [12/Feb/2026 13:16:40] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:16:54] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:17:21] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:17:21] "GET /static/style.css HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:17:21] "GET /static/main.js HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:17:21] "GET /favicon.ico HTTP/1.1" 404 -
+211.108.26.160 - - [12/Feb/2026 13:17:50] "GET / HTTP/1.1" 200 -
+211.108.26.160 - - [12/Feb/2026 13:17:50] "GET /static/style.css HTTP/1.1" 304 -
+211.108.26.160 - - [12/Feb/2026 13:17:50] "GET /static/main.js HTTP/1.1" 304 -
+211.234.201.251 - - [12/Feb/2026 13:42:16] "GET / HTTP/1.1" 200 -
+211.234.201.251 - - [12/Feb/2026 13:42:16] "GET / HTTP/1.1" 200 -
+40.77.167.42 - - [12/Feb/2026 13:46:44] "GET /news/11487 HTTP/1.1" 200 -
+211.234.181.226 - - [12/Feb/2026 14:11:15] "GET / HTTP/1.1" 200 -
+211.234.181.226 - - [12/Feb/2026 14:11:15] "GET /static/style.css HTTP/1.1" 200 -
+211.234.181.226 - - [12/Feb/2026 14:11:15] "GET /static/main.js HTTP/1.1" 200 -
+211.234.181.226 - - [12/Feb/2026 14:11:16] "GET /favicon.ico HTTP/1.1" 404 -
+211.234.181.226 - - [12/Feb/2026 14:11:19] "GET /news/13105 HTTP/1.1" 200 -
+211.234.181.226 - - [12/Feb/2026 14:11:19] "GET /static/style.css HTTP/1.1" 304 -
+211.234.181.226 - - [12/Feb/2026 14:11:19] "GET /static/main.js HTTP/1.1" 304 -
+211.234.181.226 - - [12/Feb/2026 14:12:15] "GET /news/13199 HTTP/1.1" 200 -
+211.234.181.226 - - [12/Feb/2026 14:12:15] "GET /static/style.css HTTP/1.1" 304 -
+211.234.181.226 - - [12/Feb/2026 14:12:15] "GET /static/main.js HTTP/1.1" 304 -
+211.234.181.226 - - [12/Feb/2026 14:12:26] "GET /news/13113 HTTP/1.1" 200 -
+211.234.181.226 - - [12/Feb/2026 14:12:27] "GET /static/style.css HTTP/1.1" 304 -
+211.234.181.226 - - [12/Feb/2026 14:12:27] "GET /static/main.js HTTP/1.1" 304 -
+27.0.238.186 - - [12/Feb/2026 14:12:50] "GET / HTTP/1.1" 200 -
+195.184.76.118 - - [12/Feb/2026 15:38:37] code 400, message Bad request version ('À#À¬À®À+À')
+195.184.76.118 - - [12/Feb/2026 15:38:37] "\x16\x03\x03\x01¨\x01\x00\x01¤\x03\x03?ã\x1el¿\x0e\x14\x95\x8cMk#âÆ\x99Á:.\x1fózÐ\x02Ö¨$ß\x8f\x06é6Í JJ\x1a0\x02\x1cª\x83}"1²¶½\x0em\x9b\x83_\x95\x87æD\x9e;²ô,\x97\x19.K\x00\x8a\x00\x16\x003\x00gÀ\x9eÀ¢\x00\x9e\x009\x00kÀ\x9fÀ£\x00\x9f\x00E\x00¾\x00\x88\x00Ä\x00\x9aÀ\x08À\x09À#À¬À®À+À" HTTPStatus.BAD_REQUEST -
+195.184.76.22 - - [12/Feb/2026 15:38:41] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [12/Feb/2026 16:57:18] "GET / HTTP/1.1" 200 -
+221.146.127.134 - - [12/Feb/2026 16:57:18] "GET /static/style.css HTTP/1.1" 304 -
+221.146.127.134 - - [12/Feb/2026 16:57:18] "GET /static/main.js HTTP/1.1" 304 -
