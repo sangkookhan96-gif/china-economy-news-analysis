@@ -19,7 +19,7 @@ from src.utils.notifications import (
 )
 from src.utils.markdown_review import MarkdownReviewManager
 from src.utils.headline_generator import generate_headline, save_headline, get_headline
-from config.settings import ANTHROPIC_API_KEY, CLAUDE_MODEL
+from config.settings import CLAUDE_MODEL
 from src.collector.news_filter import SOURCE_PRIORITY
 
 # Card headline constants
@@ -380,81 +380,7 @@ def generate_ai_final_review(news_id: int) -> str:
     if not news.get('expert_comment'):
         return "전문가 코멘트가 없습니다."
 
-    try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
-        prompt = f"""다음 뉴스에 대한 AI 분석과 전문가 의견을 비교하여 최종 리뷰를 작성해주세요.
-
-## 뉴스 정보
-- 제목: {news.get('translated_title', news.get('original_title', ''))}
-- 요약: {news.get('summary', '')}
-- AI 중요도 점수: {news.get('importance_score', 0):.2f}
-- 산업 분류: {news.get('industry_category', '')}
-- AI 시장 영향 분석: {news.get('market_impact', '')}
-
-## 전문가 코멘트
-{news.get('expert_comment', '')}
-
-## 요청사항
-1. AI 분석과 전문가 의견이 일치하는지, 충돌하는지 판단해주세요.
-2. 충돌이 있다면 어떤 부분에서 차이가 있는지 구체적으로 설명해주세요.
-3. 전문가 의견을 우선하되, AI의 관점도 참고할 수 있도록 정리해주세요.
-4. 최종 투자/전략적 시사점을 제시해주세요.
-
-응답은 다음 JSON 형식으로:
-{{
-    "opinion_conflict": true 또는 false,
-    "conflict_summary": "충돌 요약 (충돌 시에만)",
-    "expert_priority": "전문가 의견 핵심 요약",
-    "ai_reference": "AI 분석 중 참고할 점",
-    "final_insight": "최종 시사점 (3-5문장)"
-}}"""
-
-        response = client.messages.create(
-            model=CLAUDE_MODEL,
-            max_tokens=1000,
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        result_text = response.content[0].text
-
-        # Parse JSON
-        if "```json" in result_text:
-            json_str = result_text.split("```json")[1].split("```")[0]
-        elif "```" in result_text:
-            json_str = result_text.split("```")[1].split("```")[0]
-        else:
-            json_str = result_text
-
-        result = json.loads(json_str.strip())
-
-        # Update database
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE expert_reviews SET
-                ai_final_review = ?,
-                opinion_conflict = ?,
-                expert_opinion_priority = ?,
-                ai_opinion_reference = ?,
-                updated_at = ?
-            WHERE news_id = ?
-        """, (
-            result.get('final_insight', ''),
-            result.get('opinion_conflict', False),
-            result.get('expert_priority', ''),
-            result.get('ai_reference', ''),
-            datetime.now(),
-            news_id
-        ))
-        conn.commit()
-        conn.close()
-
-        return result
-
-    except Exception as e:
-        return f"AI 리뷰 생성 실패: {e}"
+    raise RuntimeError("Anthropic API has been disabled. System uses Ollama only.")
 
 
 def get_statistics() -> dict:

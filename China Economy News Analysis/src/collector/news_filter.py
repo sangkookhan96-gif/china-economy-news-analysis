@@ -218,6 +218,8 @@ CENTRAL_SOURCES = [
     '21jingji', 'xinhua_finance',
     # Week 6 전국 매체
     'stdaily', 'cnstock',
+    # Week 7 중앙 언론
+    'guangming', 'chinadaily', 'jjckb', 'workercn', 'cyol',
 ]
 
 # 중앙정부 출처 (현재 비활성 — 향후 재추가 시 사용)
@@ -255,6 +257,12 @@ SOURCE_PRIORITY = {
     'stdaily': 9,
     'cnstock': 9,
     'sznews': 5,
+    # Week 7 중앙 언론
+    'guangming': 9,    # 중앙 당보
+    'chinadaily': 9,   # 중앙 대외 매체
+    'jjckb': 10,       # 경제 전문 (신화사 산하)
+    'workercn': 8,     # 중앙 사회매체
+    'cyol': 8,         # 중앙 사회매체
 }
 
 # 사실 풍부도 관련 키워드
@@ -343,16 +351,18 @@ def is_factual_news(title: str, content: str, source: str = "") -> bool:
 
     중앙정부 출처(CENTRAL_GOV_SOURCES)는 행정 키워드 필터를 면제한다.
     정책 발표문이 '关于印发', '办公厅关于' 등의 패턴으로 필터링되는 것을 방지.
-    """
-    combined = title + content
 
-    # 논설/칼럼 제외 (모든 출처 동일)
-    if any(kw in combined for kw in EXCLUDED_KEYWORDS):
+    EXCLUDED_KEYWORDS는 제목만 검사한다.  본문에는 크롤링 시 혼입된
+    웹 페이지 크롬(광고, 댓글란, 스폰서 표기 등)이 포함되어 있어
+    '广告', '评论', '活动' 등이 정상 기사를 오탈락시키는 문제가 있었다.
+    """
+    # 논설/칼럼 제외 — 제목만 검사 (본문 크롬 오탈락 방지)
+    if any(kw in title for kw in EXCLUDED_KEYWORDS):
         return False
 
-    # 정부 행정 공지 제외 — 중앙정부 출처는 면제
+    # 정부 행정 공지 제외 — 제목만 검사, 중앙정부 출처는 면제
     if source not in CENTRAL_GOV_SOURCES:
-        if any(kw in combined for kw in GOVERNMENT_ADMIN_KEYWORDS):
+        if any(kw in title for kw in GOVERNMENT_ADMIN_KEYWORDS):
             return False
 
     return True
@@ -378,11 +388,46 @@ def has_analytical_value(title: str, content: str, source: str = "") -> bool:
 
 
 def is_domestic_news(title: str, content: str) -> bool:
-    """중국 국내 뉴스 판단"""
+    """중국 국내 뉴스 판단.
+
+    foreign 키워드가 있으면서 domestic 키워드가 없으면 해외 뉴스로 판정.
+    양쪽 다 있으면 domestic 키워드가 foreign 이상이어야 국내 뉴스.
+    양쪽 다 없으면 (중국 매체 기사이므로) 국내 뉴스로 기본 판정.
+    """
     combined = title + content
-    foreign = sum(1 for kw in ['美国', '欧洲', '日本', '韩国', '东南亚', '国际'] if kw in combined)
-    domestic = sum(1 for kw in ['中国', '国内', '本土', '央行', '发改委', '工信部'] if kw in combined)
-    return domestic > foreign or foreign <= 1
+
+    foreign_keywords = [
+        # 국가/지역
+        '美国', '欧洲', '日本', '韩国', '东南亚', '印度',
+        # 해외 시장/통화
+        '美股', '美元', '欧元', '日元', '韩元',
+        '华尔街', '纳斯达克', '标普', '道琼斯',
+        # 해외 기업
+        'Anthropic', 'OpenAI', 'Google', 'Microsoft', 'Apple',
+        'Amazon', 'Meta', 'Nvidia', 'Tesla', 'Samsung',
+        '谷歌', '微软', '苹果公司', '亚马逊', '英伟达',
+    ]
+
+    domestic_keywords = [
+        # 국가
+        '中国', '国内', '本土', '内地',
+        # 정부/기관
+        '央行', '发改委', '工信部', '财政部', '商务部',
+        '国务院', '证监会', '银保监', '国资委',
+        # 시장
+        'A股', '沪深', '上证', '深证', '北交所', '创业板',
+        '沪指', '深成指', '科创板', '人民币',
+    ]
+
+    foreign = sum(1 for kw in foreign_keywords if kw in combined)
+    domestic = sum(1 for kw in domestic_keywords if kw in combined)
+
+    # 해외 키워드만 있고 국내 맥락 없으면 해외 뉴스
+    if foreign > 0 and domestic == 0:
+        return False
+
+    # 양쪽 다 있으면 국내 키워드가 해외 이상이어야 국내 뉴스
+    return domestic >= foreign or foreign == 0
 
 
 def is_local_gov_source(source: str) -> bool:
@@ -433,6 +478,10 @@ def filter_news(news_list: list, enable_dedup: bool = True) -> list:
 
         # 단신 뉴스 제외
         if is_brief_news(title, content):
+            continue
+
+        # 해외 뉴스 제외
+        if not is_domestic_news(title, content):
             continue
 
         # === 중복 제거 ===

@@ -1,4 +1,4 @@
-"""News source definitions for Week 1-5."""
+"""News source definitions for Week 1-7."""
 
 # Week 1: Core 4 sources (국가/경제/금융 매체)
 NEWS_SOURCES = {
@@ -206,6 +206,67 @@ NEWS_SOURCES = {
         "priority": 2,
         "week": 6,
         "enabled": True,
+    },
+    # Week 7 - 중앙 언론 (Central Party/State Media)
+    "guangming": {
+        "name": "光明日报 (광명일보)",
+        "name_ko": "광명일보",
+        "url": "https://economy.gmw.cn/",
+        "rss": None,
+        "type": "national",
+        "priority": 1,
+        "week": 7,
+        "enabled": True,
+    },
+    "chinadaily": {
+        "name": "中国日报 (China Daily)",
+        "name_ko": "중국일보",
+        "url": "https://cn.chinadaily.com.cn/",
+        "rss": None,
+        "type": "national",
+        "priority": 1,
+        "week": 7,
+        "enabled": True,
+    },
+    "jjckb": {
+        "name": "经济参考报 (경제참고보)",
+        "name_ko": "경제참고보",
+        "url": "http://www.jjckb.cn/",
+        "rss": None,
+        "type": "economic",
+        "priority": 1,
+        "week": 7,
+        "enabled": True,
+    },
+    "workercn": {
+        "name": "工人日报 (노동자일보)",
+        "name_ko": "노동자일보",
+        "url": "https://www.workercn.cn/",
+        "rss": None,
+        "type": "national",
+        "priority": 1,
+        "week": 7,
+        "enabled": True,
+    },
+    "cyol": {
+        "name": "中国青年报 (중국청년보)",
+        "name_ko": "중국청년보",
+        "url": "https://www.cyol.com/",
+        "rss": None,
+        "type": "national",
+        "priority": 1,
+        "week": 7,
+        "enabled": True,
+    },
+    "jfdaily": {
+        "name": "解放日报 (해방일보)",
+        "name_ko": "해방일보",
+        "url": "https://www.jfdaily.com/",
+        "rss": None,
+        "type": "national",
+        "priority": 1,
+        "week": 7,
+        "enabled": False,  # SPA 구조, 향후 API 연동 시 활성화
     },
 }
 

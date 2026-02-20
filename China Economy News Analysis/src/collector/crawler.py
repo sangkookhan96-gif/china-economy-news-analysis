@@ -1018,6 +1018,365 @@ class NewsCrawler:
 
         return items
 
+    # =================================================================
+    # Week 7: Central Party/State Media (중앙 언론)
+    # =================================================================
+
+    def crawl_guangming(self) -> list[dict]:
+        """Crawl 光明日报 (광명일보) - Economy section."""
+        items = []
+        seen_urls = set()
+        url = "https://economy.gmw.cn/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        for link in soup.select("a[href*='gmw.cn']")[:MAX_NEWS_PER_SOURCE * 2]:
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            if not re.search(r"/\d{4}-\d{2}/\d{2}/content_\d+\.htm", href):
+                continue
+
+            if href.startswith("//"):
+                href = "https:" + href
+            elif not href.startswith("http"):
+                href = urljoin(url, href)
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            # Parse date from URL: /YYYY-MM/DD/
+            date_match = re.search(r"/(\d{4})-(\d{2})/(\d{2})/", href)
+            published_at = None
+            if date_match:
+                try:
+                    published_at = datetime(
+                        int(date_match.group(1)),
+                        int(date_match.group(2)),
+                        int(date_match.group(3))
+                    )
+                except ValueError:
+                    pass
+
+            items.append({
+                "source": "guangming",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": published_at,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
+    def crawl_chinadaily(self) -> list[dict]:
+        """Crawl 中国日报 (중국일보) - Chinese edition + finance section."""
+        items = []
+        seen_urls = set()
+
+        pages = [
+            "https://cn.chinadaily.com.cn/",
+            "https://caijing.chinadaily.com.cn/",
+        ]
+
+        for page_url in pages:
+            html = self.fetch_url(page_url)
+            if not html:
+                continue
+
+            soup = BeautifulSoup(html, "lxml")
+
+            for link in soup.select("a[href*='chinadaily.com.cn']")[:MAX_NEWS_PER_SOURCE * 2]:
+                href = link.get("href", "")
+                title = link.get_text(strip=True)
+
+                if not href or not title or len(title) < 10:
+                    continue
+
+                if not re.search(r"/a/\d{6}/\d{2}/WS[a-f0-9]+\.html", href):
+                    continue
+
+                if href.startswith("//"):
+                    href = "https:" + href
+                elif not href.startswith("http"):
+                    href = urljoin(page_url, href)
+                if href in seen_urls:
+                    continue
+                seen_urls.add(href)
+
+                # Parse date from URL: /a/YYYYMM/DD/
+                date_match = re.search(r"/a/(\d{4})(\d{2})/(\d{2})/", href)
+                published_at = None
+                if date_match:
+                    try:
+                        published_at = datetime(
+                            int(date_match.group(1)),
+                            int(date_match.group(2)),
+                            int(date_match.group(3))
+                        )
+                    except ValueError:
+                        pass
+
+                items.append({
+                    "source": "chinadaily",
+                    "original_url": href,
+                    "original_title": title,
+                    "original_content": "",
+                    "published_at": published_at,
+                })
+
+                if len(items) >= MAX_NEWS_PER_SOURCE:
+                    return items
+
+        return items
+
+    def crawl_jjckb(self) -> list[dict]:
+        """Crawl 经济参考报 (경제참고보) - Xinhua subsidiary economic daily."""
+        items = []
+        seen_urls = set()
+        url = "http://www.jjckb.cn/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        for link in soup.select("a[href*='jjckb.cn']")[:MAX_NEWS_PER_SOURCE * 2]:
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            if not re.search(r"/\d{8}/[a-f0-9]+/c\.html", href):
+                continue
+
+            if href.startswith("//"):
+                href = "http:" + href
+            elif not href.startswith("http"):
+                href = urljoin(url, href)
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            # Parse date from URL: /YYYYMMDD/
+            date_match = re.search(r"/(\d{4})(\d{2})(\d{2})/", href)
+            published_at = None
+            if date_match:
+                try:
+                    published_at = datetime(
+                        int(date_match.group(1)),
+                        int(date_match.group(2)),
+                        int(date_match.group(3))
+                    )
+                except ValueError:
+                    pass
+
+            items.append({
+                "source": "jjckb",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": published_at,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
+    def crawl_workercn(self) -> list[dict]:
+        """Crawl 工人日报 (노동자일보) - Workers' Daily."""
+        items = []
+        seen_urls = set()
+        url = "https://www.workercn.cn/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        for link in soup.select("a[href*='workercn.cn']")[:MAX_NEWS_PER_SOURCE * 2]:
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            if not re.search(r"/c/\d{4}-\d{2}-\d{2}/\d+\.shtml", href):
+                continue
+
+            if href.startswith("//"):
+                href = "https:" + href
+            elif not href.startswith("http"):
+                href = urljoin(url, href)
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            # Parse date from URL: /c/YYYY-MM-DD/
+            date_match = re.search(r"/c/(\d{4})-(\d{2})-(\d{2})/", href)
+            published_at = None
+            if date_match:
+                try:
+                    published_at = datetime(
+                        int(date_match.group(1)),
+                        int(date_match.group(2)),
+                        int(date_match.group(3))
+                    )
+                except ValueError:
+                    pass
+
+            items.append({
+                "source": "workercn",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": published_at,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
+    def crawl_cyol(self) -> list[dict]:
+        """Crawl 中国青年报 (중국청년보) - China Youth Daily."""
+        items = []
+        seen_urls = set()
+        url = "https://news.cyol.com/"
+        html = self.fetch_url(url)
+        if not html:
+            return items
+
+        soup = BeautifulSoup(html, "lxml")
+
+        for link in soup.select("a[href*='cyol.com']")[:MAX_NEWS_PER_SOURCE * 2]:
+            href = link.get("href", "")
+            title = link.get_text(strip=True)
+
+            if not href or not title or len(title) < 10:
+                continue
+
+            if not re.search(r"/gb/articles/\d{4}-\d{2}/\d{2}/content_\w+\.html", href):
+                continue
+
+            if href.startswith("//"):
+                href = "https:" + href
+            elif not href.startswith("http"):
+                href = urljoin(url, href)
+            if href in seen_urls:
+                continue
+            seen_urls.add(href)
+
+            # Parse date from URL: /YYYY-MM/DD/
+            date_match = re.search(r"/(\d{4})-(\d{2})/(\d{2})/", href)
+            published_at = None
+            if date_match:
+                try:
+                    published_at = datetime(
+                        int(date_match.group(1)),
+                        int(date_match.group(2)),
+                        int(date_match.group(3))
+                    )
+                except ValueError:
+                    pass
+
+            items.append({
+                "source": "cyol",
+                "original_url": href,
+                "original_title": title,
+                "original_content": "",
+                "published_at": published_at,
+            })
+
+            if len(items) >= MAX_NEWS_PER_SOURCE:
+                break
+
+        return items
+
+    def fetch_editorial_picks(self) -> list[dict]:
+        """Fetch editorial pick candidates from 36Kr RSS and Caixin sections.
+
+        Collects today's top articles from curated sources to supplement
+        the time-window-based candidate pool.
+
+        Returns:
+            List of dicts with keys: source, original_url, original_title.
+            Returns empty list on failure.
+        """
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        picks = []
+        seen_urls = set()
+
+        # --- 36Kr RSS feed: today's top items ---
+        try:
+            feed = feedparser.parse("https://36kr.com/feed")
+            for entry in feed.entries[:15]:
+                link = entry.get("link", "")
+                title = entry.get("title", "")
+                if not link or not title:
+                    continue
+                # Check if article is from today (published date or URL date)
+                is_today = False
+                pub = entry.get("published", "")
+                if today_str in pub:
+                    is_today = True
+                if not is_today and today_str.replace("-", "") in link:
+                    is_today = True
+                # Also accept if no date info (RSS may not embed date in URL)
+                if not is_today and not pub:
+                    is_today = True
+                if is_today and link not in seen_urls:
+                    seen_urls.add(link)
+                    picks.append({
+                        "source": "36kr",
+                        "original_url": link,
+                        "original_title": title,
+                    })
+        except Exception as e:
+            logger.warning(f"Editorial picks: 36Kr RSS failed: {e}")
+
+        # --- Caixin: scrape 3 sections for today's articles ---
+        caixin_sections = [
+            "https://finance.caixin.com/",
+            "https://companies.caixin.com/",
+            "https://www.caixin.com/business/",
+        ]
+        for section_url in caixin_sections:
+            try:
+                html = self.fetch_url(section_url)
+                if not html:
+                    continue
+                soup = BeautifulSoup(html, "lxml")
+                for link in soup.select("a"):
+                    href = link.get("href", "")
+                    title = link.get_text(strip=True)
+                    if not href or not title or len(title) < 10:
+                        continue
+                    # Caixin article URL pattern: /YYYY-MM-DD/xxxxx.html
+                    if f"/{today_str}/" in href and href.endswith(".html"):
+                        if href not in seen_urls:
+                            seen_urls.add(href)
+                            picks.append({
+                                "source": "caixin",
+                                "original_url": href,
+                                "original_title": title,
+                            })
+            except Exception as e:
+                logger.warning(f"Editorial picks: Caixin {section_url} failed: {e}")
+
+        logger.info(f"Editorial picks: collected {len(picks)} candidates (36kr + caixin)")
+        return picks
+
     def fetch_article_content(self, url: str, source: str = "") -> Optional[str]:
         """Fetch full article content from URL.
 
@@ -1056,6 +1415,12 @@ class NewsCrawler:
             "stdaily": ["div.content_area", "div.article-content", "div.content", "article"],
             "cnstock": ["div.article-content", "div.content", "article"],
             "sznews": ["div.article-content", "div.content", "article"],
+            # Week 7 중앙 언론
+            "guangming": ["div.u-mainText", "div.article-content", "div.content", "article"],
+            "chinadaily": ["div#Content", "div.article-content", "div.content", "article"],
+            "jjckb": ["div.article-content", "div.content", "article"],
+            "workercn": ["div.article-content", "div.content", "article"],
+            "cyol": ["div.article-content", "div.content", "article"],
         }
 
         # Get selectors for this source or use defaults

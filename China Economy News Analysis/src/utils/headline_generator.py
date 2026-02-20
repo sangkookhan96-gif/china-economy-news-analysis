@@ -1,21 +1,29 @@
 """Card headline generator for mobile UI.
 
 Generates attention-grabbing headlines (max 18 Korean characters)
-from original news titles using Claude API.
+from original news titles using Ollama local LLM.
 """
 
-import anthropic
+import logging
 from pathlib import Path
 import sys
 
+import requests
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from config.settings import ANTHROPIC_API_KEY, CLAUDE_MODEL
 from src.database.models import get_connection
+
+logger = logging.getLogger(__name__)
 
 # Maximum characters for card headline (Korean)
 # 18자: 모바일 375px 1위 헤드라인 한 줄 표시 기준
 MAX_HEADLINE_LENGTH = 18
 MAX_RETRY_COUNT = 2  # 18자 초과시 재생성 시도 횟수
+
+# Ollama configuration
+OLLAMA_URL = "http://localhost:11434/api/generate"
+HEADLINE_MODEL = "exaone3.5:2.4b"
+HEADLINE_MODEL_FALLBACK = "llama3:8b"
 
 # Forbidden phrases
 FORBIDDEN_PHRASES = [
@@ -76,8 +84,50 @@ RETRY_PROMPT = """이전 헤드라인이 18자를 초과했습니다.
 18자 이내 헤드라인만 출력:"""
 
 
+def _get_available_model() -> str:
+    """Check which headline model is available on Ollama."""
+    try:
+        resp = requests.get("http://localhost:11434/api/tags", timeout=5)
+        if resp.ok:
+            models = [m["name"] for m in resp.json().get("models", [])]
+            # Prefer EXAONE, fall back to llama3
+            for candidate in [HEADLINE_MODEL, HEADLINE_MODEL_FALLBACK]:
+                if candidate in models:
+                    return candidate
+                # Check without tag (e.g. "exaone3.5:2.4b" matches "exaone3.5:2.4b")
+                base = candidate.split(":")[0]
+                for m in models:
+                    if m.startswith(base):
+                        return m
+    except Exception:
+        pass
+    return HEADLINE_MODEL_FALLBACK
+
+
+def _call_ollama(prompt: str, model: str) -> str | None:
+    """Call Ollama API and return the generated text."""
+    try:
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "num_predict": 64,
+                "temperature": 0.3,
+            },
+        }
+        resp = requests.post(OLLAMA_URL, json=payload, timeout=30)
+        resp.raise_for_status()
+        return resp.json().get("response", "").strip()
+    except Exception as e:
+        logger.error(f"Ollama call failed: {e}")
+        return None
+
+
 def generate_headline(title: str) -> str:
     """Generate a card headline from the original title.
+
+    Uses Ollama LLM with retry logic. Falls back to truncation on failure.
 
     Args:
         title: Original translated news title
@@ -85,61 +135,42 @@ def generate_headline(title: str) -> str:
     Returns:
         Card headline (max 18 characters)
     """
-    if not ANTHROPIC_API_KEY:
+    if not title or not title.strip():
+        return ""
+
+    # Already short enough
+    if len(title) <= MAX_HEADLINE_LENGTH:
+        return _clean_headline(title)
+
+    model = _get_available_model()
+    prompt = HEADLINE_PROMPT.format(title=title)
+    raw = _call_ollama(prompt, model)
+
+    if not raw:
+        logger.warning(f"Ollama failed, using fallback for: {title[:30]}")
         return _fallback_headline(title)
 
-    try:
-        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    headline = _clean_headline(raw)
 
-        # First attempt
-        response = client.messages.create(
-            model=CLAUDE_MODEL,
-            max_tokens=100,
-            messages=[
-                {
-                    "role": "user",
-                    "content": HEADLINE_PROMPT.format(title=title)
-                }
-            ]
+    # Retry if over limit
+    for attempt in range(MAX_RETRY_COUNT):
+        if len(headline) <= MAX_HEADLINE_LENGTH:
+            break
+
+        logger.info(f"Headline too long ({len(headline)}자), retry {attempt+1}: {headline}")
+        retry_prompt = RETRY_PROMPT.format(
+            previous=headline, length=len(headline), title=title
         )
+        raw = _call_ollama(retry_prompt, model)
+        if raw:
+            headline = _clean_headline(raw)
 
-        headline = response.content[0].text.strip()
-        headline = _clean_headline(headline)
+    # Final force truncation if still over limit
+    if len(headline) > MAX_HEADLINE_LENGTH:
+        logger.warning(f"Force truncating: {headline} ({len(headline)}자)")
+        headline = headline[:MAX_HEADLINE_LENGTH - 1] + "…"
 
-        # Retry if exceeds 18 characters
-        retry_count = 0
-        while len(headline) > MAX_HEADLINE_LENGTH and retry_count < MAX_RETRY_COUNT:
-            retry_count += 1
-            print(f"  ↻ 재시도 {retry_count}: {headline} ({len(headline)}자 > 18자)")
-
-            response = client.messages.create(
-                model=CLAUDE_MODEL,
-                max_tokens=100,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": RETRY_PROMPT.format(
-                            previous=headline,
-                            length=len(headline),
-                            title=title
-                        )
-                    }
-                ]
-            )
-
-            headline = response.content[0].text.strip()
-            headline = _clean_headline(headline)
-
-        # Final fallback: truncate if still too long
-        if len(headline) > MAX_HEADLINE_LENGTH:
-            print(f"  ⚠ 강제 축약: {headline} ({len(headline)}자)")
-            headline = headline[:MAX_HEADLINE_LENGTH-1] + "…"
-
-        return headline
-
-    except Exception as e:
-        print(f"Headline generation error: {e}")
-        return _fallback_headline(title)
+    return headline
 
 
 def _clean_headline(headline: str) -> str:
@@ -158,7 +189,7 @@ def _clean_headline(headline: str) -> str:
 
 
 def _fallback_headline(title: str) -> str:
-    """Fallback headline when API fails.
+    """Fallback headline when LLM fails.
 
     Truncates the original title to fit the limit.
     """

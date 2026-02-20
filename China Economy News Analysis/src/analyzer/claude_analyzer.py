@@ -2,6 +2,7 @@
 
 import json
 import logging
+import requests
 from datetime import datetime
 from typing import Optional
 
@@ -9,7 +10,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-from config.settings import ANTHROPIC_API_KEY, CLAUDE_MODEL, MAX_TOKENS
+from config.settings import MAX_TOKENS
 from src.database.models import get_connection
 
 logging.basicConfig(level=logging.INFO)
@@ -20,12 +21,26 @@ class ClaudeAnalyzer:
     """Analyzer using Claude API for translation, summarization, and scoring."""
 
     def __init__(self):
-        if not ANTHROPIC_API_KEY:
-            raise ValueError("ANTHROPIC_API_KEY not set")
+        self.ollama_url = "http://localhost:11434/api/generate"
+        self.model = "llama3:8b"
 
-        import anthropic
-        self.client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-        self.model = CLAUDE_MODEL
+    def _validate_scores(self, result: dict) -> dict:
+        """Validate and clamp score values from Ollama."""
+        score_fields = [
+            'importance_score', 'market_relevance_score',
+            'uncertainty_score', 'expert_explainability_score'
+        ]
+        for field in score_fields:
+            val = result.get(field)
+            if val is None:
+                result[field] = 0.5
+            elif not isinstance(val, (int, float)):
+                try:
+                    result[field] = float(val)
+                except (ValueError, TypeError):
+                    result[field] = 0.5
+            result[field] = round(max(0.0, min(1.0, float(result[field]))), 2)
+        return result
 
     def analyze_news(self, news_id: int) -> dict:
         """Analyze a single news item: translate, summarize, classify, score."""
@@ -40,43 +55,81 @@ class ClaudeAnalyzer:
         title = news["original_title"]
         content = news["original_content"] or ""
 
-        # Build prompt
-        prompt = f"""다음 중국어 뉴스를 분석해주세요.
+        # Build prompt (English prompt for better JSON/numeric accuracy with llama3:8b)
+        prompt = f"""You are a Chinese economic news analyst for Korean institutional investors.
+Analyze the following Chinese news article.
 
-원문 제목: {title}
-원문 내용: {content[:3000] if content else "(본문 없음)"}
+Title: {title}
+Content: {content[:3000] if content else "(no content)"}
 
-다음 JSON 형식으로 응답해주세요:
+Respond ONLY with a JSON object. No explanation, no markdown.
+
+## SCORING RUBRIC (scores MUST vary between articles!)
+
+### importance_score (policy/industry impact)
+0.1-0.2: Local district events, routine statistics, personnel appointments, ceremony notices
+0.3-0.4: Individual company earnings, local government policy, minor industry news
+0.5-0.6: Industry trends, central ministry routine policy, major corporate strategy changes
+0.7-0.8: State Council policy, large M&A (>10B CNY), US-China trade, core industry regulation
+0.9-1.0: NPC/Politburo decisions, GDP/interest rate changes, nationwide industrial restructuring
+
+### market_relevance_score (direct financial market impact)
+0.1-0.3: Not market-related (social, cultural, local administration)
+0.4-0.6: Indirect impact (industry policy, technology trends, long-term plans)
+0.7-0.9: Direct market impact (interest rates, forex, IPO, stock market regulation, earnings)
+
+### uncertainty_score (information uncertainty)
+0.1-0.3: Confirmed announcement (law passed, finalized earnings, official data release)
+0.4-0.6: Direction set but details pending (policy draft, preliminary results)
+0.7-0.9: Under review, rumors, forecasts, speculation
+
+### expert_explainability_score (need for expert explanation)
+0.1-0.3: General public can understand (simple event reporting)
+0.4-0.6: Some background knowledge needed (industry context)
+0.7-0.9: Expert explanation essential (complex policy, technical financial instruments)
+
+## DISTRIBUTION GUIDE
+- ~50% of news should score importance 0.3-0.5 (routine news)
+- ~30% should score importance 0.5-0.7 (notable news)
+- ~15% should score importance 0.7-0.8 (significant news)
+- ~5% should score importance 0.9+ (major breaking news)
+- DO NOT default to 0.8 for everything. Most news is routine (0.3-0.5).
+
+## EXAMPLES
+
+Example 1 (LOW importance=0.2):
+"深圳市宝安区举办2024年创新创业大赛" → Local district event, no market impact
+
+Example 2 (MEDIUM importance=0.5):
+"宁德时代发布2024年固态电池技术路线图" → Major company tech roadmap, indirect market impact
+
+Example 3 (HIGH importance=0.85):
+"国务院发布半导体产业扶持新政 总投资3000亿元" → State Council policy, massive investment, direct market impact
+
+## OUTPUT FORMAT
 {{
-    "translated_title": "한국어 번역 제목",
-    "summary": "150-300자 한국어 요약 (3-5문장)",
-    "importance_score": 0.0-1.0 사이 점수 (정책 영향력, 산업 파급력, 시장 영향 기준),
-    "market_relevance_score": 0.0-1.0 사이 점수 (금융시장 직접 관련성),
-    "uncertainty_score": 0.0-1.0 사이 점수 (정보의 불확실성/모호성 정도, 높을수록 불확실),
-    "expert_explainability_score": 0.0-1.0 사이 점수 (전문가 해설 필요성, 높을수록 해설 필요),
-    "industry_category": "semiconductor/ai/new_energy/bio/aerospace/quantum/materials/other 중 하나",
-    "content_type": "policy/corporate/industry/market/opinion 중 하나",
-    "sentiment": "positive/negative/neutral 중 하나",
-    "keywords": ["키워드1", "키워드2", "키워드3"],
-    "market_impact": "시장 영향 예측 (1-2문장)"
-}}
-
-점수 기준:
-- importance_score: 기관투자자/기업전략팀 관점에서의 중요도
-- market_relevance_score: 주식/채권/외환 시장에 직접적 영향 여부
-- uncertainty_score: 정책 방향, 수치, 시행 시기 등의 불확실성
-- expert_explainability_score: 배경지식 없이 이해하기 어려운 정도
-
-전문 용어는 정확하게 번역해주세요."""
+  "translated_title": "Korean translation of title",
+  "summary": "150-300자 한국어 요약 (3-5문장)",
+  "importance_score": <float 0.0-1.0>,
+  "market_relevance_score": <float 0.0-1.0>,
+  "uncertainty_score": <float 0.0-1.0>,
+  "expert_explainability_score": <float 0.0-1.0>,
+  "industry_category": "<semiconductor|ai|new_energy|bio|aerospace|quantum|materials|other>",
+  "content_type": "<policy|corporate|industry|market|opinion>",
+  "sentiment": "<positive|negative|neutral>",
+  "keywords": ["keyword1", "keyword2", "keyword3"],
+  "market_impact": "1-2 sentence market impact prediction in Korean"
+}}"""
 
         try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=MAX_TOKENS,
-                messages=[{"role": "user", "content": prompt}]
-            )
+            payload = {"model": self.model, "prompt": prompt, "stream": False, "format": "json", "options": {"num_predict": MAX_TOKENS}}
 
-            result_text = response.content[0].text
+            response = requests.post(self.ollama_url, json=payload)
+            response.raise_for_status()
+
+            result_json = response.json()
+            result_text = result_json.get("response", "")
+
 
             # Parse JSON from response
             json_match = result_text
@@ -86,6 +139,7 @@ class ClaudeAnalyzer:
                 json_match = result_text.split("```")[1].split("```")[0]
 
             result = json.loads(json_match.strip())
+            result = self._validate_scores(result)
 
             # Update database
             cursor.execute("""
@@ -129,7 +183,13 @@ class ClaudeAnalyzer:
             except Exception as e:
                 logger.warning(f"Failed to generate topic vector for news {news_id}: {e}")
 
-            logger.info(f"Analyzed news {news_id}: {result.get('translated_title', '')[:30]}...")
+            logger.info(
+                f"Analyzed news {news_id}: "
+                f"imp={result.get('importance_score', 0):.2f} "
+                f"mkt={result.get('market_relevance_score', 0):.2f} "
+                f"unc={result.get('uncertainty_score', 0):.2f} "
+                f"| {result.get('translated_title', '')[:40]}..."
+            )
             return result
 
         except json.JSONDecodeError as e:

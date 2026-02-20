@@ -19,7 +19,8 @@ import schedule
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-from config.settings import CRAWL_INTERVAL_HOURS, ANTHROPIC_API_KEY
+from config.settings import CRAWL_INTERVAL_HOURS
+from src.analyzer.claude_analyzer import ClaudeAnalyzer
 from src.database.models import init_db, migrate_db, get_connection
 from src.collector.crawler import NewsCrawler
 from src.utils.backup import create_backup, cleanup_old_backups
@@ -51,13 +52,14 @@ class SchedulerAgent:
         }
 
     def _get_analyzer(self):
-        """Lazy load analyzer to handle API key availability."""
+        """Create and return Ollama-based ClaudeAnalyzer."""
         if self.analyzer is None:
-            if not ANTHROPIC_API_KEY:
-                logger.warning("ANTHROPIC_API_KEY not set, analysis disabled")
+            try:
+                self.analyzer = ClaudeAnalyzer()
+                logger.info("ClaudeAnalyzer (Ollama) initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize ClaudeAnalyzer: {e}")
                 return None
-            from src.analyzer.claude_analyzer import ClaudeAnalyzer
-            self.analyzer = ClaudeAnalyzer()
         return self.analyzer
 
     def collect_news(self) -> dict:
@@ -129,8 +131,8 @@ class SchedulerAgent:
         # Enrich content for articles missing full text
         self.enrich_content(limit=5)
 
-        # Analyze up to 10 new articles per hour
-        self.analyze_news(limit=10)
+        # Analyze up to 5 new articles per hour
+        self.analyze_news(limit=5)
 
         # Print stats
         self._print_stats()
