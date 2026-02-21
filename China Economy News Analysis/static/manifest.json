@@ -4,18 +4,14 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#BFDFFF",
-  "theme_color": "#BFDFFF",
+  "background_color": "#87CEEB",
+  "theme_color": "#87CEEB",
   "icons": [
     {
-      "src": "/app/static/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/app/static/icon-512.png",
+      "src": "/app/static/CNI-icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

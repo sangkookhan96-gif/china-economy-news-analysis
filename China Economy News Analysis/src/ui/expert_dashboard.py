@@ -961,8 +961,8 @@ def main():
     <link rel="manifest" href="/app/static/manifest.json?v=2">
     <meta name="theme-color" content="#BFDFFF">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="/app/static/apple-touch-icon.png">
-    <link rel="icon" type="image/x-icon" href="/app/static/favicon.ico">
+    <link rel="apple-touch-icon" href="/app/static/CNI-icon.png">
+    <link rel="icon" type="image/png" href="/app/static/CNI-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="중국경제">
     <meta name="mobile-web-app-capable" content="yes">
@@ -971,7 +971,7 @@ def main():
     <meta property="og:type" content="website">
     <meta property="og:title" content="한상국의 쉬운 중국경제뉴스 해설">
     <meta property="og:description" content="매일 3회 업데이트 | 20여개 중국 언론 | AI 자동 선정">
-    <meta property="og:image" content="http://chinanewsinsight.com/app/static/icon-512.png">
+    <meta property="og:image" content="http://chinanewsinsight.com/app/static/CNI-icon.png">
     <meta property="og:url" content="http://chinanewsinsight.com">
 
     <script>

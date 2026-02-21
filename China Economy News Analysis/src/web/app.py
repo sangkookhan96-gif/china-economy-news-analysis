@@ -154,9 +154,9 @@ def add_cache_control(response):
 
 @app.route("/favicon.ico")
 def favicon():
-    """Serve favicon.ico from root path (browsers request this automatically)."""
-    response = send_from_directory(app.static_folder, "favicon.ico",
-                                   mimetype="image/x-icon")
+    """Serve CNI-icon.png as favicon (browsers request /favicon.ico automatically)."""
+    response = send_from_directory(app.static_folder, "CNI-icon.png",
+                                   mimetype="image/png")
     response.headers["Cache-Control"] = "public, max-age=604800"
     return response
 
