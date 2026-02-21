@@ -145,10 +145,24 @@ a:hover {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    text-decoration: none;
 }
 
 .site-title a:hover {
     color: var(--primary-dark);
+}
+
+.site-title-text {
+    flex: 1;
+}
+
+.site-title-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    object-fit: contain;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
 }
 
 .site-date {
@@ -938,6 +952,12 @@ a:hover {
 
     .site-title {
         font-size: var(--font-size-lg);
+    }
+
+    .site-title-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
     }
 
     .site-date {
