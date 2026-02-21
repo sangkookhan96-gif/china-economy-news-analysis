@@ -205,7 +205,9 @@ class SchedulerAgent:
         if top_articles:
             logger.info("Top 5 articles by importance:")
             for article in top_articles:
-                logger.info(f"  - [{article['importance_score']:.2f}] [{article['industry_category']}] {article['translated_title'][:50]}")
+                title = (article['translated_title'] or '')[:50]
+                category = article['industry_category'] or 'N/A'
+                logger.info(f"  - [{article['importance_score']:.2f}] [{category}] {title}")
 
     def _print_stats(self):
         """Print current agent statistics."""
