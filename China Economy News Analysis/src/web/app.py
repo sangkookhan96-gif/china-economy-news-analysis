@@ -144,6 +144,14 @@ def news_detail(news_id: int):
     )
 
 
+@app.after_request
+def add_cache_control(response):
+    if request.path.startswith('/static/'):
+        if 'service-worker' not in request.path:
+            response.headers['Cache-Control'] = 'public, max-age=604800'
+    return response
+
+
 @app.route("/service-worker.js")
 def service_worker():
     """Serve service worker from root scope so it can control the entire site."""
