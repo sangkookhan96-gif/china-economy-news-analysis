@@ -1050,12 +1050,12 @@ a:hover {
         overflow: hidden;
     }
 
-    /* 카드 헤드라인: 모바일에서 한 줄 표시 */
+    /* 카드 헤드라인: 모바일에서 두 줄 표시 */
     .card-headline {
         font-size: 20px;
         line-height: 1.3;
         display: -webkit-box;
-        -webkit-line-clamp: 1;
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }

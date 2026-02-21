@@ -50,7 +50,7 @@ def init_db():
             content_score REAL,
             score_breakdown TEXT,
             score_explanation TEXT,
-            card_headline VARCHAR(36),
+            card_headline VARCHAR(72),
             edition TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -180,9 +180,9 @@ def migrate_db():
         cursor.execute("ALTER TABLE news ADD COLUMN score_explanation TEXT")
         print("Added score_explanation column to news table")
 
-    # Card headline for mobile UI (max 18 Korean characters = 36 bytes)
+    # Card headline for mobile UI (max 36 Korean characters = 72 bytes)
     if 'card_headline' not in columns:
-        cursor.execute("ALTER TABLE news ADD COLUMN card_headline VARCHAR(36)")
+        cursor.execute("ALTER TABLE news ADD COLUMN card_headline VARCHAR(72)")
         print("Added card_headline column to news table")
 
     # Edition column for 3-edition-per-day publishing (morning/afternoon/evening)

@@ -5,6 +5,7 @@ from original news titles using Ollama local LLM.
 """
 
 import logging
+import re
 from pathlib import Path
 import sys
 
@@ -16,9 +17,9 @@ from src.database.models import get_connection
 logger = logging.getLogger(__name__)
 
 # Maximum characters for card headline (Korean)
-# 18자: 모바일 375px 1위 헤드라인 한 줄 표시 기준
-MAX_HEADLINE_LENGTH = 18
-MAX_RETRY_COUNT = 2  # 18자 초과시 재생성 시도 횟수
+# 36자: 모바일 2줄 표시 기준 (기존 18자 한 줄 → 36자 두 줄로 확장)
+MAX_HEADLINE_LENGTH = 36
+MAX_RETRY_COUNT = 2  # 36자 초과시 재생성 시도 횟수
 
 # Ollama configuration
 OLLAMA_URL = "http://localhost:11434/api/generate"
@@ -46,19 +47,19 @@ HEADLINE_PROMPT = """역할: 당신은 숙련된 뉴스 데스크 편집자다.
 ## 예시 (모두 18자 이내)
 
 원본: "밍밍헌마오 900억 위안 IPO 이면"
-헤드라인: 밍밍헌마오 900억 IPO (12자)
+헤드라인: 밍밍헌마오 900억 IPO
 
 원본: "대형 증권사 집중 투자, 우주항공 IPO"
-헤드라인: 대형 증권사 우주 IPO 투자 (14자)
+헤드라인: 대형 증권사 우주 IPO 투자
 
 원본: "오늘 77종목 상한가, 상하이지수 4100선"
-헤드라인: 상하이 4100선 77종목 상한가 (16자)
+헤드라인: 상하이 4100선 77종목 상한가
 
 원본: "EU 집행위, 중국 풍력기업 조사 착수"
-헤드라인: EU 중국 풍력기업 조사 착수 (15자)
+헤드라인: EU 중국 풍력기업 조사 착수
 
 원본: "국가외환관리국 1월 외환보유고 발표"
-헤드라인: 중국 1월 외환보유고 발표 (13자)
+헤드라인: 중국 1월 외환보유고 발표
 
 ## 입력
 
@@ -177,6 +178,9 @@ def _clean_headline(headline: str) -> str:
     """Clean and validate the generated headline."""
     # Remove quotes if wrapped
     headline = headline.strip('"\'')
+
+    # Remove (N자) character count annotations that LLM sometimes appends
+    headline = re.sub(r'\s*\(\d+자\)\s*$', '', headline)
 
     # Remove forbidden phrases
     for phrase in FORBIDDEN_PHRASES:

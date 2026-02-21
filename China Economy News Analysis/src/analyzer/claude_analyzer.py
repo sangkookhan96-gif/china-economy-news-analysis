@@ -55,9 +55,15 @@ class ClaudeAnalyzer:
         title = news["original_title"]
         content = news["original_content"] or ""
 
-        # Build prompt (English prompt for better JSON/numeric accuracy with llama3:8b)
+        # Build prompt
         prompt = f"""You are a Chinese economic news analyst for Korean institutional investors.
 Analyze the following Chinese news article.
+
+CRITICAL LANGUAGE REQUIREMENT:
+- translated_title: MUST be written in Korean (한국어). Example: "트럼프, 반도체 관세 부과 행정명령 서명"
+- summary: MUST be written in Korean (한국어).
+- market_impact: MUST be written in Korean (한국어).
+- Do NOT use English or Chinese in translated_title, summary, or market_impact.
 
 Title: {title}
 Content: {content[:3000] if content else "(no content)"}
@@ -98,17 +104,17 @@ Respond ONLY with a JSON object. No explanation, no markdown.
 ## EXAMPLES
 
 Example 1 (LOW importance=0.2):
-"深圳市宝安区举办2024年创新创业大赛" → Local district event, no market impact
+"深圳市宝安区举办2024年创新创业大赛" → translated_title: "선전시 바오안구, 2024 창업대회 개최"
 
 Example 2 (MEDIUM importance=0.5):
-"宁德时代发布2024年固态电池技术路线图" → Major company tech roadmap, indirect market impact
+"宁德时代发布2024年固态电池技术路线图" → translated_title: "CATL, 2024 전고체 배터리 기술 로드맵 발표"
 
 Example 3 (HIGH importance=0.85):
-"国务院发布半导体产业扶持新政 总投资3000亿元" → State Council policy, massive investment, direct market impact
+"国务院发布半导体产业扶持新政 总投资3000亿元" → translated_title: "국무원, 반도체 산업 지원 신정책 발표…총투자 3,000억 위안"
 
 ## OUTPUT FORMAT
 {{
-  "translated_title": "Korean translation of title",
+  "translated_title": "반드시 한국어로 번역한 제목",
   "summary": "150-300자 한국어 요약 (3-5문장)",
   "importance_score": <float 0.0-1.0>,
   "market_relevance_score": <float 0.0-1.0>,
@@ -118,7 +124,7 @@ Example 3 (HIGH importance=0.85):
   "content_type": "<policy|corporate|industry|market|opinion>",
   "sentiment": "<positive|negative|neutral>",
   "keywords": ["keyword1", "keyword2", "keyword3"],
-  "market_impact": "1-2 sentence market impact prediction in Korean"
+  "market_impact": "한국어로 작성한 1-2문장 시장 영향 예측"
 }}"""
 
         try:
