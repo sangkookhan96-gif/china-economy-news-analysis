@@ -27,11 +27,57 @@
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- DNS prefetch / preconnect for fonts (non-blocking) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>body { animation: fadein .4s ease; } @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }</style>
+    <!-- Critical CSS — above-the-fold inline (렌더 블로킹 제거) -->
+    <style>
+:root{--primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;--surface:#fff;--surface-variant:#f8f9fa;--surface-dim:#f1f3f4;--border:#e0e0e0;--border-light:#f0f0f0;--text-primary:#202124;--text-secondary:#5f6368;--text-disabled:#9aa0a6;--shadow-sm:0 1px 2px rgba(0,0,0,.1);--shadow-md:0 2px 4px rgba(0,0,0,.1),0 4px 8px rgba(0,0,0,.05);--radius-sm:4px;--radius-md:8px;--radius-lg:12px;--spacing-xs:4px;--spacing-sm:8px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px;--font-size-xs:.75rem;--font-size-sm:.875rem;--font-size-base:1rem;--font-size-lg:1.125rem;--font-size-xl:1.25rem;--font-size-2xl:1.5rem;--transition-fast:150ms ease;--transition-normal:250ms ease}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:1rem;line-height:1.6;color:#202124;background-color:#f8f9fa;min-height:100vh;display:flex;flex-direction:column;animation:fadein .4s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+a{color:#1a73e8;text-decoration:none;transition:color 150ms ease}
+a:hover{color:#1557b0}
+.container{width:100%;max-width:720px;margin:0 auto;padding:0 16px}
+.main-content{flex:1;padding:24px 0}
+.site-header{background:#fff;border-bottom:1px solid #e0e0e0;padding:16px 0;position:sticky;top:0;z-index:100;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.site-header .container{display:flex;flex-direction:column;gap:8px}
+.site-title{font-size:1.25rem;font-weight:700;margin:0}
+.site-title a{color:#1a73e8;display:flex;align-items:center;gap:8px}
+.site-title a:hover{color:#1557b0}
+.site-date{font-size:.875rem;color:#5f6368}
+.site-nav{display:flex;gap:16px;margin-top:4px}
+.nav-link{font-size:.875rem;font-weight:500;color:#5f6368;padding:4px 0;border-bottom:2px solid transparent;transition:all 150ms ease}
+.nav-link:hover,.nav-link.active{color:#1a73e8;border-bottom-color:#1a73e8}
+.site-footer{background:#fff;border-top:1px solid #e0e0e0;padding:24px 0;margin-top:auto}
+.site-footer p{text-align:center;font-size:.875rem;color:#5f6368}
+@media(max-width:768px){
+  body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
+  .container{padding:0 8px}
+  .main-content{padding:16px 0}
+  .site-header{padding:8px 0}
+  .site-header .container{gap:4px}
+  .site-title{font-size:1.125rem}
+  .site-date{font-size:.75rem}
+  .site-nav{gap:16px}
+  .site-footer{padding:16px 0;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+}
+    </style>
+    <!-- Non-blocking Google Fonts (preload → onload → stylesheet) -->
+    <link rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap">
+    </noscript>
+    <!-- Non-blocking full stylesheet -->
+    <link rel="preload" as="style"
+          href="{{ url_for('static', filename='style.css') }}"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </noscript>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -60,11 +106,13 @@
         </div>
     </footer>
 
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script src="{{ url_for('static', filename='main.js') }}" defer></script>
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-          .catch(function() {});
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+            .catch(function() {});
+        });
       }
     </script>
     {% block extra_scripts %}{% endblock %}
