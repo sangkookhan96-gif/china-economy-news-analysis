@@ -38,13 +38,18 @@ HEADLINE_PROMPT = """역할: 당신은 숙련된 뉴스 데스크 편집자다.
 ## 핵심 규칙 (반드시 준수)
 
 ★★★ 글자 수: 반드시 18자 이내 (공백 포함, 절대 초과 금지) ★★★
+★★★ 한국어만 사용. 중국어 한자(汉字) 절대 사용 금지 ★★★
 
 1. "사실 + 대상 + 결과" 구조로 작성
 2. 숫자, 고유명사, 행위 주체 포함
 3. 추상적 표현 금지 ('논란', '파장', '관심', '주목' 사용 금지)
 4. 제목만 읽어도 "무슨 일이 있었는지" 명확해야 함
+5. 고유명사 처리 기준:
+   - 중국 기업: 한국어 음차 또는 브랜드명 (예: 宁德时代→CATL, 比亚迪→BYD, 华为→화웨이)
+   - 중국 인명: 한국어 음차 (예: 习近平→시진핑, 李强→리창)
+   - 중국 기관: 번역 또는 약칭 (예: 国务院→국무원, 国家发改委→발개위)
 
-## 예시 (모두 18자 이내)
+## 예시 (모두 18자 이내, 한국어만 사용)
 
 원본: "밍밍헌마오 900억 위안 IPO 이면"
 헤드라인: 밍밍헌마오 900억 IPO
@@ -61,13 +66,16 @@ HEADLINE_PROMPT = """역할: 당신은 숙련된 뉴스 데스크 편집자다.
 원본: "국가외환관리국 1월 외환보유고 발표"
 헤드라인: 중국 1월 외환보유고 발표
 
+원본: "화웨이, 5G 장비 수출 규제 대응 전략 발표"
+헤드라인: 화웨이 5G 수출규제 대응
+
 ## 입력
 
-원본 제목: {title}
+원본 제목: {title}{summary_section}
 
 ## 출력
 
-18자 이내 헤드라인만 출력. 따옴표, 설명, 글자수 표기 없이 헤드라인만."""
+18자 이내 헤드라인만 출력. 따옴표, 설명, 글자수 표기, 한자 없이 순수 한국어 헤드라인만."""
 
 
 RETRY_PROMPT = """이전 헤드라인이 18자를 초과했습니다.
@@ -75,14 +83,16 @@ RETRY_PROMPT = """이전 헤드라인이 18자를 초과했습니다.
 이전 시도: "{previous}" ({length}자)
 
 ★★★ 반드시 18자 이내로 더 짧게 작성하세요 ★★★
+★★★ 한국어만 사용. 중국어 한자 절대 금지 ★★★
 
 - 불필요한 조사/수식어 제거
 - 핵심 키워드만 남기기
 - 숫자 축약 (예: 6300억 → 6천억)
+- 한자가 있으면 한국어 음차로 교체
 
 원본: {title}
 
-18자 이내 헤드라인만 출력:"""
+18자 이내 순수 한국어 헤드라인만 출력:"""
 
 
 def _get_available_model() -> str:
@@ -125,13 +135,14 @@ def _call_ollama(prompt: str, model: str) -> str | None:
         return None
 
 
-def generate_headline(title: str) -> str:
+def generate_headline(title: str, summary: str = "") -> str:
     """Generate a card headline from the original title.
 
     Uses Ollama LLM with retry logic. Falls back to truncation on failure.
 
     Args:
         title: Original translated news title
+        summary: Optional Korean summary for context (improves proper noun handling)
 
     Returns:
         Card headline (max 18 characters)
@@ -144,7 +155,11 @@ def generate_headline(title: str) -> str:
         return _clean_headline(title)
 
     model = _get_available_model()
-    prompt = HEADLINE_PROMPT.format(title=title)
+    # Build summary section for prompt (방안 C)
+    summary_section = ""
+    if summary and summary.strip():
+        summary_section = f"\n요약 (참고): {summary.strip()[:150]}"
+    prompt = HEADLINE_PROMPT.format(title=title, summary_section=summary_section)
     raw = _call_ollama(prompt, model)
 
     if not raw:
@@ -153,12 +168,15 @@ def generate_headline(title: str) -> str:
 
     headline = _clean_headline(raw)
 
-    # Retry if over limit
+    # Retry if over limit or still contains Chinese characters
     for attempt in range(MAX_RETRY_COUNT):
-        if len(headline) <= MAX_HEADLINE_LENGTH:
+        too_long = len(headline) > MAX_HEADLINE_LENGTH
+        has_chinese = _has_chinese(headline)
+        if not too_long and not has_chinese:
             break
 
-        logger.info(f"Headline too long ({len(headline)}자), retry {attempt+1}: {headline}")
+        reason = f"{len(headline)}자" if too_long else "한자 포함"
+        logger.info(f"Headline needs retry ({reason}), retry {attempt+1}: {headline}")
         retry_prompt = RETRY_PROMPT.format(
             previous=headline, length=len(headline), title=title
         )
@@ -171,7 +189,15 @@ def generate_headline(title: str) -> str:
         logger.warning(f"Force truncating: {headline} ({len(headline)}자)")
         headline = headline[:MAX_HEADLINE_LENGTH - 1] + "…"
 
+    if _has_chinese(headline):
+        logger.warning(f"Chinese characters remain after retries: {headline}")
+
     return headline
+
+
+def _has_chinese(text: str) -> bool:
+    """Check if text contains Chinese characters."""
+    return bool(re.search(r'[\u4e00-\u9fff]', text))
 
 
 def _clean_headline(headline: str) -> str:
@@ -185,6 +211,14 @@ def _clean_headline(headline: str) -> str:
     # Remove forbidden phrases
     for phrase in FORBIDDEN_PHRASES:
         headline = headline.replace(phrase, "")
+
+    # 방안 A: 중국어 한자 탐지 시 사전 교체 시도
+    if _has_chinese(headline):
+        try:
+            from src.utils.title_postprocessor import apply_dictionary
+            headline, _ = apply_dictionary(headline)
+        except Exception:
+            pass
 
     # Clean up whitespace
     headline = " ".join(headline.split())
@@ -260,6 +294,8 @@ def get_headline(news_id: int) -> str | None:
 def generate_and_save_headline(news_id: int, title: str) -> str:
     """Generate headline and save to database.
 
+    Fetches summary from DB to provide context for better proper noun handling.
+
     Args:
         news_id: News ID
         title: Original translated title
@@ -267,6 +303,19 @@ def generate_and_save_headline(news_id: int, title: str) -> str:
     Returns:
         Generated headline
     """
-    headline = generate_headline(title)
+    # 방안 C: summary 컨텍스트 조회
+    summary = ""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT summary FROM news WHERE id = ?", (news_id,))
+        row = cursor.fetchone()
+        conn.close()
+        if row and row["summary"]:
+            summary = row["summary"]
+    except Exception:
+        pass
+
+    headline = generate_headline(title, summary=summary)
     save_headline(news_id, headline)
     return headline
