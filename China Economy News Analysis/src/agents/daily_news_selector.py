@@ -7,7 +7,7 @@ Each edition covers from yesterday 00:00 up to the edition's cutoff time so
 that articles from the previous night are not missed:
   - morning:   어제 00:00 → 오늘 07:00,  selected at 07:00
   - afternoon: 어제 00:00 → 오늘 13:00,  selected at 13:00
-  - evening:   어제 00:00 → 오늘 22:00,  selected at 22:00
+  - evening:   어제 00:00 → 오늘 20:00,  selected at 20:00
 """
 
 import argparse
@@ -44,7 +44,7 @@ EDITION_CONFIG = {
     'evening': {
         'label': '저녁/반판',
         'title': '오늘 밤 뉴스 헤드라인',
-        'cutoff': time(22, 0),
+        'cutoff': time(20, 0),
     },
 }
 

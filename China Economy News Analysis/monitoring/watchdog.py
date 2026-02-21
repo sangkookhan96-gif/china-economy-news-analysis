@@ -130,7 +130,7 @@ def check_editions(state: dict) -> bool:
         due.append("morning")
     if hour >= 15:   # afternoon: 14:00 → 15:00 이후 체크
         due.append("afternoon")
-    if hour >= 23:   # evening: 22:00 → 23:00 이후 체크
+    if hour >= 21:   # evening: 20:00 → 21:00 이후 체크
         due.append("evening")
 
     if not due:

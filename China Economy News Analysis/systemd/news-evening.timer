@@ -1,8 +1,8 @@
 [Unit]
-Description=China Economy News - Evening Edition Timer (22:00)
+Description=China Economy News - Evening Edition Timer (20:00)
 
 [Timer]
-OnCalendar=*-*-* 22:00:00
+OnCalendar=*-*-* 20:00:00
 Persistent=true
 AccuracySec=1min
 
