@@ -84,10 +84,7 @@ a:hover{color:#1557b0}
     <header class="site-header">
         <div class="container">
             <h1 class="site-title">
-                <a href="{{ url_for('index') }}">
-                    <span class="site-title-text">{{ site_title }}</span>
-                    <img src="{{ url_for('static', filename='CNI-icon.png') }}" alt="CNI" class="site-title-icon">
-                </a>
+                <a href="{{ url_for('index') }}">{{ site_title }}</a>
             </h1>
             <p class="site-date">{{ today.strftime('%Y년 %m월 %d일') }}</p>
             <nav class="site-nav">

@@ -138,34 +138,17 @@ a:hover {
     font-size: var(--font-size-xl);
     font-weight: 700;
     margin: 0;
-    position: relative;
 }
 
 .site-title a {
     color: var(--primary);
-    display: block;
-    padding-right: 40px;
-    text-decoration: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
 }
 
 .site-title a:hover {
     color: var(--primary-dark);
-}
-
-/* 데스크톱: 브라우저 홈 추가 앱 아이콘 기준 32px */
-.site-title-icon {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 32px;
-    height: 32px;
-    border-radius: 7px;
-    object-fit: contain;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.18);
 }
 
 .site-date {
@@ -955,17 +938,6 @@ a:hover {
 
     .site-title {
         font-size: var(--font-size-lg);
-    }
-
-    /* 모바일: iOS/Android 홈 화면 앱 아이콘 기준 48px */
-    .site-title a {
-        padding-right: 56px;
-    }
-
-    .site-title-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
     }
 
     .site-date {
