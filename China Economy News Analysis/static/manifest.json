@@ -1,0 +1,21 @@
+{
+  "name": "China News Insight",
+  "short_name": "CNI",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#BFDFFF",
+  "theme_color": "#BFDFFF",
+  "icons": [
+    {
+      "src": "/app/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/app/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

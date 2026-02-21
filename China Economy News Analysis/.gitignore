@@ -7,3 +7,5 @@ logs/
 .playwright-mcp/
 *.backup_*
 data/backup_*.db
+monitoring/.watchdog_state.json
+data/news.db

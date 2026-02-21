@@ -955,6 +955,95 @@ def main():
         initial_sidebar_state="expanded"
     )
 
+    # PWA 메타태그 + 설치 배너
+    st.markdown("""
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/app/static/manifest.json?v=2">
+    <meta name="theme-color" content="#BFDFFF">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/app/static/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="/app/static/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="중국경제">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Open Graph for KakaoTalk -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="한상국의 쉬운 중국경제뉴스 해설">
+    <meta property="og:description" content="매일 3회 업데이트 | 20여개 중국 언론 | AI 자동 선정">
+    <meta property="og:image" content="http://chinanewsinsight.com/app/static/icon-512.png">
+    <meta property="og:url" content="http://chinanewsinsight.com">
+
+    <script>
+    (function() {
+        // iOS Safari 홈 화면 추가 안내 배너
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+
+        if (isIOS && !isInStandaloneMode) {
+            const bannerDismissed = localStorage.getItem('iosBannerDismissed');
+            if (!bannerDismissed) {
+                setTimeout(function() {
+                    const banner = document.createElement('div');
+                    banner.id = 'ios-install-banner';
+                    banner.style.cssText = `
+                        position: fixed; bottom: 0; left: 0; right: 0;
+                        background: linear-gradient(135deg, #DC143C 0%, #FF6347 100%);
+                        color: white; padding: 16px;
+                        box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+                        z-index: 999999;
+                        font-family: 'Noto Sans KR', sans-serif;
+                        animation: slideUp 0.3s ease-out;
+                    `;
+                    banner.innerHTML = `
+                        <style>
+                            @keyframes slideUp {
+                                from { transform: translateY(100%); }
+                                to { transform: translateY(0); }
+                            }
+                        </style>
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <div style="flex:1;">
+                                <div style="font-weight:600;margin-bottom:4px;">
+                                    📱 앱처럼 사용하기
+                                </div>
+                                <div style="font-size:13px;opacity:0.95;">
+                                    하단 공유 버튼(□↑) → "홈 화면에 추가"
+                                </div>
+                            </div>
+                            <button id="dismiss-banner" style="
+                                background:white;color:#DC143C;border:none;
+                                padding:8px 16px;border-radius:6px;
+                                font-weight:600;cursor:pointer;margin-left:12px;
+                            ">확인</button>
+                        </div>
+                    `;
+                    document.body.appendChild(banner);
+                    document.getElementById('dismiss-banner').addEventListener('click', function() {
+                        banner.style.animation = 'slideUp 0.3s ease-out reverse';
+                        setTimeout(function() { banner.remove(); }, 300);
+                        localStorage.setItem('iosBannerDismissed', 'true');
+                    });
+                }, 2000);
+            }
+        }
+
+        // Android Chrome beforeinstallprompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            setTimeout(() => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+                }
+            }, 3000);
+        });
+    })();
+    </script>
+    """, unsafe_allow_html=True)
+
     # 로그인 체크 비활성화 — 바로 대시보드 진입
     # if "login" not in st.session_state or not st.session_state["login"]:
     #     login_page()
@@ -2248,5 +2337,3 @@ def main():
             st.plotly_chart(fig_trend, use_container_width=True, key="src_trend")
 
 
-if __name__ == "__main__":
-    main()
