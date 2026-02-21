@@ -4,7 +4,7 @@ Provides user-facing web interface for expert-reviewed news.
 Port: 8502 (separate from admin dashboard on 8501)
 """
 
-from flask import Flask, render_template, abort, request
+from flask import Flask, render_template, abort, request, send_from_directory
 from markupsafe import Markup
 from datetime import datetime, date, timedelta
 from pathlib import Path
@@ -142,6 +142,22 @@ def news_detail(news_id: int):
         news=news,
         today=date.today(),
     )
+
+
+@app.route("/service-worker.js")
+def service_worker():
+    """Serve service worker from root scope so it can control the entire site."""
+    response = send_from_directory(app.static_folder, "service-worker.js",
+                                   mimetype="application/javascript")
+    response.headers["Service-Worker-Allowed"] = "/"
+    response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
+@app.route("/offline")
+def offline():
+    """Offline fallback page served by service worker."""
+    return render_template("offline.html", today=date.today())
 
 
 @app.errorhandler(404)
