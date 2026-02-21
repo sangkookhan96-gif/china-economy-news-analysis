@@ -152,6 +152,15 @@ def add_cache_control(response):
     return response
 
 
+@app.route("/favicon.ico")
+def favicon():
+    """Serve favicon.ico from root path (browsers request this automatically)."""
+    response = send_from_directory(app.static_folder, "favicon.ico",
+                                   mimetype="image/x-icon")
+    response.headers["Cache-Control"] = "public, max-age=604800"
+    return response
+
+
 @app.route("/service-worker.js")
 def service_worker():
     """Serve service worker from root scope so it can control the entire site."""
