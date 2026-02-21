@@ -157,12 +157,12 @@ a:hover {
 }
 
 .site-title-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     object-fit: contain;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18);
 }
 
 .site-date {
@@ -955,9 +955,9 @@ a:hover {
     }
 
     .site-title-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
+        width: 24px;
+        height: 24px;
+        border-radius: 5px;
     }
 
     .site-date {
