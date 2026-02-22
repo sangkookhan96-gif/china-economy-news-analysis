@@ -300,11 +300,10 @@ PURE_FOREIGN_SIGNALS = [
     '华尔街',
 ]
 
-
 def is_china_external_economic(title: str, content: str) -> bool:
     """중국 대외경제 뉴스 여부 판별.
 
-    Level 1: 제목 또는 본문에 명시적 양자 관계 키워드(中美, 中欧, 对华 등)가 있으면 True.
+    Level 1: 제목에 명시적 양자 관계 키워드(中美, 中欧, 对华 등)가 있으면 True.
     Level 2: 제목에 무역·관세 키워드가 있으면 True
              (중국 경제 미디어가 관세/무역전쟁을 제목에 올린 것 = 중국 경제 관련성 신호).
     순수 해외 기업/시장 뉴스(OpenAI, 미국 주가 등)는 False.
@@ -315,8 +314,8 @@ def is_china_external_economic(title: str, content: str) -> bool:
     if any(kw in combined for kw in PURE_FOREIGN_SIGNALS):
         return False
 
-    # Level 1: 명시적 양자 관계 (제목 or 본문)
-    if any(kw in combined for kw in CHINA_BILATERAL_EXPLICIT):
+    # Level 1: 제목에 명시적 양자 관계 키워드 (title only — 본문 incidental 방지)
+    if any(kw in title for kw in CHINA_BILATERAL_EXPLICIT):
         return True
 
     # Level 2: 제목에 무역·관세 키워드 포함 (본문만 있는 경우 제외)
@@ -612,11 +611,11 @@ def filter_news(news_list: list, enable_dedup: bool = True) -> list:
         # 국내 뉴스 보너스
         domestic_bonus = 6 if news['is_domestic'] else 0
 
-        # 대외경제 보너스 (관세·무역전쟁 등 중국 대외경제 뉴스 우선 반영)
-        external_eco_bonus = 8 if is_external_eco else 0
+        # 거시경제 보너스 (재정·통화·환율 — 제목 기준, 대외경제보다 우선)
+        macro_bonus = 8 if any(kw in title for kw in MACRO_KEYWORDS) else 0
 
-        # 거시경제 보너스 (재정·통화·환율 — 제목 기준, 산업/과학기술보다 낮게 유지)
-        macro_bonus = 5 if any(kw in title for kw in MACRO_KEYWORDS) else 0
+        # 대외경제 보너스 (관세·무역전쟁 등 — 거시경제보다 낮게, 국내뉴스보다도 낮게)
+        external_eco_bonus = 3 if is_external_eco else 0
 
         # 형식적 기준 점수 (기존)
         formal_score = source_score + central_bonus + domestic_bonus + fact_score + external_eco_bonus + macro_bonus
