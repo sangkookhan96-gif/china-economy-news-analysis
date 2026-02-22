@@ -4,19 +4,39 @@
 
 {% block content %}
 <section class="feed-section">
-    <h2 class="date-heading">
-        {% if query %}"{{ query }}" 검색 결과 {{ results|length }}건
-        {% else %}검색어를 입력하세요{% endif %}
-    </h2>
+
+    {% if query %}
+    <div class="search-result-bar">
+        <span class="search-result-badge">
+            🔍 "{{ query }}" 검색 결과 <strong>{{ results|length }}건</strong>
+        </span>
+        <div class="search-nav-btns">
+            <a href="javascript:history.back()" class="search-nav-btn">← 이전</a>
+            <a href="{{ url_for('index') }}" class="search-nav-btn search-nav-btn-home">🏠 홈으로</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="search-result-bar">
+        <span class="search-result-badge">검색어를 입력하세요</span>
+        <div class="search-nav-btns">
+            <a href="{{ url_for('index') }}" class="search-nav-btn search-nav-btn-home">🏠 홈으로</a>
+        </div>
+    </div>
+    {% endif %}
 
     {% if results %}
         {% for news in results %}
             {% include "partials/news_card.html" %}
         {% endfor %}
+        <div class="search-nav-btns search-nav-btns-bottom">
+            <a href="javascript:history.back()" class="search-nav-btn">← 이전</a>
+            <a href="{{ url_for('index') }}" class="search-nav-btn search-nav-btn-home">🏠 홈으로</a>
+        </div>
     {% elif query %}
         <div class="empty-state">
             <p>검색 결과가 없습니다.</p>
         </div>
     {% endif %}
+
 </section>
 {% endblock %}
