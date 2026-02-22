@@ -350,6 +350,12 @@ a:hover {
     margin-left: auto;
 }
 
+.news-source-inline {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    margin-left: var(--spacing-sm);
+}
+
 .card-title {
     font-size: var(--font-size-lg);
     font-weight: 700;

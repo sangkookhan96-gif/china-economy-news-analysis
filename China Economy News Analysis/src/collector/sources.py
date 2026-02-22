@@ -62,7 +62,7 @@ NEWS_SOURCES = {
         "type": "tech",
         "priority": 2,
         "week": 2,
-        "enabled": True,
+        "enabled": False,  # 동영상 뉴스 소스 — 수집 제외
     },
     # Week 3 - Government channels & additional tech
     "tmtpost": {

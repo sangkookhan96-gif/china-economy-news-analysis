@@ -252,6 +252,37 @@ def category_label_filter(category: str) -> str:
     return labels.get(category, category or "기타")
 
 
+@app.template_filter("source_label")
+def source_label_filter(source: str) -> str:
+    """Convert source code to Chinese media name."""
+    labels = {
+        "people":         "人民网",
+        "caixin":         "财新网",
+        "ce":             "中国经济网",
+        "stcn":           "证券时报",
+        "36kr":           "36氪",
+        "beijing_gov":    "北京市政府",
+        "shanghai_gov":   "上海市政府",
+        "shenzhen_gov":   "深圳市政府",
+        "cls":            "财联社",
+        "jiemian":        "界面新闻",
+        "yicai":          "第一财经",
+        "sina_finance":   "新浪财经",
+        "21jingji":       "21世纪经济报道",
+        "xinhua_finance": "新华财经",
+        "bbtnews":        "北部湾在线",
+        "stdaily":        "科技日报",
+        "cnstock":        "中国证券网",
+        "sznews":         "深圳新闻网",
+        "guangming":      "光明网",
+        "chinadaily":     "中国日报",
+        "jjckb":          "经济参考报",
+        "workercn":       "工人日报",
+        "cyol":           "中国青年报",
+    }
+    return labels.get(source, source or "")
+
+
 # Allowed HTML tags and attributes for XSS prevention
 ALLOWED_TAGS = [
     "p", "br", "strong", "b", "em", "i", "u", "s",

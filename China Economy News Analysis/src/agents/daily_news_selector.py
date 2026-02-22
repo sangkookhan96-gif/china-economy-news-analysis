@@ -85,7 +85,7 @@ def get_edition_time_window(edition: str, target_date=None, lookback_days=1):
 MAJOR_ECONOMIC_SOURCES = [
     'xinhua_finance', 'cnstock', 'yicai',
     'cls', '21jingji', 'sina_finance', 'stcn',
-    'jiemian', 'stdaily', 'huxiu',
+    'jiemian', 'stdaily',
     'jjckb',  # 经济参考报 (신화사 산하 경제전문지)
 ]
 

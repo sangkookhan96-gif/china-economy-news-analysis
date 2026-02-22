@@ -213,7 +213,7 @@ SOURCE_MAX_COUNT = {
 
 # 중앙 미디어/기관 출처 (중앙정부 포함 — 중앙 보너스 +5 대상)
 CENTRAL_SOURCES = [
-    'people', 'ce', 'caixin', '36kr', 'stcn', 'huxiu',
+    'people', 'ce', 'caixin', '36kr', 'stcn',
     'cls', 'jiemian', 'yicai', 'sina_finance',
     '21jingji', 'xinhua_finance',
     # Week 6 전국 매체
@@ -242,7 +242,6 @@ SOURCE_PRIORITY = {
     'ce': 10,
     'stcn': 9,
     '36kr': 8,
-    'huxiu': 8,
     'beijing_gov': 4,
     'shanghai_gov': 4,
     'shenzhen_gov': 3,

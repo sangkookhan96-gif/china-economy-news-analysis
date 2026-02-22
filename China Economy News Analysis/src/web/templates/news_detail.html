@@ -12,7 +12,7 @@
             <time class="news-date">{{ news.date|format_date }}</time>
         </div>
         <h1 class="news-title">{{ news.headline }}</h1>
-        <p class="news-source">출처: {{ news.source }}</p>
+        <p class="news-source">출처: {{ news.source|source_label }}</p>
     </header>
 
     <section class="expert-review-section">
