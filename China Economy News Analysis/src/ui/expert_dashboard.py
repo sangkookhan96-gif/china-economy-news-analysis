@@ -357,7 +357,8 @@ def get_reviews_by_status(status: str = 'draft', limit: int = 50) -> pd.DataFram
 
 
 def update_expert_comment(news_id: int, comment: str, title: str = None) -> bool:
-    """수정된 리뷰 내용 및 제목 저장. publish_status는 'published' 유지."""
+    """수정된 리뷰 내용 및 제목 저장. publish_status는 'published' 유지.
+    제목 변경 시 card_headline도 자동 재생성."""
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -376,12 +377,22 @@ def update_expert_comment(news_id: int, comment: str, title: str = None) -> bool
                 WHERE id = ?
             """, (title.strip(), now, news_id))
         conn.commit()
-        return cursor.rowcount > 0
+        success = cursor.rowcount > 0
     except Exception as e:
         st.error(f"수정 저장 실패: {e}")
         return False
     finally:
         conn.close()
+
+    # 제목 변경 시 card_headline 자동 재생성
+    if success and title and title.strip():
+        try:
+            from src.utils.headline_generator import generate_and_save_headline
+            generate_and_save_headline(news_id, title.strip())
+        except Exception as e:
+            st.warning(f"헤드라인 재생성 실패 (제목 저장은 완료): {e}")
+
+    return success
 
 
 def update_publish_status(news_id: int, new_status: str, admin_note: str = None) -> bool:
