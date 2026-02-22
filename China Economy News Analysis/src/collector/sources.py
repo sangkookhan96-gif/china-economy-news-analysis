@@ -42,7 +42,7 @@ NEWS_SOURCES = {
         "type": "independent",
         "priority": 1,
         "week": 2,
-        "enabled": True,
+        "enabled": False,  # 뉴스 본문이 중간에 잘림 — 수집 제외
     },
     "36kr": {
         "name": "36氪 (36Kr)",

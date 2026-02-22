@@ -257,7 +257,6 @@ def source_label_filter(source: str) -> str:
     """Convert source code to Chinese media name."""
     labels = {
         "people":         "人民网",
-        "caixin":         "财新网",
         "ce":             "中国经济网",
         "stcn":           "证券时报",
         "36kr":           "36氪",

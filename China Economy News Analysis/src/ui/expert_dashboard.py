@@ -2350,7 +2350,7 @@ def main():
 
         # Source label map
         source_labels = {
-            'people': '인민일보', 'caixin': '차이신', 'ce': '경제일보',
+            'people': '인민일보', 'ce': '경제일보',
             '36kr': '36Kr', 'cls': '재련사',
             'jiemian': '제면', 'yicai': '이차이징', 'sina_finance': '시나재경',
             '21jingji': '21세기경제', 'xinhua_finance': '신화재경',
