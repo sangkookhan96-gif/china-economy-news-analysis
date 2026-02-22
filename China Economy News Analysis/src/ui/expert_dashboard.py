@@ -135,11 +135,20 @@ def get_top_news(limit: int = 10, industry: str = None, days: int = 7,
     return df
 
 
-def search_news(query: str, days: int = 7) -> pd.DataFrame:
-    """Search news by keyword in title and summary."""
+def search_news(query: str, days: int = 7, scope: str = "전체") -> pd.DataFrame:
+    """Search news by keyword. scope: 전체|제목|요약"""
     conn = get_connection()
     like = f"%{query}%"
-    sql = """
+    if scope == "제목":
+        cond = "(n.translated_title LIKE ? OR n.original_title LIKE ?)"
+        cond_params = [like, like]
+    elif scope == "요약":
+        cond = "n.summary LIKE ?"
+        cond_params = [like]
+    else:
+        cond = "(n.translated_title LIKE ? OR n.summary LIKE ? OR n.original_title LIKE ?)"
+        cond_params = [like, like, like]
+    sql = f"""
         SELECT n.*,
                er.expert_comment,
                er.ai_final_review,
@@ -150,11 +159,11 @@ def search_news(query: str, days: int = 7) -> pd.DataFrame:
         LEFT JOIN expert_reviews er ON n.id = er.news_id
         WHERE n.analyzed_at IS NOT NULL
           AND n.collected_at >= datetime('now', ?)
-          AND (n.translated_title LIKE ? OR n.summary LIKE ? OR n.original_title LIKE ?)
+          AND {cond}
         ORDER BY n.importance_score DESC
         LIMIT 50
     """
-    df = pd.read_sql_query(sql, conn, params=[f'-{days} days', like, like, like])
+    df = pd.read_sql_query(sql, conn, params=[f'-{days} days'] + cond_params)
     conn.close()
     return df
 
@@ -1130,6 +1139,12 @@ def main():
         st.markdown("---")
         st.markdown("### 🔍 검색")
         search_query = st.text_input("검색어", placeholder="예: 반도체")
+        search_scope = st.radio(
+            "검색 범위",
+            ["전체", "제목", "요약"],
+            horizontal=True,
+        )
+        search_days = st.slider("검색 기간 (일)", 1, 90, 30)
 
         st.markdown("---")
 
@@ -1172,7 +1187,7 @@ def main():
         )
 
         if search_query:
-            df = search_news(search_query, days=days_range)
+            df = search_news(search_query, days=search_days, scope=search_scope)
         else:
             df = get_top_news(
                 limit=news_limit,
