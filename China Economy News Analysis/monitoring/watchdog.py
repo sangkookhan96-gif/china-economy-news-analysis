@@ -15,6 +15,7 @@
 import json
 import logging
 import os
+import socket
 import sqlite3
 import subprocess
 import sys
@@ -202,6 +203,40 @@ def check_analysis(state: dict) -> bool:
     return False
 
 
+def check_web_server(state: dict) -> bool:
+    """포트 8502 응답 확인 → 실패 시 news-web.service 재시작."""
+    try:
+        sock = socket.create_connection(("127.0.0.1", 8502), timeout=5)
+        sock.close()
+        logger.info("Web server OK: port 8502 응답")
+        clear_fail(state, "web_server")
+        return True
+    except OSError:
+        pass
+
+    fails = inc_fail(state, "web_server")
+    logger.warning(f"Web server FAIL #{fails}: port 8502 응답 없음")
+
+    # 자동 복구: systemd restart
+    try:
+        result = subprocess.run(
+            ["sudo", "systemctl", "restart", "news-web"],
+            capture_output=True, timeout=30,
+        )
+        if result.returncode == 0:
+            logger.info("웹서버 재시작 완료 (systemd)")
+        else:
+            logger.error(f"웹서버 재시작 실패: {result.stderr.decode()}")
+    except Exception as e:
+        logger.error(f"웹서버 재시작 오류: {e}")
+
+    if fails >= 2:
+        from monitoring.notifier import send_telegram
+        send_telegram(f"⚠️ 웹서버 다운 {fails}회 연속\nport 8502 응답 없음 — 자동 재시작 시도 중")
+
+    return False
+
+
 # ─── Recovery Actions ─────────────────────────────────────────────────────────
 
 def _restart_scheduler():
@@ -283,9 +318,10 @@ def main():
     state = load_state()
 
     checks = {
-        "scheduler": check_scheduler(state),
-        "editions":  check_editions(state),
-        "analysis":  check_analysis(state),
+        "scheduler":  check_scheduler(state),
+        "editions":   check_editions(state),
+        "analysis":   check_analysis(state),
+        "web_server": check_web_server(state),
     }
 
     ok = sum(checks.values())
