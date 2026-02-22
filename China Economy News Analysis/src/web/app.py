@@ -22,6 +22,7 @@ from src.api.public_feed import (
     get_available_dates,
     get_today_headlines,
     get_all_edition_headlines,
+    search_published_news,
 )
 
 app = Flask(
@@ -127,6 +128,14 @@ def archive():
         selected_news=selected_news,
         today=date.today(),
     )
+
+
+@app.route("/search")
+def search():
+    """Search page."""
+    q = request.args.get("q", "").strip()
+    results = search_published_news(q) if q else []
+    return render_template("search.html", query=q, results=results, today=date.today())
 
 
 @app.route("/news/<int:news_id>")

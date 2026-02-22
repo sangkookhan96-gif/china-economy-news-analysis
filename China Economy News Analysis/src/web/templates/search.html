@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}검색: {{ query }} — {{ site_title }}{% endblock %}
+
+{% block content %}
+<section class="feed-section">
+    <h2 class="date-heading">
+        {% if query %}"{{ query }}" 검색 결과 {{ results|length }}건
+        {% else %}검색어를 입력하세요{% endif %}
+    </h2>
+
+    {% if results %}
+        {% for news in results %}
+            {% include "partials/news_card.html" %}
+        {% endfor %}
+    {% elif query %}
+        <div class="empty-state">
+            <p>검색 결과가 없습니다.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

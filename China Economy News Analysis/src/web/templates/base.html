@@ -90,6 +90,10 @@ a:hover{color:#1557b0}
             <nav class="site-nav">
                 <a href="{{ url_for('index') }}" class="nav-link{% if request.endpoint == 'index' %} active{% endif %}">오늘의 뉴스</a>
                 <a href="{{ url_for('archive') }}" class="nav-link{% if request.endpoint == 'archive' %} active{% endif %}">아카이브</a>
+                <form class="nav-search" action="{{ url_for('search') }}" method="get">
+                    <input type="search" name="q" class="nav-search-input" placeholder="검색" value="{{ request.args.get('q', '') }}" aria-label="검색">
+                    <button type="submit" class="nav-search-btn" aria-label="검색실행">🔍</button>
+                </form>
             </nav>
         </div>
     </header>

@@ -291,6 +291,33 @@ def get_today_headlines(target_date: Optional[date] = None, edition: Optional[st
     }
 
 
+def search_published_news(query: str, limit: int = 20) -> list[dict]:
+    """Search published news by keyword in title and summary."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    like = f"%{query}%"
+    cursor.execute("""
+        SELECT n.id, n.card_headline, n.translated_title AS headline,
+               er.expert_comment AS expert_review,
+               n.original_content AS original_article,
+               n.source, n.published_at AS date,
+               n.importance_score AS importance,
+               n.industry_category AS category,
+               n.summary, n.edition
+        FROM news n
+        INNER JOIN expert_reviews er ON n.id = er.news_id
+        WHERE er.expert_comment IS NOT NULL
+          AND er.publish_status = 'published'
+          AND n.original_content IS NOT NULL AND TRIM(n.original_content) != ''
+          AND (n.translated_title LIKE ? OR n.summary LIKE ?)
+        ORDER BY n.importance_score DESC, n.published_at DESC
+        LIMIT ?
+    """, (like, like, limit))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
 def get_all_edition_headlines(target_date: Optional[date] = None) -> list[dict]:
     """Get headlines for all editions of a given date.
 

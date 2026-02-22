@@ -158,8 +158,44 @@ a:hover {
 
 .site-nav {
     display: flex;
+    align-items: center;
     gap: var(--spacing-md);
     margin-top: var(--spacing-xs);
+}
+
+.nav-search {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.nav-search-input {
+    width: 120px;
+    padding: 3px 8px;
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: border-color var(--transition-fast), width var(--transition-normal);
+}
+
+.nav-search-input:focus {
+    border-color: var(--primary);
+    width: 180px;
+}
+
+.nav-search-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: var(--font-size-sm);
+    line-height: 1;
+}
+
+@media (max-width: 768px) {
+    .nav-search-input { width: 90px; }
+    .nav-search-input:focus { width: 130px; }
 }
 
 .nav-link {
