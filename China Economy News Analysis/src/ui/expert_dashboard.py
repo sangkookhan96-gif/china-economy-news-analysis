@@ -356,8 +356,8 @@ def get_reviews_by_status(status: str = 'draft', limit: int = 50) -> pd.DataFram
     return df
 
 
-def update_expert_comment(news_id: int, comment: str) -> bool:
-    """수정된 리뷰 내용 저장. publish_status는 'published' 유지."""
+def update_expert_comment(news_id: int, comment: str, title: str = None) -> bool:
+    """수정된 리뷰 내용 및 제목 저장. publish_status는 'published' 유지."""
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -368,6 +368,13 @@ def update_expert_comment(news_id: int, comment: str) -> bool:
                 updated_at = ?
             WHERE news_id = ?
         """, (comment, now, news_id))
+        if title and title.strip():
+            cursor.execute("""
+                UPDATE news SET
+                    translated_title = ?,
+                    updated_at = ?
+                WHERE id = ?
+            """, (title.strip(), now, news_id))
         conn.commit()
         return cursor.rowcount > 0
     except Exception as e:
@@ -1761,6 +1768,11 @@ def main():
                                     st.rerun()
                         else:
                             # 수정 폼
+                            edited_title = st.text_input(
+                                "제목 수정",
+                                value=row.get('translated_title', '') or '',
+                                key=f"tab4_edit_title_{news_id}",
+                            )
                             edited_comment = st.text_area(
                                 "리뷰 수정",
                                 value=row.get('expert_comment', '') or '',
@@ -1770,9 +1782,9 @@ def main():
                             col_save, col_cancel = st.columns([1, 1])
                             with col_save:
                                 if st.button("💾 저장 및 게시", key=f"tab4_save_{news_id}"):
-                                    if update_expert_comment(news_id, edited_comment):
+                                    if update_expert_comment(news_id, edited_comment, title=edited_title):
                                         st.session_state.pop(edit_key, None)
-                                        st.session_state["tab4_success_msg"] = f"#{news_id} 리뷰 수정 완료 → 게시 유지"
+                                        st.session_state["tab4_success_msg"] = f"#{news_id} 수정 완료 → 게시 유지"
                                         st.rerun()
                             with col_cancel:
                                 if st.button("취소", key=f"tab4_cancel_{news_id}"):
