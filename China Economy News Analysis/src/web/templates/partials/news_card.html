@@ -12,7 +12,6 @@
         <h3 class="card-headline">
             <a href="{{ url_for('news_detail', news_id=news.id) }}">{{ news.card_headline }}</a>
         </h3>
-        <p class="card-title-sub">{{ news.headline }}</p>
         {% else %}
         <h3 class="card-title">
             <a href="{{ url_for('news_detail', news_id=news.id) }}">{{ news.headline }}</a>
