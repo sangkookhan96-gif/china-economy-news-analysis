@@ -135,6 +135,30 @@ def get_top_news(limit: int = 10, industry: str = None, days: int = 7,
     return df
 
 
+def search_news(query: str, days: int = 7) -> pd.DataFrame:
+    """Search news by keyword in title and summary."""
+    conn = get_connection()
+    like = f"%{query}%"
+    sql = """
+        SELECT n.*,
+               er.expert_comment,
+               er.ai_final_review,
+               er.opinion_conflict,
+               er.review_completed_at,
+               er.publish_status
+        FROM news n
+        LEFT JOIN expert_reviews er ON n.id = er.news_id
+        WHERE n.analyzed_at IS NOT NULL
+          AND n.collected_at >= datetime('now', ?)
+          AND (n.translated_title LIKE ? OR n.summary LIKE ? OR n.original_title LIKE ?)
+        ORDER BY n.importance_score DESC
+        LIMIT 50
+    """
+    df = pd.read_sql_query(sql, conn, params=[f'-{days} days', like, like, like])
+    conn.close()
+    return df
+
+
 def get_news_detail(news_id: int) -> dict:
     """Get single news detail."""
     conn = get_connection()
@@ -1104,6 +1128,10 @@ def main():
         selected_tag = st.selectbox("🏷️ 태그 필터", tag_options)
 
         st.markdown("---")
+        st.markdown("### 🔍 검색")
+        search_query = st.text_input("검색어", placeholder="예: 반도체")
+
+        st.markdown("---")
 
         # Notification badge
         if stats['unread_notifications'] > 0:
@@ -1143,15 +1171,18 @@ def main():
             key="edition_filter"
         )
 
-        df = get_top_news(
-            limit=news_limit,
-            industry=selected_industry,
-            days=days_range,
-            bookmarked_only=bookmarked_only,
-            tag_filter=selected_tag,
-            queued_only=True,
-            edition_filter=selected_edition if selected_edition != '전체' else None,
-        )
+        if search_query:
+            df = search_news(search_query, days=days_range)
+        else:
+            df = get_top_news(
+                limit=news_limit,
+                industry=selected_industry,
+                days=days_range,
+                bookmarked_only=bookmarked_only,
+                tag_filter=selected_tag,
+                queued_only=True,
+                edition_filter=selected_edition if selected_edition != '전체' else None,
+            )
 
         # Display persistent save feedback from session state
         if st.session_state.get("save_success_msg"):
