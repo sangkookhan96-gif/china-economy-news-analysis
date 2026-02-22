@@ -1,0 +1,19 @@
+[Unit]
+Description=China Economy News - Morning Edition Selection
+After=network.target
+
+[Service]
+Type=oneshot
+User=jeozeohan
+WorkingDirectory=/home/jeozeohan/vibe_temp/China Economy News Analysis
+ExecStart="/home/jeozeohan/vibe_temp/China Economy News Analysis/scripts/run_daily_selection.sh" morning systemd
+StandardOutput=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/morning.log
+StandardError=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/morning.log
+Environment=HOME=/home/jeozeohan
+Environment=PYTHONPATH=/home/jeozeohan/.local/lib/python3.10/site-packages
+Restart=on-failure
+RestartSec=60
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,18 @@
+[Unit]
+Description=China Economy News - Watchdog Health Check
+After=network.target
+
+[Service]
+Type=oneshot
+User=jeozeohan
+WorkingDirectory=/home/jeozeohan/vibe_temp/China Economy News Analysis
+ExecStart=/usr/bin/python3 monitoring/watchdog.py
+StandardOutput=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/watchdog.log
+StandardError=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/watchdog.log
+Environment=HOME=/home/jeozeohan
+Environment=PYTHONPATH=/home/jeozeohan/.local/lib/python3.10/site-packages
+Environment=TELEGRAM_BOT_TOKEN=8553084184:AAHW2BNknmVA3QQQzgocdiF18PNw79DcPzA
+Environment=TELEGRAM_CHAT_ID=6325451070
+
+[Install]
+WantedBy=multi-user.target

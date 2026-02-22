@@ -1,5 +1,4 @@
 [server]
-enableStaticServing = true
-port = 8503
-address = "127.0.0.1"
-headless = true
+enableCORS = false
+enableXsrfProtection = false
+runOnSave = false

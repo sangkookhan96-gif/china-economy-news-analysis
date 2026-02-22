@@ -1,0 +1,10 @@
+[Unit]
+Description=China Economy News - Evening Edition Timer (20:00)
+
+[Timer]
+OnCalendar=*-*-* 20:00:00
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

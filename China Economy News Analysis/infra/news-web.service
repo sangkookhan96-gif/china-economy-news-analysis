@@ -1,0 +1,18 @@
+[Unit]
+Description=China Economy News - Web Server (Flask, port 8502)
+After=network.target ollama.service
+
+[Service]
+Type=simple
+User=jeozeohan
+WorkingDirectory=/home/jeozeohan/vibe_temp/China Economy News Analysis
+ExecStart=/usr/bin/python3 run_web.py
+StandardOutput=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/web.log
+StandardError=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/web.log
+Environment=HOME=/home/jeozeohan
+Environment=PYTHONPATH=/home/jeozeohan/.local/lib/python3.10/site-packages
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

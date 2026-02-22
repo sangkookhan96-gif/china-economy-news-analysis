@@ -2455,3 +2455,5 @@ def main():
             st.plotly_chart(fig_trend, use_container_width=True, key="src_trend")
 
 
+if __name__ == "__main__":
+    main()
