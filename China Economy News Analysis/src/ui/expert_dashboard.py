@@ -356,6 +356,27 @@ def get_reviews_by_status(status: str = 'draft', limit: int = 50) -> pd.DataFram
     return df
 
 
+def update_expert_comment(news_id: int, comment: str) -> bool:
+    """수정된 리뷰 내용 저장. publish_status는 'published' 유지."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        now = datetime.now()
+        cursor.execute("""
+            UPDATE expert_reviews SET
+                expert_comment = ?,
+                updated_at = ?
+            WHERE news_id = ?
+        """, (comment, now, news_id))
+        conn.commit()
+        return cursor.rowcount > 0
+    except Exception as e:
+        st.error(f"수정 저장 실패: {e}")
+        return False
+    finally:
+        conn.close()
+
+
 def update_publish_status(news_id: int, new_status: str, admin_note: str = None) -> bool:
     """Update publish_status for a single review."""
     conn = get_connection()
@@ -1723,12 +1744,40 @@ def main():
 
                     st.caption(f"리뷰 시간: {row.get('review_completed_at', '-')} | 게시상태: {pub_st or '-'}")
 
-                    # 공개 취소 버튼 (published 상태인 경우에만)
+                    # 공개 취소 / 수정 버튼 (published 상태인 경우에만)
                     if pub_st == 'published':
-                        if st.button("🗑 공개 취소 (폐기함으로)", key=f"tab4_discard_{news_id}"):
-                            if update_publish_status(news_id, 'discarded', '리뷰 완료 탭에서 공개 취소'):
-                                st.session_state["tab4_success_msg"] = f"#{news_id} 공개 취소 → 폐기함 이동"
-                                st.rerun()
+                        edit_key = f"tab4_edit_mode_{news_id}"
+
+                        if not st.session_state.get(edit_key):
+                            col_discard, col_edit = st.columns([1, 1])
+                            with col_discard:
+                                if st.button("🗑 공개 취소 (폐기함으로)", key=f"tab4_discard_{news_id}"):
+                                    if update_publish_status(news_id, 'discarded', '리뷰 완료 탭에서 공개 취소'):
+                                        st.session_state["tab4_success_msg"] = f"#{news_id} 공개 취소 → 폐기함 이동"
+                                        st.rerun()
+                            with col_edit:
+                                if st.button("✏️ 수정함", key=f"tab4_edit_btn_{news_id}"):
+                                    st.session_state[edit_key] = True
+                                    st.rerun()
+                        else:
+                            # 수정 폼
+                            edited_comment = st.text_area(
+                                "리뷰 수정",
+                                value=row.get('expert_comment', '') or '',
+                                height=200,
+                                key=f"tab4_edit_text_{news_id}",
+                            )
+                            col_save, col_cancel = st.columns([1, 1])
+                            with col_save:
+                                if st.button("💾 저장 및 게시", key=f"tab4_save_{news_id}"):
+                                    if update_expert_comment(news_id, edited_comment):
+                                        st.session_state.pop(edit_key, None)
+                                        st.session_state["tab4_success_msg"] = f"#{news_id} 리뷰 수정 완료 → 게시 유지"
+                                        st.rerun()
+                            with col_cancel:
+                                if st.button("취소", key=f"tab4_cancel_{news_id}"):
+                                    st.session_state.pop(edit_key, None)
+                                    st.rerun()
 
     with tab_approve:
         st.subheader("✅ 리뷰 승인 관리")
