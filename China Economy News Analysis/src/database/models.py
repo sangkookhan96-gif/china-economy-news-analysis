@@ -247,6 +247,9 @@ def migrate_db():
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_news_expert_review_status ON news(expert_review_status)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_news_edition ON news(edition)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_news_analyzed_collected ON news(analyzed_at, collected_at DESC)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_news_translated_title ON news(translated_title)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_news_summary ON news(summary)")
 
     # Trigger: block expert_reviews insert unless news is queued_today
     cursor.execute("""
