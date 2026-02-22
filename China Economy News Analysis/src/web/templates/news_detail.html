@@ -10,9 +10,9 @@
             <span class="badge {{ importance.class }}">{{ importance.label }}</span>
             <span class="badge category">{{ news.category|category_label }}</span>
             <time class="news-date">{{ news.date|format_date }}</time>
+            <span class="news-source-inline">{{ news.source|source_label }}</span>
         </div>
         <h1 class="news-title">{{ news.headline }}</h1>
-        <p class="news-source">출처: {{ news.source|source_label }}</p>
     </header>
 
     <section class="expert-review-section">
