@@ -208,7 +208,19 @@ LOCAL_GOV_SOURCES = ['beijing_gov', 'shanghai_gov', 'shenzhen_gov', 'bbtnews', '
 
 # 출처별 최대 선정 건수 제한 (지정하지 않은 출처는 balance_categories의 기본 로직 적용)
 SOURCE_MAX_COUNT = {
+    # 편중 방지: 에디션당 최대 2건 (볼륨 큰 소스)
+    'cls':          2,
+    '36kr':         2,
+    '21jingji':     2,
+    'jiemian':      2,
+    'yicai':        2,
+    'stdaily':      2,
+    'xinhua_finance': 2,
+    'sina_finance': 2,
+    # 지방 소스 제한
     'shenzhen_gov': 1,
+    'bbtnews':      1,
+    'sznews':       1,
 }
 
 # 중앙 미디어/기관 출처 (중앙정부 포함 — 중앙 보너스 +5 대상)
@@ -232,8 +244,57 @@ CATEGORIES = {
     '에너지': ['能源', '电力', '电池', '新能源', '太阳能', '光伏', '氢能', '核能', '核聚变', '钍能', '风能', '风电', '地热'],
     '금융': ['银行', '金融', '融资', '股票', '债券', '证券', '上市'],
     '기업': ['企业', '公司', '股', '高管', '并购', '股东', '项目'],
-    '과학기술': ['技术', '科技', 'AI', '机器人', '无人机', '智能制造', '生物', '自动驾驶', '超算', '量子', '航天', '新材料', '6G', '5G', '3D打印']
+    '과학기술': ['技术', '科技', 'AI', '机器人', '无人机', '智能制造', '生物', '自动驾驶', '超算', '量子', '航天', '新材料', '6G', '5G', '3D打印'],
+    '대외경제': ['中美', '中欧', '中日', '中韩', '中俄', '对华', '贸易战', '关税', '出口管制', '外贸', '双边', 'RCEP', '一带一路', '人民币汇率'],
 }
+
+# ============================================================
+# 중국 대외경제 뉴스 판별
+# ============================================================
+
+# 명시적 중국 양자 관계 키워드 (Level 1 — 확실한 대외경제)
+CHINA_BILATERAL_EXPLICIT = [
+    '中美', '中欧', '中日', '中韩', '中俄', '中澳', '中印',
+    '对华', '涉华',
+]
+
+# 무역·관세 키워드 (Level 2 — 중국 맥락 있을 때만)
+CHINA_TRADE_KEYWORDS = ['贸易战', '出口管制', '关税', '外贸', '进出口', '双边贸易']
+
+# Level 2에서 중국 맥락 확인용 키워드
+CHINA_CONTEXT_SIGNALS = [
+    '中国', '中方', '中国出口', '中国进口', '中国经济',
+    '人民币', 'A股', '中国商品',
+]
+
+# 순수 해외 뉴스 신호 (중국 무관)
+PURE_FOREIGN_SIGNALS = [
+    'OpenAI', 'Anthropic', 'SpaceX',
+    '美股收盘', '美股三大指数', '纳斯达克', '标普500', '道琼斯',
+    '华尔街',
+]
+
+
+def is_china_external_economic(title: str, content: str) -> bool:
+    """중국 대외경제 뉴스 여부 판별.
+
+    Level 1: 제목 또는 본문에 명시적 양자 관계 키워드(中美, 中欧, 对华 등)가 있으면 True.
+    Level 2: 제목에 무역·관세 키워드가 있으면 True
+             (중국 경제 미디어가 관세/무역전쟁을 제목에 올린 것 = 중국 경제 관련성 신호).
+    순수 해외 기업/시장 뉴스(OpenAI, 미국 주가 등)는 False.
+    """
+    combined = title + content
+
+    # 순수 해외 신호가 1개 이상이면 조기 제외
+    if any(kw in combined for kw in PURE_FOREIGN_SIGNALS):
+        return False
+
+    # Level 1: 명시적 양자 관계 (제목 or 본문)
+    if any(kw in combined for kw in CHINA_BILATERAL_EXPLICIT):
+        return True
+
+    # Level 2: 제목에 무역·관세 키워드 포함 (본문만 있는 경우 제외)
+    return any(kw in title for kw in CHINA_TRADE_KEYWORDS)
 
 # 출처별 기본 우선순위 (중앙 미디어 > 지방정부)
 SOURCE_PRIORITY = {
@@ -478,8 +539,9 @@ def filter_news(news_list: list, enable_dedup: bool = True) -> list:
         if is_brief_news(title, content):
             continue
 
-        # 해외 뉴스 제외
-        if not is_domestic_news(title, content):
+        # 해외 뉴스 제외 (단, 중국 대외경제 뉴스는 면제)
+        is_external_eco = is_china_external_economic(title, content)
+        if not is_domestic_news(title, content) and not is_external_eco:
             continue
 
         # === 중복 제거 ===
@@ -503,6 +565,7 @@ def filter_news(news_list: list, enable_dedup: bool = True) -> list:
 
         news['category'] = categorize_news(title, content)
         news['is_domestic'] = is_domestic_news(title, content)
+        news['is_external_eco'] = is_external_eco
         news['is_local_gov'] = is_local_gov_source(source)
 
         # 사실 풍부도 점수
@@ -523,8 +586,11 @@ def filter_news(news_list: list, enable_dedup: bool = True) -> list:
         # 국내 뉴스 보너스
         domestic_bonus = 6 if news['is_domestic'] else 0
 
+        # 대외경제 보너스 (관세·무역전쟁 등 중국 대외경제 뉴스 우선 반영)
+        external_eco_bonus = 8 if is_external_eco else 0
+
         # 형식적 기준 점수 (기존)
-        formal_score = source_score + central_bonus + domestic_bonus + fact_score
+        formal_score = source_score + central_bonus + domestic_bonus + fact_score + external_eco_bonus
 
         # 내용적 기준 점수 (Content-Based Scoring)
         content_result = _content_scorer.score(title, content, source)

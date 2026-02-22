@@ -90,7 +90,7 @@ MAJOR_ECONOMIC_SOURCES = [
 ]
 
 # 소스별 후보 상한 (filter_news 이전, 과다 편중 방지)
-MAX_PER_SOURCE_BEFORE_FILTER = 3
+MAX_PER_SOURCE_BEFORE_FILTER = 15
 
 # 소스 보충 시 DB에서 가져올 최대 건수
 SUPPLEMENT_PER_SOURCE = 3
