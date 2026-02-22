@@ -1471,8 +1471,9 @@ def main():
                             st.caption(f":{color}[{char_count}/{MAX_HEADLINE_LENGTH}자]")
 
                         with col_hl2:
-                            if st.button("🤖 AI 생성", key=f"gen_hl_{news_id}", help="AI로 헤드라인 자동 생성"):
-                                generated = generate_headline(news_title)
+                            if st.button("🤖 AI 생성", key=f"gen_hl_{news_id}", help="AI로 헤드라인 자동 생성 (리뷰 우선)"):
+                                from src.utils.headline_generator import generate_and_save_headline
+                                generated = generate_and_save_headline(news_id, news_title)
                                 st.session_state[f"headline_{news_id}"] = generated
                                 st.rerun()
 
