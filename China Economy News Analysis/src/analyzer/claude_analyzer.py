@@ -60,7 +60,7 @@ class ClaudeAnalyzer:
 Analyze the following Chinese news article.
 
 CRITICAL LANGUAGE REQUIREMENT:
-- translated_title: MUST be written in Korean (한국어). Example: "트럼프, 반도체 관세 부과 행정명령 서명"
+- translated_title: MUST be written in Korean (한국어). Translate the actual title above, do NOT copy this example: "국무원, 반도체 산업 지원 신정책 발표"
 - summary: MUST be written in Korean (한국어).
 - market_impact: MUST be written in Korean (한국어).
 - Do NOT use English or Chinese in translated_title, summary, or market_impact.
