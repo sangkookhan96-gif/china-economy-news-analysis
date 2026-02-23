@@ -8,8 +8,11 @@ from flask import Flask, render_template, abort, request, send_from_directory
 from markupsafe import Markup
 from datetime import datetime, date, timedelta
 from pathlib import Path
+import logging
 import sys
 import bleach
+
+logger = logging.getLogger(__name__)
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -190,6 +193,23 @@ def offline():
 def page_not_found(e):
     """Custom 404 page."""
     return render_template("404.html", today=date.today()), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    """Custom 500 page."""
+    return render_template("500.html", today=date.today()), 500
+
+
+@app.errorhandler(Exception)
+def handle_unhandled_exception(e):
+    """④ Flask 전역 예외 핸들러 — 미처리 예외를 잡아 500 페이지로 반환.
+
+    debug=True 환경에서는 Flask가 이 핸들러보다 자체 debugger를 우선하므로
+    개발 중 traceback 확인에 지장이 없다.
+    """
+    logger.error("Unhandled exception: %s", e, exc_info=True)
+    return render_template("500.html", today=date.today()), 500
 
 
 @app.context_processor

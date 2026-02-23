@@ -21,6 +21,26 @@ def get_connection() -> sqlite3.Connection:
     return conn
 
 
+# ============================================================
+# None-safe row mappers (③ None 안전 처리 중앙화)
+# DB row → dict 변환 시 모든 None 처리를 한 곳에서 담당.
+# 각 mapper는 해당 쿼리의 컬럼 목록에만 의존한다.
+# ============================================================
+
+def _map_headline_row(rank: int, row) -> dict:
+    """headline 쿼리 row → None-safe dict.
+
+    컬럼: id, headline (COALESCE), full_title, category, importance
+    """
+    return {
+        "rank": rank,
+        "id": row["id"],
+        "headline": row["headline"] or (row["full_title"] or "")[:36],
+        "category": row["category"] or "",
+        "importance": row["importance"] or 0.5,
+    }
+
+
 def get_published_news(limit: int = 10, offset: int = 0) -> list[dict]:
     """Retrieve expert-reviewed news for public display.
 
@@ -272,15 +292,7 @@ def get_today_headlines(target_date: Optional[date] = None, edition: Optional[st
     rows = cursor.fetchall()
     conn.close()
 
-    headlines = []
-    for i, row in enumerate(rows, 1):
-        headlines.append({
-            "rank": i,
-            "id": row["id"],
-            "headline": row["headline"] or (row["full_title"] or "")[:36],
-            "category": row["category"] or "",
-            "importance": row["importance"] or 0.5
-        })
+    headlines = [_map_headline_row(i, row) for i, row in enumerate(rows, 1)]
 
     return {
         "date": target_date.isoformat(),
