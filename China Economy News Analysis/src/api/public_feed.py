@@ -277,7 +277,7 @@ def get_today_headlines(target_date: Optional[date] = None, edition: Optional[st
         headlines.append({
             "rank": i,
             "id": row["id"],
-            "headline": row["headline"] or row["full_title"][:36],
+            "headline": row["headline"] or (row["full_title"] or "")[:36],
             "category": row["category"] or "",
             "importance": row["importance"] or 0.5
         })
