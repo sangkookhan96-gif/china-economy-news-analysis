@@ -120,7 +120,29 @@ Example 3 (HIGH importance=0.85):
   "market_relevance_score": <float 0.0-1.0>,
   "uncertainty_score": <float 0.0-1.0>,
   "expert_explainability_score": <float 0.0-1.0>,
-  "industry_category": "<semiconductor|ai|new_energy|bio|aerospace|quantum|materials|other>",
+## INDUSTRY CLASSIFICATION (GICS-based — choose the MOST SPECIFIC code you can confidently assign)
+
+GICS Sub-Industry L4 (prefer these):
+  20101010=항공우주방산 | 45301020=반도체 | 45102010=AI·소프트웨어 | 45301010=반도체장비소재
+  25102010=자동차EV | 25101010=자동차부품EV배터리 | 55105020=재생에너지 | 55101010=전력유틸리티
+  55105010=발전에너지저장 | 50203010=인터넷플랫폼 | 45201020=통신장비 | 20106020=산업기계로봇
+  15104020=광업희토류 | 45101030=인터넷인프라 | 15101050=특수화학신소재
+  50102010=무선통신 | 50101020=통신서비스 | 10102010=석유가스
+  40101010=종합은행 | 40201060=핀테크결제 | 35201010=바이오 | 30202030=식품농업
+  40203020=증권IPO | 35202010=제약 | 45102020=시스템소프트웨어 | 40301030=보험
+  60102030=부동산개발 | 35101010=의료기기 | 40203010=자산운용 | 45101010=IT서비스 | 25302010=교육
+
+GICS L2/L1 fallback (when L4 uncertain):
+  4530=반도체산업군 | 4510=소프트웨어서비스 | 45=정보기술섹터 | 40=금융섹터
+
+Extension (no GICS code fits the article topic):
+  EXT_POLICY=정부정책규제(보조금·5개년계획·복수산업동시해당)
+  EXT_GEOPOLITICS=지정학무역(중미관계·관세·수출통제 — 특정산업미귀속)
+  EXT_MACRO=거시경제지표(GDP·PMI·인민은행기준금리·사융 — 특정산업미귀속)
+  other=기타
+
+Rule: L4 first → L2/L1 fallback → Extension → other. ONE code only.
+  "industry_category": "<one code from the lists above>",
   "content_type": "<policy|corporate|industry|market|opinion>",
   "sentiment": "<positive|negative|neutral>",
   "keywords": ["keyword1", "keyword2", "keyword3"],
@@ -146,6 +168,17 @@ Example 3 (HIGH importance=0.85):
 
             result = json.loads(json_match.strip())
             result = self._validate_scores(result)
+
+            # GICS category validation
+            from config.gics_taxonomy import ALL_VALID_CODES, get_baseline_score
+            raw_cat = (result.get("industry_category") or "other").strip()
+            category = raw_cat if raw_cat in ALL_VALID_CODES else "other"
+            result["industry_category"] = category
+
+            # Apply category baseline score as importance_score floor
+            baseline = get_baseline_score(category)
+            current_score = result.get("importance_score", baseline)
+            result["importance_score"] = round(max(float(current_score), baseline), 2)
 
             # Update database
             cursor.execute("""

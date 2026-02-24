@@ -27,6 +27,7 @@ from src.api.public_feed import (
     get_all_edition_headlines,
     search_published_news,
 )
+from config.gics_taxonomy import get_korean_label
 
 app = Flask(
     __name__,
@@ -253,23 +254,8 @@ def format_importance_filter(score: float) -> dict:
 
 @app.template_filter("category_label")
 def category_label_filter(category: str) -> str:
-    """Convert category code to Korean label."""
-    labels = {
-        "semiconductor": "반도체",
-        "ai": "AI/인공지능",
-        "new_energy": "신에너지",
-        "bio": "바이오",
-        "aerospace": "항공우주",
-        "quantum": "양자",
-        "materials": "신소재",
-        "tech": "테크",
-        "policy": "정책",
-        "corporate": "기업",
-        "industry": "산업",
-        "market": "시장",
-        "other": "기타",
-    }
-    return labels.get(category, category or "기타")
+    """Convert GICS category code to Korean label."""
+    return get_korean_label(category)
 
 
 @app.template_filter("source_label")

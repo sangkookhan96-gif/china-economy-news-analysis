@@ -21,6 +21,7 @@ from src.utils.markdown_review import MarkdownReviewManager
 from src.utils.headline_generator import generate_headline, save_headline, get_headline
 from config.settings import CLAUDE_MODEL
 from src.collector.news_filter import SOURCE_PRIORITY
+from config.gics_taxonomy import get_korean_label
 
 # Card headline constants
 MAX_HEADLINE_LENGTH = 18
@@ -987,7 +988,7 @@ def render_today_overview(stats):
                 "제목": title,
                 "중요도": f"{imp:.2f}",
                 "출처": row.get('source', '-'),
-                "산업": row.get('industry_category', '-'),
+                "산업": get_korean_label(row.get('industry_category') or ''),
                 "리뷰": status,
             })
 
@@ -1141,24 +1142,27 @@ def main():
     with st.sidebar:
         st.markdown("### 🎛️ 필터 설정")
 
-        # Industry filter with Korean labels
-        industry_labels = {
-            "전체": "전체 산업",
-            "semiconductor": "🔬 반도체",
-            "ai": "🤖 인공지능",
-            "new_energy": "⚡ 신에너지",
-            "bio": "🧬 바이오",
-            "aerospace": "🚀 항공우주",
-            "quantum": "⚛️ 양자기술",
-            "materials": "🧱 신소재",
-            "low_carbon": "🌱 저탄소환경",
-            "other": "📦 기타"
-        }
-        industry_options = list(industry_labels.keys())
+        # Industry filter — DB에서 실제 사용 중인 카테고리 동적 조회
+        _conn_ind = get_connection()
+        _cur_ind = _conn_ind.cursor()
+        _cur_ind.execute("""
+            SELECT DISTINCT industry_category FROM news
+            WHERE industry_category IS NOT NULL AND industry_category != ''
+            ORDER BY industry_category
+        """)
+        _db_cats = [r[0] for r in _cur_ind.fetchall()]
+        _conn_ind.close()
+        industry_options = ["전체"] + _db_cats
+
+        def _industry_fmt(code):
+            if code == "전체":
+                return "전체 산업"
+            return get_korean_label(code)
+
         selected_industry = st.selectbox(
             "산업 분류",
             industry_options,
-            format_func=lambda x: industry_labels[x]
+            format_func=_industry_fmt
         )
 
         days_range = st.slider("📅 기간 (일)", 1, 30, 7)
@@ -1365,7 +1369,7 @@ def main():
 
                         with col_detail2:
                             st.markdown("**📋 분류 정보**")
-                            st.write(f"- 산업: {row.get('industry_category', '-')}")
+                            st.write(f"- 산업: {get_korean_label(row.get('industry_category') or '')}")
                             st.write(f"- 유형: {row.get('content_type', '-')}")
                             st.write(f"- 감성: {row.get('sentiment', '-')}")
                             st.write(f"- 출처: {row.get('source', '-')}")
@@ -1633,7 +1637,7 @@ def main():
                 news_id = news['id']
                 title = news.get('translated_title') or news.get('original_title', '제목 없음')
                 importance = news.get('importance_score', 0)
-                industry = news.get('industry_category', '-')
+                industry = get_korean_label(news.get('industry_category') or '')
                 tags = []
                 if news.get('tags'):
                     try:
@@ -1880,7 +1884,7 @@ def main():
                     sk_col1, sk_col2 = st.columns([0.8, 0.2])
                     with sk_col1:
                         st.write(f"**#{news_id}** {title}")
-                        st.caption(f"출처: {row.get('source', '-')} | 산업: {row.get('industry_category', '-')} | 중요도: {importance:.2f}")
+                        st.caption(f"출처: {row.get('source', '-')} | 산업: {get_korean_label(row.get('industry_category') or '')} | 중요도: {importance:.2f}")
                     with sk_col2:
                         if st.button("↩ 선정으로 복원", key=f"restore_{news_id}"):
                             if restore_skipped_news(news_id):
@@ -1911,7 +1915,7 @@ def main():
                     with col_news:
                         st.markdown("**📰 뉴스 원문**")
                         st.markdown(f"**제목:** {title}")
-                        st.caption(f"출처: {row.get('source', '-')} | 산업: {row.get('industry_category', '-')} | 중요도: {importance:.2f}")
+                        st.caption(f"출처: {row.get('source', '-')} | 산업: {get_korean_label(row.get('industry_category') or '')} | 중요도: {importance:.2f}")
 
                         if row.get('summary'):
                             st.markdown("**요약:**")
@@ -2261,11 +2265,7 @@ def main():
         if cat_df.empty:
             st.info("해당 기간에 뉴스가 없습니다.")
         else:
-            # Map category keys to Korean labels (without filter "전체")
-            cat_label_map = {k: v for k, v in industry_labels.items() if k != "전체"}
-            cat_df['label'] = cat_df['category'].map(
-                lambda c: cat_label_map.get(c, f"📦 {c}")
-            )
+            cat_df['label'] = cat_df['category'].map(get_korean_label)
 
             col_donut, col_bar = st.columns(2)
 
