@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ news.headline }} - {{ site_title }}{% endblock %}
+{% block title %}{{ news.card_headline or news.headline }} - {{ site_title }}{% endblock %}
 
 {% block content %}
 <article class="news-detail">
@@ -12,7 +12,7 @@
             <time class="news-date">{{ news.date|format_date }}</time>
             <span class="news-source-inline">{{ news.source|source_label }}</span>
         </div>
-        <h1 class="news-title">{{ news.headline }}</h1>
+        <h1 class="news-title">{{ news.card_headline or news.headline }}</h1>
     </header>
 
     <section class="expert-review-section">
