@@ -1067,10 +1067,6 @@ a:hover {
 
     .intro-card-body {
         font-size: 14px;
-        display: -webkit-box;
-        -webkit-line-clamp: 5;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
     }
 
     /* --------------------------------------------------------------------------
