@@ -2315,7 +2315,7 @@ def main():
             selected_cat = st.selectbox(
                 "카테고리 선택",
                 cat_df['category'].tolist(),
-                format_func=lambda c: cat_label_map.get(c, f"📦 {c}"),
+                format_func=get_korean_label,
                 key="cat_filter_select",
             )
 
