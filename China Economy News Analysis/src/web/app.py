@@ -37,6 +37,7 @@ app = Flask(
 
 # Configuration
 app.config["ITEMS_PER_PAGE"] = 10
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
 def group_news_by_date(news_list: list[dict]) -> dict[str, list[dict]]:
