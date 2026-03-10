@@ -69,7 +69,7 @@ def get_korean_label(code: str) -> str:
         return GICS_SELECTED[code][2]
     if code in GICS_EXTENSIONS:
         return GICS_EXTENSIONS[code][0]
-    return code or "기타"
+    return "기타"
 
 
 def get_baseline_score(code: str) -> float:
