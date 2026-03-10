@@ -26,6 +26,10 @@ from config.gics_taxonomy import get_korean_label
 # Card headline constants
 MAX_HEADLINE_LENGTH = 18
 
+def _has_chinese(text: str) -> bool:
+    """Return True if text contains CJK (Chinese) characters."""
+    return bool(re.search(r'[\u4e00-\u9fff\u3400-\u4dbf]', text or ''))
+
 # 8가지 기준 한글 라벨 매핑
 SCORE_AXIS_LABELS = {
     "policy_hierarchy": "정책위계",
@@ -323,7 +327,7 @@ def get_reviews_by_status(status: str = 'draft', limit: int = 50) -> pd.DataFram
     # 'discarded' includes legacy 'rejected' status
     if status == 'discarded':
         query = """
-            SELECT n.id, n.translated_title, n.original_title, n.original_content,
+            SELECT n.id, n.translated_title, n.card_headline, n.original_title, n.original_content,
                    n.importance_score, n.industry_category, n.source, n.summary,
                    n.published_at, n.original_url,
                    er.expert_comment, er.ai_final_review, er.opinion_conflict,
@@ -339,7 +343,7 @@ def get_reviews_by_status(status: str = 'draft', limit: int = 50) -> pd.DataFram
         df = pd.read_sql_query(query, conn, params=[limit])
     else:
         query = """
-            SELECT n.id, n.translated_title, n.original_title, n.original_content,
+            SELECT n.id, n.translated_title, n.card_headline, n.original_title, n.original_content,
                    n.importance_score, n.industry_category, n.source, n.summary,
                    n.published_at, n.original_url,
                    er.expert_comment, er.ai_final_review, er.opinion_conflict,
@@ -1873,6 +1877,16 @@ def main():
                         st.session_state["approve_success_msg"] = f"{count}건 승인 완료"
                         st.rerun()
 
+                # 일괄 처리 대상 중 한자 포함 제목 경고
+                if bulk_ids:
+                    chinese_bulk = [
+                        bid for bid in bulk_ids
+                        if not (approve_df[approve_df['id'] == bid]['card_headline'].values[0] or '')
+                        and _has_chinese(approve_df[approve_df['id'] == bid]['translated_title'].values[0] or '')
+                    ]
+                    if chinese_bulk:
+                        st.warning(f"⚠️ 선택 항목 중 {len(chinese_bulk)}건에 한자 포함 제목이 있습니다: {chinese_bulk}")
+
                 st.markdown("---")
 
             # Skipped news: simple list with restore button
@@ -1947,6 +1961,15 @@ def main():
                     # Action buttons
                     st.markdown("---")
                     action_cols = st.columns(5)
+
+                    # 한자 포함 제목 경고 (card_headline 없고 translated_title에 한자 있을 때)
+                    _card_hl = row.get('card_headline') or ''
+                    _trans = row.get('translated_title') or ''
+                    if not _card_hl and _has_chinese(_trans):
+                        st.warning(
+                            f"⚠️ 제목에 한자 포함: **{_trans[:60]}**  \n"
+                            "게시 전 카드 헤드라인을 입력하거나 제목을 수정하세요."
+                        )
 
                     if selected_status == 'draft':
                         with action_cols[0]:
