@@ -10,7 +10,6 @@ ExecStart=/usr/bin/python3 -m streamlit run src/ui/expert_dashboard.py --server.
 StandardOutput=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/dashboard.log
 StandardError=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/dashboard.log
 Environment=HOME=/home/jeozeohan
-Environment=PYTHONPATH=/home/jeozeohan/.local/lib/python3.10/site-packages
 Restart=on-failure
 RestartSec=10
 

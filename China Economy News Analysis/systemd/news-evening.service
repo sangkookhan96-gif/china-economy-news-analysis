@@ -10,7 +10,6 @@ ExecStart="/home/jeozeohan/vibe_temp/China Economy News Analysis/scripts/run_dai
 StandardOutput=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/evening.log
 StandardError=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/evening.log
 Environment=HOME=/home/jeozeohan
-Environment=PYTHONPATH=/home/jeozeohan/.local/lib/python3.10/site-packages
 Restart=on-failure
 RestartSec=60
 TimeoutStartSec=300

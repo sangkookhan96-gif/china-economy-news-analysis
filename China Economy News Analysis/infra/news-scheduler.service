@@ -12,7 +12,6 @@ ExecStart=/usr/bin/python3 src/agents/scheduler_agent.py
 StandardOutput=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/scheduler.log
 StandardError=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/scheduler.log
 Environment=HOME=/home/jeozeohan
-Environment=PYTHONPATH=/home/jeozeohan/.local/lib/python3.10/site-packages
 Environment=TELEGRAM_BOT_TOKEN=8553084184:AAHW2BNknmVA3QQQzgocdiF18PNw79DcPzA
 Environment=TELEGRAM_CHAT_ID=6325451070
 Restart=on-failure
