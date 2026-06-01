@@ -86,11 +86,35 @@ def get_db() -> sqlite3.Connection:
 
 # ─── Health Checks ────────────────────────────────────────────────────────────
 
+# 신규 수집 0건을 장애로 보기까지의 허용 시간. 야간 저발행 구간과 긴 분석
+# 사이클을 견디도록 70 → 180분으로 완화 (과민 재시작 방지).
+SCHEDULER_STALE_MINUTES = 180
+
+
+def _scheduler_process_alive() -> bool:
+    """systemd 기준 스케줄러 프로세스가 살아있는지 확인."""
+    try:
+        r = subprocess.run(
+            ["systemctl", "is-active", "news-scheduler"],
+            capture_output=True, text=True, timeout=10,
+        )
+        return r.stdout.strip() == "active"
+    except Exception as e:
+        logger.warning(f"is-active 확인 실패: {e}")
+        return True  # 판단 불가 시 살아있다고 간주 → 불필요한 재시작 방지
+
+
 def check_scheduler(state: dict) -> bool:
-    """최근 70분 이내 수집 기록 확인 (hourly 주기 + 10분 여유)."""
+    """최근 수집 기록 확인.
+
+    핵심: '신규 0건'만으로 재시작하지 않는다. 프로세스가 살아있으면 야간
+    저발행/긴 분석 사이클일 뿐이며, 재시작은 진행 중인 분석·CNI 작업을
+    버리고 ~90초 LLM 호출에 블로킹돼 타임아웃만 유발한다. 따라서
+    **프로세스가 실제로 죽었을 때만** 재시작한다.
+    """
     try:
         conn = get_db()
-        threshold = (datetime.now() - timedelta(minutes=70)).strftime("%Y-%m-%d %H:%M:%S")
+        threshold = (datetime.now() - timedelta(minutes=SCHEDULER_STALE_MINUTES)).strftime("%Y-%m-%d %H:%M:%S")
         row = conn.execute(
             "SELECT COUNT(*) AS cnt FROM news WHERE collected_at >= ?", (threshold,)
         ).fetchone()
@@ -101,20 +125,31 @@ def check_scheduler(state: dict) -> bool:
         return True  # DB 오류는 스케줄러 문제가 아님
 
     if count > 0:
-        logger.info(f"Scheduler OK: {count}건 수집 (최근 70분)")
+        logger.info(f"Scheduler OK: {count}건 수집 (최근 {SCHEDULER_STALE_MINUTES}분)")
         clear_fail(state, "scheduler")
         return True
 
+    alive = _scheduler_process_alive()
     fails = inc_fail(state, "scheduler")
-    logger.warning(f"Scheduler FAIL #{fails}: 최근 70분간 수집 0건")
+    logger.warning(
+        f"Scheduler FAIL #{fails}: 최근 {SCHEDULER_STALE_MINUTES}분 수집 0건 "
+        f"(process_alive={alive})"
+    )
 
-    if fails == 1:
-        logger.info("자동 복구: 스케줄러 재시작 시도...")
-        _restart_scheduler()
+    if not alive:
+        # 프로세스가 실제로 죽은 경우에만 복구 재시작
+        if fails == 1:
+            logger.info("프로세스 다운 감지 → 스케줄러 재시작 시도...")
+            _restart_scheduler()
+        else:
+            alert_scheduler_down(SCHEDULER_STALE_MINUTES)
+            if fails >= 3:
+                alert_recovery_failed("scheduler", fails)
     else:
-        alert_scheduler_down(70)
+        # 살아있는데 신규 0건 → 재시작 금지(작업 보호). 장기 지속 시에만 알림.
+        logger.info("프로세스 정상 가동 중 → 재시작 생략 (신규 0건은 저발행/분석지연 가능성)")
         if fails >= 3:
-            alert_recovery_failed("scheduler", fails)
+            alert_scheduler_down(SCHEDULER_STALE_MINUTES)
 
     return False
 
@@ -274,10 +309,11 @@ def _run_selection(edition: str):
     """에디션 선정 직접 실행 (lookback 3일)."""
     log_path = LOG_DIR / f"daily_news_{edition}_watchdog.log"
     try:
+        # NOTE: python3.10 PYTHONPATH 주입 금지 — /usr/bin/python3는 3.12이며
+        # 3.10-ABI lxml이 shadow되어 크롤/선정이 깨진다 (2026-05-28 장애 원인).
         env = {
             **os.environ,
             "HOME": "/home/jeozeohan",
-            "PYTHONPATH": "/home/jeozeohan/.local/lib/python3.10/site-packages",
         }
         result = subprocess.run(
             [
