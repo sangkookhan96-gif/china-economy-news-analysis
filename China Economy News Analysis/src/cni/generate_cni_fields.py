@@ -33,7 +33,10 @@ logging.basicConfig(
 logger = logging.getLogger("cni_gen_v2")
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "qwen2.5:14b"              # 전 단계 단일 모델 (헤드라인/요약/팁)
+MODEL = "qwen2.5:7b"               # 전 단계 단일 모델 (헤드라인/요약/팁). 14b 대비
+                                   # ~3배 빠르고(12GB GPU에 전체 적재 가능) 한국어
+                                   # 품질 동등~우수 (2026-06-02 샘플 비교). 14b는
+                                   # 35/49 레이어만 GPU 적재돼 호출당 ~90초.
 TIMEOUT_SUMMARY = 600              # 요약 timeout
 TIMEOUT_HEADLINE = 120             # 헤드라인 timeout
 TIMEOUT_TIP = 300                  # 팁 timeout (num_predict=260, 큰 토큰량으로 별도 분리)
