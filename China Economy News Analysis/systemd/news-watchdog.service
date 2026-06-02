@@ -10,8 +10,7 @@ ExecStart=/usr/bin/python3 monitoring/watchdog.py
 StandardOutput=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/watchdog.log
 StandardError=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/watchdog.log
 Environment=HOME=/home/jeozeohan
-Environment=TELEGRAM_BOT_TOKEN=8553084184:AAHW2BNknmVA3QQQzgocdiF18PNw79DcPzA
-Environment=TELEGRAM_CHAT_ID=6325451070
+EnvironmentFile=/home/jeozeohan/vibe_temp/China Economy News Analysis/.env
 
 [Install]
 WantedBy=multi-user.target
