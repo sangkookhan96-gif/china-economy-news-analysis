@@ -190,6 +190,13 @@ def migrate_db():
         cursor.execute("ALTER TABLE news ADD COLUMN edition TEXT")
         print("Added edition column to news table")
 
+    # AI-generated headline baseline — set once at CNI generation, never touched
+    # by expert edits, so (card_headline != card_headline_ai) is the net user
+    # edit. Enables learning from headline edits going forward.
+    if 'card_headline_ai' not in columns:
+        cursor.execute("ALTER TABLE news ADD COLUMN card_headline_ai VARCHAR(72)")
+        print("Added card_headline_ai column to news table")
+
     # Create notifications tables if not exist
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS notifications (

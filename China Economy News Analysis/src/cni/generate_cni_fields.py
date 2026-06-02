@@ -864,10 +864,13 @@ def run(limit: int = 30, enable_papago: bool = True):
             WHERE id = ?
         """, (result["summary_zh"], result["title_zh"], nid))
 
-        # Save card_headline if Papago succeeded
+        # Save card_headline if Papago succeeded. Also stamp card_headline_ai
+        # (the pristine AI baseline) — expert edits only touch card_headline,
+        # so card_headline != card_headline_ai later == the user's net edit.
         if result.get("card_headline"):
-            conn.execute("UPDATE news SET card_headline = ? WHERE id = ?",
-                         (result["card_headline"][:72], nid))
+            conn.execute(
+                "UPDATE news SET card_headline = ?, card_headline_ai = ? WHERE id = ?",
+                (result["card_headline"][:72], result["card_headline"][:72], nid))
 
         # Save hansanguk_tip (non-blocking, NULL OK)
         if result.get("hansanguk_tip"):
