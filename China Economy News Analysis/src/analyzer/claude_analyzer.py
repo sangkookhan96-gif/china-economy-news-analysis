@@ -22,7 +22,10 @@ class ClaudeAnalyzer:
 
     def __init__(self):
         self.ollama_url = "http://localhost:11434/api/generate"
-        self.model = "llama3:8b"
+        # qwen2.5:7b — 14b는 12GB GPU에 35/49만 적재돼 호출당 ~90초였음. 7b는
+        # 전체 GPU 적재로 ~3배 빠르고 CNI 경로와 동일 모델이라 load/unload 경합도
+        # 감소. num_gpu=35는 7b(29레이어)에선 전체 적재를 의미. (2026-06-02)
+        self.model = "qwen2.5:7b"
 
     def _validate_scores(self, result: dict) -> dict:
         """Validate and clamp score values from Ollama."""
@@ -56,14 +59,26 @@ class ClaudeAnalyzer:
         content = news["original_content"] or ""
 
         # Build prompt
+        from datetime import date as _date
+        _today = _date.today().strftime("%Y-%m-%d")
         prompt = f"""You are a Chinese economic news analyst for Korean institutional investors.
+Today's date is {_today}. All 2025 data and earlier are CONFIRMED PAST facts, not forecasts.
+When translating 2025 statistics, use past tense (e.g. "달성했습니다", "기록했습니다"),
+NOT future/prediction language (e.g. "예상됩니다", "것으로 보입니다").
 Analyze the following Chinese news article.
 
 CRITICAL LANGUAGE REQUIREMENT:
 - translated_title: MUST be written in Korean (한국어). Translate the actual title above, do NOT copy this example: "국무원, 반도체 산업 지원 신정책 발표"
 - summary: MUST be written in Korean (한국어).
 - market_impact: MUST be written in Korean (한국어).
-- Do NOT use English or Chinese in translated_title, summary, or market_impact.
+- The prose must be Korean, but proper nouns MAY be annotated with their Chinese
+  (and English, if widely known) form on FIRST mention only, using parentheses:
+    · 인물: "음차 직책(汉字)"            예) 시진핑 국가주석(习近平)
+    · 중국 기업: "음차(汉字)"             예) 샤오미(小米)
+    · 영문 통용 기업: "음차(汉字, English)" 예) 닝더스다이(宁德时代, CATL)
+    · 정부·기관: "약칭(汉字)"             예) 국무원(国务院)
+  Only annotate the FIRST occurrence. Reuse the plain Korean form afterwards.
+  Do NOT insert Chinese or English for generic words — only proper nouns.
 
 Title: {title}
 Content: {content[:3000] if content else "(no content)"}
@@ -150,7 +165,8 @@ Rule: L4 first → L2/L1 fallback → Extension → other. ONE code only.
 }}"""
 
         try:
-            payload = {"model": self.model, "prompt": prompt, "stream": False, "format": "json", "options": {"num_predict": MAX_TOKENS}}
+            payload = {"model": self.model, "prompt": prompt, "stream": False, "format": "json",
+                       "options": {"num_predict": MAX_TOKENS, "num_gpu": 35, "num_ctx": 2048}}
 
             response = requests.post(self.ollama_url, json=payload)
             response.raise_for_status()
@@ -168,6 +184,29 @@ Rule: L4 first → L2/L1 fallback → Extension → other. ONE code only.
 
             result = json.loads(json_match.strip())
             result = self._validate_scores(result)
+
+            # Title post-processing: dictionary-based Chinese→Korean replacement
+            # and awkward expression cleanup. Must run BEFORE proper noun
+            # formatter so residual Chinese (同比, 净利润, etc.) is converted first.
+            try:
+                from src.utils.title_postprocessor import postprocess_title
+                if result.get("translated_title"):
+                    pp = postprocess_title(result["translated_title"])
+                    result["translated_title"] = pp.processed
+            except Exception as e:
+                logger.warning(f"Title postprocess failed for {news_id}: {e}")
+
+            # Dual-script proper noun rendering (first-occurrence only).
+            # LLM is instructed to annotate inline, but we normalize via the
+            # seed registry so known entities are always rendered consistently.
+            try:
+                from src.utils.proper_noun_formatter import format_proper_nouns
+                source_zh = f"{title or ''}\n{content or ''}"
+                for field in ("translated_title", "summary", "market_impact"):
+                    if result.get(field):
+                        result[field] = format_proper_nouns(result[field], source_zh)
+            except Exception as e:
+                logger.warning(f"Proper noun formatting failed for {news_id}: {e}")
 
             # GICS category validation
             from config.gics_taxonomy import ALL_VALID_CODES, get_baseline_score
