@@ -86,10 +86,19 @@ class SchedulerAgent:
             self.stats["errors"] += 1
             return {"total": 0, "new": 0, "sources": {}}
 
+    # 에디션 선정(07/14/20시) 직후엔 CNI가 같은 GPU로 헤드라인·요약·팁을 생성한다.
+    # 정시 분석(50건)이 겹치면 단일 GPU 경합으로 CNI 건당 시간이 2~6배 늘어나므로,
+    # 에디션 시각엔 분석을 보류해 CNI에 GPU를 양보한다(수집은 계속 진행).
+    EDITION_HOURS = {7, 14, 20}
+
     def analyze_news(self, limit: int = 10) -> list:
         """Analyze unanalyzed news articles."""
         analyzer = self._get_analyzer()
         if not analyzer:
+            return []
+
+        if datetime.now().hour in self.EDITION_HOURS:
+            logger.info("에디션 CNI 시간대 — 분석 보류(GPU를 CNI에 양보)")
             return []
 
         logger.info(f"Starting AI analysis (limit: {limit})...")
@@ -129,10 +138,10 @@ class SchedulerAgent:
         self.collect_news()
 
         # Enrich content for articles missing full text
-        self.enrich_content(limit=5)
+        self.enrich_content(limit=30)
 
-        # Analyze up to 5 new articles per hour
-        self.analyze_news(limit=5)
+        # Analyze up to 50 new articles per hour
+        self.analyze_news(limit=50)
 
         # Print stats
         self._print_stats()
