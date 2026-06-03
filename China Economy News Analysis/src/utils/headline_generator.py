@@ -23,8 +23,10 @@ MAX_RETRY_COUNT = 2  # 36자 초과시 재생성 시도 횟수
 
 # Ollama configuration
 OLLAMA_URL = "http://localhost:11434/api/generate"
-HEADLINE_MODEL = "exaone3.5:2.4b"
-HEADLINE_MODEL_FALLBACK = "llama3:8b"
+HEADLINE_MODEL = "qwen2.5:7b"
+HEADLINE_MODEL_FALLBACK = "qwen2.5:7b"
+OLLAMA_NUM_GPU = 35
+OLLAMA_NUM_CTX = 2048
 
 # Forbidden phrases
 FORBIDDEN_PHRASES = [
@@ -139,11 +141,11 @@ def _get_available_model() -> str:
         resp = requests.get("http://localhost:11434/api/tags", timeout=5)
         if resp.ok:
             models = [m["name"] for m in resp.json().get("models", [])]
-            # Prefer EXAONE, fall back to llama3
+            # Qwen2.5 단일 모델
             for candidate in [HEADLINE_MODEL, HEADLINE_MODEL_FALLBACK]:
                 if candidate in models:
                     return candidate
-                # Check without tag (e.g. "exaone3.5:2.4b" matches "exaone3.5:2.4b")
+                # Check without tag (e.g. "qwen2.5:14b" matches "qwen2.5:14b")
                 base = candidate.split(":")[0]
                 for m in models:
                     if m.startswith(base):
@@ -163,6 +165,8 @@ def _call_ollama(prompt: str, model: str) -> str | None:
             "options": {
                 "num_predict": 64,
                 "temperature": 0.3,
+                "num_gpu": OLLAMA_NUM_GPU,
+                "num_ctx": OLLAMA_NUM_CTX,
             },
         }
         resp = requests.post(OLLAMA_URL, json=payload, timeout=30)
@@ -180,8 +184,9 @@ def _call_ollama_fast(prompt: str, model: str, num_predict: int = 15) -> str | N
             "model": model,
             "prompt": prompt,
             "stream": False,
-            "options": {"num_predict": num_predict, "temperature": 0.0},
-        }, timeout=15)
+            "options": {"num_predict": num_predict, "temperature": 0.0,
+                       "num_gpu": OLLAMA_NUM_GPU, "num_ctx": OLLAMA_NUM_CTX},
+        }, timeout=30)
         resp.raise_for_status()
         return resp.json().get("response", "").strip()
     except Exception as e:

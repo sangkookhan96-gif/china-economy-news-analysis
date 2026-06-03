@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 logger = logging.getLogger("cni_analyzer")
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-ANALYSIS_MODEL = "qwen2.5:14b"
+ANALYSIS_MODEL = "qwen2.5:7b"
 TIMEOUT = 120
 
 ANALYSIS_PROMPT = """你是中国经济分析师。请基于以下新闻原文进行分析。
