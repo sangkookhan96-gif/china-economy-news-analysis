@@ -83,6 +83,28 @@ def _korean_ratio(text: str) -> float:
     return non_chinese / total
 
 
+_CONNECTIVE_RE = re.compile(r"(았|었|였|했|됐|갔|왔|렸|졌)으며\s+")
+
+
+def _split_long_sentences(text: str, threshold: int = 70) -> str:
+    """가독성: 두 사실 이상을 '~으며'로 이은 장문을 짧은 문장으로 분리.
+
+    보수적 — threshold(70자) 초과 문장에서만, 명확한 독립절 연결어미
+    '~았/었/였/했…으며'를 '~습니다.'로 끊는다. 짧은 문장·괄호 병기는 건드리지
+    않는다. (예: "A를 발표했으며 B를 추진했습니다" → "A를 발표했습니다. B를 추진했습니다")
+    """
+    if not text or not text.strip():
+        return text
+    parts = re.split(r"(?<=[.!?])\s+", text.strip())
+    out = []
+    for sent in parts:
+        if len(sent) > threshold:
+            sent = _CONNECTIVE_RE.sub(lambda m: m.group(1) + "습니다. ", sent)
+            sent = re.sub(r"하였으며\s+", "하였습니다. ", sent)
+        out.append(sent)
+    return " ".join(out)
+
+
 def _is_sentence_complete(text: str) -> bool:
     """문장이 종결어미로 끝나는지 확인."""
     if not text:
@@ -271,6 +293,9 @@ SUMMARY_PROMPT = """你是新闻编辑。请压缩以下原文为中文摘要。
 4. 保留原文中的所有数字、机构名、人物名、政策名
 5. 语气客观中立
 6. 货币单位保持原文写法（亿元、万亿元）
+7. 句子要短，便于阅读：每句只陈述一个事实；两个或以上的事实必须拆成多个句子，
+   不要用逗号或"并""同时""此外"把多个事实塞进一个长句；每句尽量不超过40个汉字；
+   全文由5-8个短句组成（翻译成韩语后每句约60字以内）
 
 格式要求（严格遵守）：
 - 直接开始写摘要正文，第一个字就是新闻内容
@@ -634,6 +659,8 @@ def generate_enhanced(news_id, original_title, original_content, enable_papago=T
                 summary_ko = format_proper_nouns(summary_ko, summary_zh, max_annotations=3)
             except Exception as e:
                 logger.warning(f"  proper-noun 병기 실패: {e}")
+            # 가독성: 장문(여러 사실 결합)을 짧은 문장으로 분리
+            summary_ko = _split_long_sentences(summary_ko)
 
         # ── 팁 한국어 필터 + 문장 완결성 ──
         if hansanguk_tip:
