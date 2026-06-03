@@ -13,9 +13,10 @@ from src.cni.translation_qc import run_qc
 APPLY = "--apply" in sys.argv
 LIMIT = next((int(a.split("=")[1]) for a in sys.argv if a.startswith("--limit=")), 0)
 
-con = sqlite3.connect(os.path.join(ROOT, "data", "news.db"))
+con = sqlite3.connect(os.path.join(ROOT, "data", "news.db"), timeout=30)
 con.row_factory = sqlite3.Row
 cur = con.cursor()
+_done = 0  # 증분 commit 카운터 (타임아웃/중단 안전)
 
 NEWS_FIELDS = [("translated_title", "translated_title"), ("summary", "summary"),
                ("market_impact", "market_impact")]
@@ -54,6 +55,11 @@ for nid in ids:
             stats[f"_{col}_changed"] += 1
             if APPLY:
                 cur.execute(f"UPDATE cni_summaries SET {col}=? WHERE news_id=?", (new, nid))
+    # 증분 commit — 중단돼도 진행분 보존 + 멱등 재실행 가능
+    if APPLY:
+        _done += 1
+        if _done % 50 == 0:
+            con.commit()
 
 if APPLY:
     con.commit()
