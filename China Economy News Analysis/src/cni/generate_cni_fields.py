@@ -627,6 +627,13 @@ def generate_enhanced(news_id, original_title, original_content, enable_papago=T
             # 통합 QC 게이트 (시점 我国/우리나라→중국, 정치, 평어체, 문장중단)
             from src.cni.translation_qc import run_qc
             summary_ko, _ = run_qc(summary_ko, "summary_ko", news_id)
+            # 공개 지면 고유명사 병기 — 한국어(汉字) 형태로 최대 3개. 원문 중국어
+            # (summary_zh)에 실제 등장하는 엔티티만 병기해 환각 방지.
+            try:
+                from src.utils.proper_noun_formatter import format_proper_nouns
+                summary_ko = format_proper_nouns(summary_ko, summary_zh, max_annotations=3)
+            except Exception as e:
+                logger.warning(f"  proper-noun 병기 실패: {e}")
 
         # ── 팁 한국어 필터 + 문장 완결성 ──
         if hansanguk_tip:
