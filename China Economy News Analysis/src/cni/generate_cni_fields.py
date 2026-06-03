@@ -624,6 +624,9 @@ def generate_enhanced(news_id, original_title, original_content, enable_papago=T
             summary_ko = ensure_polite_korean(summary_ko)
             summary_ko = fix_headline_terms(summary_ko)
             summary_ko = _ensure_korean(summary_ko, "summary_ko", news_id)
+            # 통합 QC 게이트 (시점 我国/우리나라→중국, 정치, 평어체, 문장중단)
+            from src.cni.translation_qc import run_qc
+            summary_ko, _ = run_qc(summary_ko, "summary_ko", news_id)
 
         # ── 팁 한국어 필터 + 문장 완결성 ──
         if hansanguk_tip:
@@ -675,6 +678,10 @@ def generate_enhanced(news_id, original_title, original_content, enable_papago=T
         card_headline = _gen_headline_ko()
         card_headline = _ensure_korean(card_headline, "headline", news_id,
                                         regen_fn=_gen_headline_ko)
+        if card_headline:
+            # 통합 QC (헤드라인: 시점 我国/우리나라→중국, 정치 — 평어체/절단 제외)
+            from src.cni.translation_qc import run_qc
+            card_headline, _ = run_qc(card_headline, "card_headline", news_id)
 
         if card_headline:
             card_headline = _smart_truncate_headline(card_headline, MAX_HEADLINE_LEN)

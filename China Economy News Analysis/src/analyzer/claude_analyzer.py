@@ -196,6 +196,18 @@ Rule: L4 first → L2/L1 fallback → Extension → other. ONE code only.
             except Exception as e:
                 logger.warning(f"Title postprocess failed for {news_id}: {e}")
 
+            # Unified post-translation QC — run on the raw translation BEFORE
+            # proper-noun annotation so the Papago fallback (if needed) doesn't
+            # strip annotations. Fixes 我国/우리나라→중국, Chinese-only leaks,
+            # 평어체, and sentence truncation on every analyze.
+            try:
+                from src.cni.translation_qc import run_qc
+                for _f in ("translated_title", "summary", "market_impact"):
+                    if result.get(_f):
+                        result[_f], _iss = run_qc(result[_f], _f, news_id)
+            except Exception as e:
+                logger.warning(f"Translation QC failed for {news_id}: {e}")
+
             # Dual-script proper noun rendering (first-occurrence only).
             # LLM is instructed to annotate inline, but we normalize via the
             # seed registry so known entities are always rendered consistently.
