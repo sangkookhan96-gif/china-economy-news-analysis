@@ -83,17 +83,20 @@ def _korean_ratio(text: str) -> float:
     return non_chinese / total
 
 
-# 과거시제 어간 뒤의 독립절 연결어미 '~으며' / '~고' 를 문장 분리 대상으로.
-# 인용형(다고/라고)·현재형(하고 있다)은 어간 패턴이 달라 매칭되지 않아 안전.
-_CONNECTIVE_RE = re.compile(r"(았|었|였|했|됐|갔|왔|렸|졌)(?:으며|고)\s+")
+# 과거시제 어간 뒤의 독립절 연결어미 '~으며' / '~고'(+선택적 쉼표)를 문장 분리
+# 대상으로. 쉼표 나열로 이은 여러 사실(예: "A했고, B했으며, C했다")까지 끊는다.
+# 인용형(다고/라고)·현재형(하고 있다)은 어간 패턴이 달라 미매칭이라 안전하고,
+# 명사 나열("반도체, 전기차, 배터리")은 앞에 연결어미가 없어 분리되지 않는다.
+_CONNECTIVE_RE = re.compile(r"(았|었|였|했|됐|갔|왔|렸|졌)(?:으며|고)[,，]?\s+")
 
 
-def _split_long_sentences(text: str, threshold: int = 70) -> str:
-    """가독성: 두 사실 이상을 '~으며'로 이은 장문을 짧은 문장으로 분리.
+def _split_long_sentences(text: str, threshold: int = 30) -> str:
+    """가독성: 두 사실 이상을 연결어미로 이은 장문을 짧은 문장으로 분리.
 
-    보수적 — threshold(70자) 초과 문장에서만, 명확한 독립절 연결어미
-    '~았/었/였/했…으며'를 '~습니다.'로 끊는다. 짧은 문장·괄호 병기는 건드리지
-    않는다. (예: "A를 발표했으며 B를 추진했습니다" → "A를 발표했습니다. B를 추진했습니다")
+    threshold(50자) 초과 문장에서만, 명확한 독립절 연결어미(과거시제+으며/고,
+    선택적 쉼표 포함)를 '~습니다.'로 끊는다. 짧은 문장·괄호 병기·명사 나열은
+    건드리지 않는다. (예: "A를 발표했고, B를 추진했으며, C를 검토했습니다"
+    → "A를 발표했습니다. B를 추진했습니다. C를 검토했습니다")
     """
     if not text or not text.strip():
         return text
@@ -102,7 +105,8 @@ def _split_long_sentences(text: str, threshold: int = 70) -> str:
     for sent in parts:
         if len(sent) > threshold:
             sent = _CONNECTIVE_RE.sub(lambda m: m.group(1) + "습니다. ", sent)
-            sent = re.sub(r"하였으며\s+", "하였습니다. ", sent)
+            sent = re.sub(r"하였으며[,，]?\s+", "하였습니다. ", sent)
+            sent = re.sub(r"\s{2,}", " ", sent).strip()
         out.append(sent)
     return " ".join(out)
 
