@@ -291,16 +291,22 @@ Rule: L4 first → L2/L1 fallback → Extension → other. ONE code only.
         finally:
             conn.close()
 
+    # 분석 대상 최대 연령(일). 에디션 선정은 1일 윈도우만 쓰므로 그보다 오래된
+    # 뉴스를 분석하는 것은 낭비이며 CNI/분석 경합만 유발한다. 이 컷오프로 stale
+    # 백로그(7일+ 4천여 건) 분석을 제외해 GPU 부하를 ~4배 줄인다. (2026-06-03)
+    ANALYZE_MAX_AGE_DAYS = 3
+
     def analyze_unanalyzed(self, limit: int = 10) -> list[dict]:
-        """Analyze all unanalyzed news items."""
+        """Analyze unanalyzed news items collected within ANALYZE_MAX_AGE_DAYS."""
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("""
             SELECT id FROM news
             WHERE analyzed_at IS NULL
+              AND COALESCE(collected_at, created_at) >= datetime('now', ?)
             ORDER BY collected_at DESC
             LIMIT ?
-        """, (limit,))
+        """, (f"-{self.ANALYZE_MAX_AGE_DAYS} days", limit))
         news_ids = [row["id"] for row in cursor.fetchall()]
         conn.close()
 
