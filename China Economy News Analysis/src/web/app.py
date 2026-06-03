@@ -158,6 +158,27 @@ def news_detail(news_id: int):
     )
 
 
+@app.route("/api/event", methods=["POST"])
+def track_event():
+    """사용자 행동 이벤트 수집 (비동기, 비차단)."""
+    try:
+        from src.kg.reward_engine import record_event, init_tables
+        init_tables()
+        data = request.get_json(silent=True) or {}
+        news_id = data.get("news_id")
+        event_type = data.get("event_type", "click")
+        value = data.get("value", 1.0)
+        if news_id:
+            record_event(
+                int(news_id), event_type, float(value),
+                user_agent=request.headers.get("User-Agent", ""),
+                ip_address=request.remote_addr or ""
+            )
+        return {"ok": True}, 200
+    except Exception:
+        return {"ok": False}, 200  # 실패해도 200 반환 (사용자 무영향)
+
+
 @app.after_request
 def add_cache_control(response):
     if request.path.startswith('/static/'):
@@ -325,6 +346,37 @@ def safe_html_filter(content: str) -> Markup:
         cleaned = cleaned.replace("\n", "<br>")
 
     return Markup(cleaned)
+
+
+@app.template_filter("paragraphize")
+def paragraphize_filter(content: str) -> Markup:
+    """가독성을 위해 본문을 단락으로 나눠 단락 간 한 줄 공백을 둔다.
+
+    기존 빈 줄(\\n\\n) 단락을 우선 존중하고, 한 덩어리로 된 텍스트는 문장 2개
+    단위로 묶어 단락을 만든다. 각 단락은 아래 여백(blank line)을 가진 <p>로 렌더.
+    """
+    import re as _re
+    if not content or not content.strip():
+        return Markup("")
+    text = content.strip()
+    # 1) 이미 빈 줄로 구분된 단락이 있으면 그대로 사용
+    blocks = [b.strip() for b in _re.split(r"\n\s*\n", text) if b.strip()]
+    paras: list[str] = []
+    for block in blocks:
+        block = block.replace("\n", " ").strip()
+        # 2) 긴 단락은 문장 2개씩 묶어 재분할
+        sents = [s.strip() for s in _re.split(r"(?<=[.!?。다요음함임됨])\s+", block) if s.strip()]
+        if len(sents) <= 2:
+            paras.append(block)
+        else:
+            for i in range(0, len(sents), 2):
+                paras.append(" ".join(sents[i:i + 2]))
+    from markupsafe import escape
+    html = "".join(
+        f'<p style="margin:0 0 14px 0; line-height:1.85;">{escape(p)}</p>'
+        for p in paras
+    )
+    return Markup(html)
 
 
 if __name__ == "__main__":

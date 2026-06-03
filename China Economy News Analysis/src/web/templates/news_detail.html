@@ -17,15 +17,43 @@
 
     <section class="expert-review-section">
         <h2 class="section-title">전문가 해설</h2>
-        <div class="expert-review">
+        <div class="expert-review" style="line-height: 1.85;">
             {{ news.expert_review|safe_html }}
         </div>
     </section>
 
-    {% if news.summary %}
+    {% if news.hansanguk_tip %}
+    <section class="tip-section" style="background: #f8f9fa; border-left: 4px solid #ffc107; padding: 12px 16px; margin: 16px 0; border-radius: 4px;">
+        {% for tip_line in news.hansanguk_tip.split('\n') %}
+            {% if tip_line.strip() %}
+            <p style="margin: 4px 0; font-size: 14px; color: #555;">{{ tip_line.strip() }}</p>
+            {% endif %}
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if news.analysis_ko %}
+    <section class="analysis-section" style="background: #f0f7ff; border-left: 4px solid #2196F3; padding: 12px 16px; margin: 16px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 8px 0; font-size: 14px; color: #1565C0;">📊 뉴스 분석</h3>
+        <p style="margin: 0; font-size: 13px; color: #333; line-height: 1.6;">{{ news.analysis_ko }}</p>
+    </section>
+    {% endif %}
+
+    {% if news.evidence_sentences %}
+    <section class="evidence-section" style="background: #fff8e1; border-left: 4px solid #ff9800; padding: 10px 16px; margin: 16px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 6px 0; font-size: 13px; color: #e65100;">📌 근거 (원문 발췌)</h3>
+        {% for line in news.evidence_sentences.split('\n') %}
+            {% if line.strip() %}
+            <p style="margin: 2px 0; font-size: 12px; color: #666;">{{ line.strip() }}</p>
+            {% endif %}
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if news.summary and news.summary != news.expert_review %}
     <section class="summary-section">
         <h2 class="section-title">요약</h2>
-        <p class="summary">{{ news.summary }}</p>
+        <div class="summary">{{ news.summary | paragraphize }}</div>
     </section>
     {% endif %}
 
@@ -48,4 +76,44 @@
         {% endif %}
     </footer>
 </article>
+
+<script>
+(function() {
+    var nid = {{ news.id }};
+    var startTime = Date.now();
+    var tracked = {};
+
+    function send(type, val) {
+        if (tracked[type]) return;
+        tracked[type] = true;
+        navigator.sendBeacon('/api/event', JSON.stringify({
+            news_id: nid, event_type: type, value: val || 1
+        }));
+    }
+
+    // 클릭 (페이지 진입)
+    send('click', 1);
+
+    // 스크롤 추적
+    window.addEventListener('scroll', function() {
+        var pct = (window.scrollY + window.innerHeight) / document.body.scrollHeight * 100;
+        if (pct > 25) send('read_25');
+        if (pct > 50) send('read_50');
+        if (pct > 75) send('read_75');
+        if (pct > 95) send('completion');
+    });
+
+    // 체류 시간
+    setTimeout(function() { send('dwell_30s'); }, 30000);
+    setTimeout(function() { send('dwell_60s'); }, 60000);
+
+    // 페이지 떠남 시 체류 시간 전송
+    window.addEventListener('beforeunload', function() {
+        var sec = Math.round((Date.now() - startTime) / 1000);
+        navigator.sendBeacon('/api/event', JSON.stringify({
+            news_id: nid, event_type: 'leave', value: sec
+        }));
+    });
+})();
+</script>
 {% endblock %}
