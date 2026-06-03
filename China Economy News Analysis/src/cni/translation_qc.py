@@ -67,31 +67,35 @@ def _trim_to_last_sentence(t: str) -> str:
     return trimmed if len(trimmed) >= 10 else t
 
 
-def run_qc(text, field: str = "summary", news_id=None):
-    """번역 직후 통합 점검. (corrected, issues) 반환."""
+def run_qc(text, field: str = "summary", news_id=None, allow_papago: bool = True):
+    """번역 직후 통합 점검. (corrected, issues) 반환.
+
+    allow_papago=False면 중국어-only Papago 재번역을 건너뛴다(유료 호출 절감).
+    내부 분석용(claude_analyzer) 산출물은 False로 호출하고, 발행 경로
+    (CNI summary_ko/headline, analysis_ko)만 True로 두어 유료 소모를 줄인다.
+    """
     if not text or not str(text).strip():
         return text, []
     out = str(text)
     issues = []
 
-    # ── ① 정치: 중국어 자기지칭 → 중국 (선처리) ──
+    # ── ① 정치: 중국어 자기지칭 → 중국 (선처리, 무료) ──
     for a, b in _CN_SELF:
         if a in out:
             out = out.replace(a, b)
             if "cn_self" not in issues:
                 issues.append("cn_self→중국")
 
-    # ── ② 중국어-only: 한국어 비율 낮으면 Papago 재번역(개선될 때만 채택) ──
-    if field not in TITLE_FIELDS or True:  # 제목도 한국어여야 함
-        if _has_chinese(out) and _korean_ratio(out) < 0.90:
-            try:
-                from src.cni.translator import papago_translate
-                cand = papago_translate(_strip_annot(out).strip())
-                if cand and _korean_ratio(cand) > _korean_ratio(out) and len(cand) > 3:
-                    out = cand
-                    issues.append("chinese_only→papago")
-            except Exception as e:
-                logger.warning(f"  QC papago fallback failed: {e}")
+    # ── ② 중국어-only: 한국어 비율 낮으면 Papago 재번역(발행 경로만) ──
+    if allow_papago and _has_chinese(out) and _korean_ratio(out) < 0.90:
+        try:
+            from src.cni.translator import papago_translate
+            cand = papago_translate(_strip_annot(out).strip())
+            if cand and _korean_ratio(cand) > _korean_ratio(out) and len(cand) > 3:
+                out = cand
+                issues.append("chinese_only→papago")
+        except Exception as e:
+            logger.warning(f"  QC papago fallback failed: {e}")
 
     # ── ① 정치: 시점 보정 (우리나라/우리 정부/자국/국내 → 중국) ──
     try:

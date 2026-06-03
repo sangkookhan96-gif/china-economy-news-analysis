@@ -202,9 +202,11 @@ Rule: L4 first → L2/L1 fallback → Extension → other. ONE code only.
             # 평어체, and sentence truncation on every analyze.
             try:
                 from src.cni.translation_qc import run_qc
+                # 내부(편집자) 산출물 — 무료 검사만 적용, 유료 Papago 폴백은 생략
+                # (공개 지면은 CNI summary_ko 경로에서 Papago 처리됨)
                 for _f in ("translated_title", "summary", "market_impact"):
                     if result.get(_f):
-                        result[_f], _iss = run_qc(result[_f], _f, news_id)
+                        result[_f], _iss = run_qc(result[_f], _f, news_id, allow_papago=False)
             except Exception as e:
                 logger.warning(f"Translation QC failed for {news_id}: {e}")
 
