@@ -83,7 +83,9 @@ def _korean_ratio(text: str) -> float:
     return non_chinese / total
 
 
-_CONNECTIVE_RE = re.compile(r"(았|었|였|했|됐|갔|왔|렸|졌)으며\s+")
+# 과거시제 어간 뒤의 독립절 연결어미 '~으며' / '~고' 를 문장 분리 대상으로.
+# 인용형(다고/라고)·현재형(하고 있다)은 어간 패턴이 달라 매칭되지 않아 안전.
+_CONNECTIVE_RE = re.compile(r"(았|었|였|했|됐|갔|왔|렸|졌)(?:으며|고)\s+")
 
 
 def _split_long_sentences(text: str, threshold: int = 70) -> str:
