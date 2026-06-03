@@ -57,13 +57,28 @@ import re as _re
 _PERSP = _re.compile(r"우리나라|우리\s*(정부|기업|업계|산업|시장|경제|군|측|회사|은행|국민)|자국|我国|我國|我们")
 def _has_cjk(t): return bool(_re.search(r"[一-鿿]", _re.sub(r"\([一-鿿].*?\)", "", t or "")))
 con2 = sqlite3.connect(DB); con2.row_factory = sqlite3.Row; cc = con2.cursor()
+# 공개 지면(cni_summaries.summary_ko) 기준으로 측정 — news.summary는 내부 편집용
+# (allow_papago=False로 한자 잔류 허용)이라 품질 경보 대상이 아님.
 tvals = [r[0] for r in cc.execute(
-    "SELECT summary FROM news WHERE summary IS NOT NULL AND summary!='' "
-    "AND date(analyzed_at)=?", (today,)).fetchall()]
+    "SELECT s.summary_ko FROM cni_summaries s JOIN news n ON n.id=s.news_id "
+    "WHERE s.summary_ko IS NOT NULL AND s.summary_ko!='' "
+    "AND date(n.updated_at)=?", (today,)).fetchall()]
 con2.close()
 persp_err = sum(1 for v in tvals if _PERSP.search(v))
 cjk_err = sum(1 for v in tvals if _has_cjk(v))
 cjk_rate = (100 * cjk_err / len(tvals)) if tvals else 0
+
+# --- 파파고(유료) 사용량 + 예산 한도 경보 ---
+PAPAGO_LIMIT = int(os.environ.get("PAPAGO_DAILY_CHAR_LIMIT", "100000"))
+con3 = sqlite3.connect(DB); cc3 = con3.cursor()
+try:
+    row = cc3.execute("SELECT char_count, call_count FROM cni_api_quota WHERE api_name='papago' AND usage_date=?", (today,)).fetchone()
+except Exception:
+    row = None
+con3.close()
+pg_chars = row[0] if row else 0
+pg_calls = row[1] if row else 0
+pg_pct = (100 * pg_chars / PAPAGO_LIMIT) if PAPAGO_LIMIT else 0
 
 alerts = []
 if seltot < 15:
@@ -76,10 +91,12 @@ if persp_err > 0:
     alerts.append(f"⚠️정치-시점오류 {persp_err}건(우리나라/我国 — 0이어야 함)")
 if cjk_rate > 5:
     alerts.append(f"중국어 잔류 {cjk_rate:.0f}%(>5%)")
+if pg_pct >= 80:
+    alerts.append(f"💰파파고 사용 {pg_chars:,}자/{pg_calls}호출 ({pg_pct:.0f}% of {PAPAGO_LIMIT:,}자 한도)")
 
 status = (f"⚠️ [헬스] {today} 이상: " + " / ".join(alerts)) if alerts else \
          (f"✅ [헬스] {today} 정상 — 선정 {seltot}건, CNI {cni_med:.0f}s, 분석 {ana_med:.0f}s, "
-          f"시점오류 {persp_err}건, 중국어 {cjk_rate:.0f}%")
+          f"시점오류 {persp_err}건, 중국어 {cjk_rate:.0f}%, 파파고 {pg_chars:,}자({pg_pct:.0f}%)")
 print(status)
 
 if alerts and os.environ.get("MONITOR_DRY") != "1":

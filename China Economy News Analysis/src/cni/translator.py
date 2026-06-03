@@ -30,7 +30,11 @@ logger = logging.getLogger("cni_translator")
 PAPAGO_URL = "https://papago.apigw.ntruss.com/nmt/v1/translation"
 PAPAGO_CLIENT_ID = os.getenv("PAPAGO_CLIENT_ID", "")
 PAPAGO_CLIENT_SECRET = os.getenv("PAPAGO_CLIENT_SECRET", "")
-DAILY_CHAR_LIMIT = 5000000  # Naver Papago 무료 한도: 일 500만 자
+# 예산 보호용 일일 문자 한도. 유료 청구 중이므로 무료한도(500만)가 아니라
+# 실사용(평소 1~2만자/일)을 충분히 덮으면서 폭주를 막는 값으로 제한.
+# PAPAGO_DAILY_CHAR_LIMIT 환경변수로 조정(대량 백필 시 일시 상향). 초과 시
+# check_api_quota가 호출을 차단하고, health_monitor가 80% 도달 시 텔레그램 경보.
+DAILY_CHAR_LIMIT = int(os.getenv("PAPAGO_DAILY_CHAR_LIMIT", "100000"))
 
 
 # ── API Quota ──
