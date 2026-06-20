@@ -256,7 +256,7 @@ NEWS_SOURCES = {
         "type": "national",
         "priority": 1,
         "week": 7,
-        "enabled": True,
+        "enabled": False,
     },
     "jfdaily": {
         "name": "解放日报 (해방일보)",

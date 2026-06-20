@@ -1,6 +1,6 @@
 'use strict';
 
-const SHELL_CACHE  = 'cni-shell-v1';
+const SHELL_CACHE  = 'cni-shell-v2';  // v2: intro-card 줄바꿈 CSS 수정 반영(옛 style.css 캐시 무효화)
 const PAGES_CACHE  = 'cni-pages-v1';
 const FONTS_CACHE  = 'cni-fonts-v1';
 

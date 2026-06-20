@@ -67,24 +67,52 @@ def get_published_news(limit: int = 10, offset: int = 0) -> list[dict]:
     cursor = conn.cursor()
 
     query = """
-        SELECT
-            n.id,
-            n.card_headline,
-            n.translated_title AS headline,
-            er.expert_comment AS expert_review,
-            n.original_content AS original_article,
-            n.source,
-            n.published_at AS date,
-            n.importance_score AS importance,
-            n.industry_category AS category,
-            n.summary,
-            n.edition
-        FROM news n
-        INNER JOIN expert_reviews er ON n.id = er.news_id
-        WHERE er.expert_comment IS NOT NULL
-          AND er.publish_status = 'published'
-          AND n.original_content IS NOT NULL AND TRIM(n.original_content) != ''
-        ORDER BY n.published_at DESC
+        SELECT * FROM (
+            -- Legacy: expert_reviews based
+            SELECT
+                n.id,
+                n.card_headline,
+                COALESCE(n.card_headline, n.translated_title) AS headline,
+                er.expert_comment AS expert_review,
+                n.original_content AS original_article,
+                n.source,
+                n.published_at AS date,
+                n.importance_score AS importance,
+                n.industry_category AS category,
+                n.summary,
+                n.edition
+            FROM news n
+            INNER JOIN expert_reviews er ON n.id = er.news_id
+            WHERE er.expert_comment IS NOT NULL
+              AND er.publish_status = 'published'
+              AND n.original_content IS NOT NULL AND TRIM(n.original_content) != ''
+
+            UNION ALL
+
+            -- CNI pipeline: pipeline_status based (no expert_reviews needed)
+            -- 한국어 번역(summary_ko)이 있는 뉴스만 공개
+            SELECT
+                n.id,
+                n.card_headline,
+                n.card_headline AS headline,
+                COALESCE(cs.refined_ko, cs.summary_ko) AS expert_review,
+                n.original_content AS original_article,
+                n.source,
+                n.published_at AS date,
+                n.importance_score AS importance,
+                n.industry_category AS category,
+                COALESCE(cs.refined_ko, cs.summary_ko, n.summary) AS summary,
+                n.edition
+            FROM news n
+            INNER JOIN cni_summaries cs ON n.id = cs.news_id
+            WHERE n.pipeline_status = 'published'
+              AND n.card_headline IS NOT NULL
+              AND cs.summary_ko IS NOT NULL
+              AND n.id NOT IN (
+                  SELECT news_id FROM expert_reviews WHERE publish_status = 'published'
+              )
+        )
+        ORDER BY date DESC
         LIMIT ? OFFSET ?
     """
 
@@ -92,7 +120,58 @@ def get_published_news(limit: int = 10, offset: int = 0) -> list[dict]:
     rows = cursor.fetchall()
     conn.close()
 
-    return [dict(row) for row in rows]
+    import re
+
+    def _clean_review(text):
+        """Clean CNI translation for public display."""
+        if not text:
+            return text
+        lines = text.strip().split('\n')
+        cleaned = []
+        for line in lines:
+            stripped = line.strip()
+            # Remove title/summary prefixes
+            if re.match(r'^(제목|표제|标题)\s*[:：]', stripped):
+                continue
+            stripped = re.sub(r'^(요약|적요|摘要)\s*[:：]\s*', '', stripped)
+            # Remove structure tags
+            stripped = re.sub(r'\[핵심\s*사실\]\s*:?\s*', '', stripped)
+            stripped = re.sub(r'\[배경\]\s*:?\s*', '', stripped)
+            stripped = re.sub(r'\[영향과?\s*의미\]\s*:?\s*', '', stripped)
+            stripped = re.sub(r'【[^】]+】\s*:?\s*', '', stripped)
+            stripped = re.sub(r'핵심\s*사실\s*[:：]\s*', '', stripped)
+            stripped = re.sub(r'배경\s*[:：]\s*', '', stripped)
+            stripped = re.sub(r'영향과?\s*의미\s*[:：]\s*', '', stripped)
+            if stripped:
+                cleaned.append(stripped)
+        return '\n'.join(cleaned).strip()
+
+    def _has_chinese(text):
+        return bool(re.search(r'[\u4e00-\u9fff\u3400-\u4dbf]', text or ''))
+
+    result = []
+    for row in rows:
+        d = dict(row)
+        if d.get('expert_review'):
+            d['expert_review'] = _clean_review(d['expert_review'])
+            # Remove markdown bold
+            d['expert_review'] = d['expert_review'].replace('**', '')
+
+        # headline에 중국어 잔존 시: card_headline 우선, 둘 다 중국어면 중국어 제거
+        headline = d.get('headline') or ''
+        if _has_chinese(headline):
+            card_hl = d.get('card_headline') or ''
+            if card_hl and not _has_chinese(card_hl):
+                d['headline'] = card_hl
+            else:
+                # 중국어 문자 제거 후 사용
+                cleaned = re.sub(r'[\u4e00-\u9fff\u3400-\u4dbf]+', '', headline)
+                cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+                d['headline'] = cleaned if cleaned else headline
+
+        result.append(d)
+
+    return result
 
 
 def get_published_news_count() -> int:
@@ -105,12 +184,21 @@ def get_published_news_count() -> int:
     cursor = conn.cursor()
 
     query = """
-        SELECT COUNT(*)
-        FROM news n
-        INNER JOIN expert_reviews er ON n.id = er.news_id
-        WHERE er.expert_comment IS NOT NULL
-          AND er.publish_status = 'published'
-          AND n.original_content IS NOT NULL AND TRIM(n.original_content) != ''
+        SELECT
+            (SELECT COUNT(*) FROM news n
+             INNER JOIN expert_reviews er ON n.id = er.news_id
+             WHERE er.expert_comment IS NOT NULL
+               AND er.publish_status = 'published'
+               AND n.original_content IS NOT NULL AND TRIM(n.original_content) != '')
+            +
+            (SELECT COUNT(*) FROM news n
+             INNER JOIN cni_summaries cs ON n.id = cs.news_id
+             WHERE n.pipeline_status = 'published'
+               AND n.card_headline IS NOT NULL
+               AND cs.summary_ko IS NOT NULL
+               AND n.id NOT IN (
+                   SELECT news_id FROM expert_reviews WHERE publish_status = 'published'
+               ))
     """
 
     cursor.execute(query)
@@ -132,11 +220,12 @@ def get_news_by_id(news_id: int) -> Optional[dict]:
     conn = get_connection()
     cursor = conn.cursor()
 
-    query = """
+    # Try legacy first
+    query_legacy = """
         SELECT
             n.id,
             n.card_headline,
-            n.translated_title AS headline,
+            COALESCE(n.card_headline, n.translated_title) AS headline,
             er.expert_comment AS expert_review,
             n.original_content AS original_article,
             n.original_url,
@@ -152,14 +241,80 @@ def get_news_by_id(news_id: int) -> Optional[dict]:
         INNER JOIN expert_reviews er ON n.id = er.news_id
         WHERE n.id = ? AND er.expert_comment IS NOT NULL
           AND er.publish_status = 'published'
-          AND n.original_content IS NOT NULL AND TRIM(n.original_content) != ''
     """
-
-    cursor.execute(query, (news_id,))
+    cursor.execute(query_legacy, (news_id,))
     row = cursor.fetchone()
+
+    # Try CNI if legacy not found
+    if not row:
+        query_cni = """
+            SELECT
+                n.id,
+                n.card_headline,
+                n.card_headline AS headline,
+                COALESCE(cs.refined_ko, cs.summary_ko) AS expert_review,
+                n.original_content AS original_article,
+                n.original_url,
+                n.source,
+                n.published_at AS date,
+                n.importance_score AS importance,
+                n.industry_category AS category,
+                COALESCE(cs.refined_ko, cs.summary_ko, n.summary) AS summary,
+                n.hansanguk_tip,
+                n.analysis_ko,
+                n.evidence_sentences,
+                NULL AS ai_comment,
+                NULL AS ai_final_review,
+                n.edition
+            FROM news n
+            INNER JOIN cni_summaries cs ON n.id = cs.news_id
+            WHERE n.id = ?
+              AND n.pipeline_status = 'published'
+              AND cs.summary_ko IS NOT NULL
+        """
+        cursor.execute(query_cni, (news_id,))
+        row = cursor.fetchone()
+
     conn.close()
 
-    return dict(row) if row else None
+    if not row:
+        return None
+
+    import re
+    result = dict(row)
+
+    # Clean review text
+    def _clean(text):
+        if not text:
+            return text
+        lines = text.strip().split('\n')
+        cleaned = []
+        for line in lines:
+            s = line.strip()
+            if re.match(r'^(제목|표제|标题)\s*[:：]', s):
+                continue
+            s = re.sub(r'^(요약|적요|摘要)\s*[:：]\s*', '', s)
+            s = re.sub(r'\[핵심\s*사실\]\s*:?\s*', '', s)
+            s = re.sub(r'\[배경\]\s*:?\s*', '', s)
+            s = re.sub(r'\[영향과?\s*의미\]\s*:?\s*', '', s)
+            s = re.sub(r'【[^】]+】\s*:?\s*', '', s)
+            if s:
+                cleaned.append(s)
+        return '\n'.join(cleaned).strip()
+
+    if result.get('expert_review'):
+        result['expert_review'] = _clean(result['expert_review'])
+
+    # Clean headline Chinese residue
+    headline = result.get('headline') or ''
+    if re.search(r'[\u4e00-\u9fff]', headline):
+        card_hl = result.get('card_headline') or ''
+        if card_hl and not re.search(r'[\u4e00-\u9fff]', card_hl):
+            result['headline'] = card_hl
+        else:
+            result['headline'] = re.sub(r'[\u4e00-\u9fff\u3400-\u4dbf]+', '', headline).strip()
+
+    return result
 
 
 def get_published_news_by_date(target_date: date, limit: int = 50) -> list[dict]:
@@ -271,24 +426,49 @@ def get_today_headlines(target_date: Optional[date] = None, edition: Optional[st
     cursor = conn.cursor()
 
     query = """
-        SELECT
-            n.id,
-            COALESCE(n.card_headline, SUBSTR(n.translated_title, 1, 20)) AS headline,
-            n.translated_title AS full_title,
-            n.industry_category AS category,
-            n.importance_score AS importance,
-            er.created_at AS review_date
-        FROM news n
-        INNER JOIN expert_reviews er ON n.id = er.news_id
-        WHERE er.expert_comment IS NOT NULL
-          AND er.publish_status = 'published'
-          AND DATE(er.created_at) = ?
-          AND n.edition = ?
-        ORDER BY n.importance_score DESC, er.created_at DESC
+        SELECT * FROM (
+            -- Legacy: expert_reviews based
+            SELECT
+                n.id,
+                COALESCE(n.card_headline, SUBSTR(n.translated_title, 1, 20)) AS headline,
+                n.translated_title AS full_title,
+                n.industry_category AS category,
+                n.importance_score AS importance,
+                er.created_at AS review_date
+            FROM news n
+            INNER JOIN expert_reviews er ON n.id = er.news_id
+            WHERE er.expert_comment IS NOT NULL
+              AND er.publish_status = 'published'
+              AND DATE(er.created_at) = ?
+              AND n.edition = ?
+
+            UNION ALL
+
+            -- CNI pipeline: 사용자가 오늘 공개한 뉴스만 (published_at 기준)
+            SELECT
+                n.id,
+                n.card_headline AS headline,
+                n.card_headline AS full_title,
+                n.industry_category AS category,
+                n.importance_score AS importance,
+                cs.published_at AS review_date
+            FROM news n
+            INNER JOIN cni_summaries cs ON n.id = cs.news_id
+            WHERE n.pipeline_status = 'published'
+              AND n.card_headline IS NOT NULL
+              AND cs.summary_ko IS NOT NULL
+              AND cs.published_at IS NOT NULL
+              AND DATE(cs.published_at) = ?
+              AND n.id NOT IN (
+                  SELECT news_id FROM expert_reviews WHERE publish_status = 'published'
+              )
+        )
+        ORDER BY importance DESC, review_date DESC
         LIMIT 10
     """
 
-    cursor.execute(query, (target_date.isoformat(), edition))
+    cursor.execute(query, (target_date.isoformat(), edition,
+                           target_date.isoformat()))
     rows = cursor.fetchall()
     conn.close()
 
@@ -331,18 +511,77 @@ def search_published_news(query: str, limit: int = 20) -> list[dict]:
 
 
 def get_all_edition_headlines(target_date: Optional[date] = None) -> list[dict]:
-    """Get headlines for all editions of a given date.
+    """Get unified headlines for today (no edition duplication).
 
-    Returns:
-        List of edition headline dicts (morning, afternoon, evening),
-        only including editions that have at least one published headline.
+    Returns single consolidated headline list, not separated by edition.
     """
     if target_date is None:
         target_date = date.today()
 
-    results = []
-    for edition in ['morning', 'afternoon', 'evening']:
-        data = get_today_headlines(target_date=target_date, edition=edition)
-        if data['count'] > 0:
-            results.append(data)
-    return results
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+        SELECT * FROM (
+            -- Legacy: expert_reviews based
+            SELECT
+                n.id,
+                COALESCE(n.card_headline, SUBSTR(n.translated_title, 1, 20)) AS headline,
+                n.translated_title AS full_title,
+                n.industry_category AS category,
+                n.importance_score AS importance,
+                er.publish_status_updated_at AS review_date
+            FROM news n
+            INNER JOIN expert_reviews er ON n.id = er.news_id
+            WHERE er.expert_comment IS NOT NULL
+              AND er.publish_status = 'published'
+              AND DATE(er.publish_status_updated_at) = ?
+
+            UNION ALL
+
+            -- CNI pipeline
+            SELECT
+                n.id,
+                n.card_headline AS headline,
+                n.card_headline AS full_title,
+                n.industry_category AS category,
+                n.importance_score AS importance,
+                cs.published_at AS review_date
+            FROM news n
+            INNER JOIN cni_summaries cs ON n.id = cs.news_id
+            WHERE n.pipeline_status = 'published'
+              AND n.card_headline IS NOT NULL
+              AND cs.summary_ko IS NOT NULL
+              AND cs.published_at IS NOT NULL
+              AND DATE(cs.published_at) = ?
+              AND n.id NOT IN (
+                  SELECT news_id FROM expert_reviews WHERE publish_status = 'published'
+              )
+        )
+        ORDER BY importance DESC, review_date DESC
+    """
+
+    cursor.execute(query, (target_date.isoformat(), target_date.isoformat()))
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Deduplicate by news id
+    seen = set()
+    unique_rows = []
+    for row in rows:
+        if row['id'] not in seen:
+            seen.add(row['id'])
+            unique_rows.append(row)
+
+    headlines = [_map_headline_row(i, row) for i, row in enumerate(unique_rows, 1)]
+
+    if not headlines:
+        return []
+
+    return [{
+        "date": target_date.isoformat(),
+        "edition": "today",
+        "title": "오늘의 뉴스 헤드라인",
+        "headlines": headlines,
+        "count": len(headlines),
+    }]

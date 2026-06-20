@@ -582,7 +582,7 @@ a:hover {
     line-height: 1.6;
     color: #333;
     margin: 0 0 12px;
-    white-space: pre-line;
+    /* pre-line 제거: 소스 강제 줄바꿈 대신 화면 폭에 맞춰 자연 흐름(모바일 줄깨짐 방지) */
 }
 
 .intro-card-body:last-child {
