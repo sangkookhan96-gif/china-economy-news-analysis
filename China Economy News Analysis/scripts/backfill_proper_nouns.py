@@ -34,6 +34,8 @@ from src.utils.proper_noun_formatter import format_proper_nouns
 
 
 NEWS_FIELDS = ("translated_title", "summary", "market_impact")
+# 공개 지면 교정 대상: 제목·요약·시장영향 + 한상국 팁(중국어 잔류·표기 통일 포함)
+PUBLISHED_NEWS_FIELDS = ("translated_title", "summary", "market_impact", "hansanguk_tip")
 REVIEW_FIELDS = ("expert_comment", "ai_comment", "ai_final_review")
 CNI_FIELDS = ("summary_ko", "refined_ko")
 
@@ -126,7 +128,7 @@ def _load_published_row(cursor, news_id: int):
     cursor.execute(
         """
         SELECT n.id, n.original_title, n.original_content,
-               n.translated_title, n.summary, n.market_impact
+               n.translated_title, n.summary, n.market_impact, n.hansanguk_tip
         FROM news n WHERE n.id = ?
         """,
         (news_id,),
@@ -148,26 +150,23 @@ def _load_published_row(cursor, news_id: int):
     return news, review, cni
 
 
-# 단어(한글/영문/숫자) 바로 뒤에 오는 괄호 = 기존 병기/설명 흔적. 기존 데이터엔
-# (汉字)뿐 아니라 (저장성)·(TSMC, TSMC)·(시진핑, 시진핑) 같은 비표준 병기가 많아,
-# 재적용 시 중첩이 생긴다. 옵션 b: 단어-인접 괄호가 하나라도 있으면 그 필드는
-# 건너뛰고, 괄호가 전혀 없는(또는 단어와 떨어진) '깨끗한' 필드만 신규 병기한다.
-_WORD_PAREN = re.compile(r"[가-힣A-Za-z0-9][\(（]")
+# 병기 "(汉字[, English])" 제거용 — 한자 잔류율 계산에서 기존 병기는 제외한다.
+_ANNOT = re.compile(r"\([一-鿿][^)）]*\)")
 
 
 def _korean_ratio(t: str) -> float:
-    s = re.sub(r"[一-鿿]", "", t)
-    return len(s) / len(t) if t else 1.0
+    # 기존 병기 괄호를 제외한 '본문'의 한국어 비율 — 병기가 많아도 깎이지 않게.
+    s = _ANNOT.sub("", t or "")
+    bare = re.sub(r"[一-鿿]", "", s)
+    return len(bare) / len(s) if s else 1.0
 
 
 def _rewrite_field(value, source, max_annotations=3):
-    # 공개 지면 일관성: 한 항목당 병기 최대 3개 (생성경로 generate_enhanced와 동일)
+    # 정본 canonicalizer는 멱등이며 기존 병기(EN-우선 등)를 정본으로 접어 통일하므로,
+    # '괄호가 있으면 건너뛰기'(옛 옵션 b)는 제거 — 그래야 CATL(닝더스다이)류가 교정된다.
     if not value:
         return value, False
-    if _WORD_PAREN.search(value):
-        return value, False
-    # 번역이 깨진 한자투성이 과거 행은 병기해도 가독성에 도움 안 되므로 제외
-    # (한국어 비율 90% 이상 = 정상 번역된 깨끗한 행만 신규 병기)
+    # 번역이 깨진 한자투성이 과거 행(병기 제외 본문 한국어<90%)은 가독성 도움 안 되므로 제외
     if _korean_ratio(value) < 0.90:
         return value, False
     updated = format_proper_nouns(value, source, max_annotations=max_annotations)
@@ -189,9 +188,9 @@ def run_published(cursor, args):
 
         diffs: list[tuple[str, str, str, str]] = []  # (table, field, before, after)
 
-        # news table
+        # news table (제목·요약·시장영향 + 한상국 팁)
         news_updates = {}
-        for f in NEWS_FIELDS:
+        for f in PUBLISHED_NEWS_FIELDS:
             new_v, ch = _rewrite_field(news[f], source)
             news_updates[f] = new_v
             if ch:
@@ -229,11 +228,12 @@ def run_published(cursor, args):
 
         if not args.dry_run:
             # news update (always attempt; same-value writes are harmless)
-            if any(news_updates[f] != news[f] for f in NEWS_FIELDS):
+            if any(news_updates[f] != news[f] for f in PUBLISHED_NEWS_FIELDS):
                 cursor.execute(
-                    "UPDATE news SET translated_title=?, summary=?, market_impact=? WHERE id=?",
+                    "UPDATE news SET translated_title=?, summary=?, market_impact=?, "
+                    "hansanguk_tip=? WHERE id=?",
                     (news_updates["translated_title"], news_updates["summary"],
-                     news_updates["market_impact"], news_id),
+                     news_updates["market_impact"], news_updates["hansanguk_tip"], news_id),
                 )
                 per_table["news"] += 1
             if review and any(review_updates[f] != review[f] for f in REVIEW_FIELDS):
