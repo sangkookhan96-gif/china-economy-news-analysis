@@ -103,6 +103,47 @@ def _korean_ratio(text: str) -> float:
     return non_chinese / total
 
 
+# \ud63c\ud569 \ubb38\uc790\uc5f4(\ud55c\uad6d\uc5b4+\ud55c\uc790)\uc5d0\uc11c \uc790\uc8fc \ub0a8\ub294 \uad00\uc6a9 \ud55c\uc790 \ud1a0\ub9c9 \u2192 \ud55c\uad6d\uc5b4.
+# Papago\ub294 \ud55c\uad6d\uc5b4\uac00 \uc11e\uc774\uba74 \uc784\ubca0\ub514\ub4dc \ud55c\uc790\ub97c \ubc88\uc5ed\ud558\uc9c0 \ubabb\ud558\ubbc0\ub85c \uc0ac\uc804 \uce58\ud658\uc73c\ub85c
+# \uc120\ucc98\ub9ac\ud55c\ub2e4(\ubb34\ub8cc, \ud5e4\ub4dc\ub77c\uc778 "\uc804\ub144\u6bd4\u589e\u9577" \ub958 \ubc18\ubcf5 \ub178\ucd9c\uc758 \uadfc\ubcf8 \ub300\ucc45).
+_ZH_IDIOMS = {
+    "\u6bd4\u589e\u9577": " \ub300\ube44 \uc99d\uac00 ", "\u6bd4\u589e\u957f": " \ub300\ube44 \uc99d\uac00 ",
+    "\u6bd4\u5927\u589e": " \ub300\ube44 \uae09\uc99d ", "\u6bd4\u5927\u964d": " \ub300\ube44 \uae09\uac10 ",
+    "\u6bd4\u4e0b\u964d": " \ub300\ube44 \uac10\uc18c ", "\u6bd4\u4e0b\u6ed1": " \ub300\ube44 \ud558\ub77d ",
+    "\u6bd4\u4e0a\u5347": " \ub300\ube44 \uc0c1\uc2b9 ", "\u6bd4\u4e0a\u6f32": " \ub300\ube44 \uc0c1\uc2b9 ", "\u6bd4\u4e0a\u6da8": " \ub300\ube44 \uc0c1\uc2b9 ",
+    "\u540c\u6bd4": "\uc804\ub144 \ub300\ube44 ", "\u74b0\u6bd4": "\uc804\uc6d4 \ub300\ube44 ", "\u73af\u6bd4": "\uc804\uc6d4 \ub300\ube44 ",
+}
+
+_ZH_RUN_RE = re.compile(r'[\u4e00-\u9fff]+')
+
+
+def _translate_zh_fragments(text: str) -> str:
+    """\ud55c\uad6d\uc5b4\uac00 \uc11e\uc778 \ubb38\uc790\uc5f4\uc5d0\uc11c \ud55c\uc790 \ud1a0\ub9c9\ub9cc \uace8\ub77c \ud55c\uad6d\uc5b4\ub85c \uce58\ud658.
+
+    \uad00\uc6a9 \ud1a0\ub9c9\uc740 \uc0ac\uc804\uc73c\ub85c \uc989\uc2dc \uce58\ud658\ud558\uace0, \ub0a8\uc740 \uc5f0\uc18d \ud55c\uc790 \ub7f0\uc740 Papago\ub85c \uac1c\ubcc4
+    \ubc88\uc5ed\ud574 \ub07c\uc6cc\ub123\ub294\ub2e4. \uc804\uccb4 \ubb38\uc790\uc5f4 Papago(\ud55c\uad6d\uc5b4 \ud1b5\uacfc\u2192\ud55c\uc790 \uc794\ub958) \uc2e4\ud328\ub97c
+    \ubcf4\uc644\ud558\ub294 \ud3f4\ubc31.
+    """
+    if not text:
+        return text
+    out = text
+    for zh, ko in _ZH_IDIOMS.items():
+        out = out.replace(zh, ko)
+
+    def _rep(m):
+        frag = m.group(0)
+        try:
+            t = papago_translate(frag)
+        except Exception:
+            t = None
+        if t and not _has_chinese(t):
+            return re.sub(r'[\uff08\uff09()]', '', t).strip()
+        return frag  # \ubc88\uc5ed \uc2e4\ud328 \u2192 \uc6d0\ubcf8 \uc720\uc9c0
+
+    out = _ZH_RUN_RE.sub(_rep, out)
+    return re.sub(r'\s{2,}', ' ', out).strip()
+
+
 # 과거시제 어간 뒤의 독립절 연결어미 '~으며' / '~고'(+선택적 쉼표)를 문장 분리
 # 대상으로. 쉼표 나열로 이은 여러 사실(예: "A했고, B했으며, C했다")까지 끊는다.
 # 인용형(다고/라고)·현재형(하고 있다)은 어간 패턴이 달라 미매칭이라 안전하고,
@@ -446,10 +487,34 @@ def _ensure_korean(text: str, field: str, news_id: int,
     # 한자 감지 → LLM 재생성 없이 Papago 직행
     logger.info(f"  Korean filter [{field}] 한자 감지 → Papago 직행")
     clean = re.sub(r'^\*\*|^\d+[\.\)）]\s*', '', text).strip()
+
+    # 0) 관용 한자 토막 선치환(무료) — 이것만으로 해결되면 즉시 통과
+    idiom = clean
+    for zh, ko in _ZH_IDIOMS.items():
+        idiom = idiom.replace(zh, ko)
+    idiom = re.sub(r'\s{2,}', ' ', idiom).strip()
+    if idiom != clean and not _has_chinese(_strip_annotations(idiom)):
+        logger.info(f"  Korean filter [{field}] 관용 토막 치환 OK")
+        return idiom
+
+    # 1) 한국어가 다수인 혼합 문자열은 전체 Papago가 한자를 못 바꾼다 →
+    #    한자 토막만 개별 번역. 한자가 다수면 전체 Papago가 적합.
+    if _korean_ratio(_strip_annotations(clean)) >= 0.5:
+        frag = _translate_zh_fragments(clean)
+        if frag and not _has_chinese(_strip_annotations(frag)) and len(frag) > 3:
+            logger.info(f"  Korean filter [{field}] 한자토막 번역 OK")
+            return frag
+
     translated = papago_translate(clean)
     if translated and not _has_chinese(_strip_annotations(translated)) and len(translated) > 3:
         logger.info(f"  Korean filter [{field}] Papago OK")
         return translated
+
+    # 2) 전체 Papago도 한자 잔류 → 마지막으로 한자토막 번역 시도
+    frag = _translate_zh_fragments(clean)
+    if frag and not _has_chinese(_strip_annotations(frag)) and len(frag) > 3:
+        logger.info(f"  Korean filter [{field}] 한자토막 번역(폴백) OK")
+        return frag
 
     # Papago 실패 → 로그 기록
     _log_korean_fail(news_id, field, text, "papago_failed")
