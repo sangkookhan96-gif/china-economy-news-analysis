@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 import json
 import re
 import sys
+import os
+import hmac
+import html
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -15,7 +18,7 @@ from src.database.models import get_connection
 from src.utils.report_exporter import ReportExporter
 from src.utils.notifications import (
     NotificationManager, toggle_bookmark, set_tags, get_tags,
-    get_all_tags, get_bookmarked_news
+    get_all_tags, get_bookmarked_news, update_news_classification
 )
 from src.utils.markdown_review import MarkdownReviewManager
 from src.utils.headline_generator import generate_headline, save_headline, get_headline
@@ -823,87 +826,134 @@ def render_header():
     """, unsafe_allow_html=True)
 
 
-def render_stat_cards(stats):
-    """Render statistics as modern cards."""
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
+# 번역 교정 게시판 — 교정 유형별 라벨/색상
+_TC_ISSUE_LABELS = {
+    "tense→past":      ("시제 교정", "#c62828"),       # 미래·추정형 → 과거형
+    "perspective→중국": ("시점 교정", "#1565c0"),       # 우리나라/자국 → 중국
+    "cn_self→중국":     ("자기지칭 교정", "#1565c0"),    # 我国 등 → 중국
+}
 
-    with col1:
-        st.markdown(f"""
-        <div class="stat-card">
-            <p class="stat-number">{stats['total_news']}</p>
-            <p class="stat-label">전체 뉴스</p>
-        </div>
-        """, unsafe_allow_html=True)
 
-    with col2:
-        st.markdown(f"""
-        <div class="stat-card" style="background: linear-gradient(135deg, #00695c 0%, #004d40 100%);">
-            <p class="stat-number">{stats['analyzed_news']}</p>
-            <p class="stat-label">분석 완료</p>
-        </div>
-        """, unsafe_allow_html=True)
+def _tc_issue_label(issue_type: str):
+    if issue_type in _TC_ISSUE_LABELS:
+        return _TC_ISSUE_LABELS[issue_type]
+    if str(issue_type).startswith("political"):
+        return ("정치 중립화", "#6a1b9a")
+    return (str(issue_type), "#555")
 
-    with col3:
-        st.markdown(f"""
-        <div class="stat-card" style="background: linear-gradient(135deg, #5e35b1 0%, #4527a0 100%);">
-            <p class="stat-number">{stats['reviewed_news']}</p>
-            <p class="stat-label">전문가 리뷰</p>
-        </div>
-        """, unsafe_allow_html=True)
 
-    with col4:
-        st.markdown(f"""
-        <div class="stat-card" style="background: linear-gradient(135deg, #d84315 0%, #bf360c 100%);">
-            <p class="stat-number">{stats['conflicts']}</p>
-            <p class="stat-label">의견 충돌</p>
-        </div>
-        """, unsafe_allow_html=True)
+def get_translation_corrections(days: int = 2) -> pd.DataFrame:
+    """최근 N일간 '공개된' 뉴스에 대해 플랫폼이 자동 교정한 번역 오류 내역."""
+    conn = get_connection()
+    try:
+        df = pd.read_sql_query(f"""
+            SELECT tc.news_id, tc.issue_type, tc.before_text, tc.after_text,
+                   tc.created_at,
+                   COALESCE(NULLIF(n.card_headline, ''), n.translated_title,
+                            n.original_title) AS title,
+                   cs.published_at
+            FROM translation_corrections tc
+            JOIN news n ON n.id = tc.news_id
+            LEFT JOIN cni_summaries cs ON cs.news_id = tc.news_id
+            WHERE cs.published_at IS NOT NULL
+              AND datetime(cs.published_at) >= datetime('now', '-{int(days)} days')
+            ORDER BY cs.published_at DESC, tc.id
+        """, conn)
+    except Exception:
+        # 테이블 미생성(아직 교정 이력 없음) 등 — 빈 보드로 처리
+        df = pd.DataFrame()
+    finally:
+        conn.close()
+    return df
 
-    with col5:
-        st.markdown(f"""
-        <div class="stat-card" style="background: linear-gradient(135deg, #0277bd 0%, #01579b 100%);">
-            <p class="stat-number">{stats['today_news']}</p>
-            <p class="stat-label">오늘 수집</p>
-        </div>
-        """, unsafe_allow_html=True)
 
-    with col6:
-        st.markdown(f"""
-        <div class="stat-card" style="background: linear-gradient(135deg, #ff8f00 0%, #ff6f00 100%);">
-            <p class="stat-number">{stats['bookmarked']}</p>
-            <p class="stat-label">북마크</p>
-        </div>
-        """, unsafe_allow_html=True)
+def get_qc_audit_runs(limit: int = 9) -> pd.DataFrame:
+    """일일 공개 직후 QC 점검 실행 이력."""
+    conn = get_connection()
+    try:
+        df = pd.read_sql_query(
+            "SELECT run_at, edition, n_checked, n_corrected, by_type "
+            "FROM qc_audit_runs ORDER BY id DESC LIMIT ?", conn, params=[limit])
+    except Exception:
+        df = pd.DataFrame()
+    finally:
+        conn.close()
+    return df
 
-    # Second row: approval stats
-    col7, col8, col9, _, _, _ = st.columns(6)
 
-    with col7:
-        pending_count = stats.get('pending_approval', 0)
-        st.markdown(f"""
-        <div class="stat-card" style="background: linear-gradient(135deg, #e65100 0%, #bf360c 100%);">
-            <p class="stat-number">{pending_count}</p>
-            <p class="stat-label">승인대기</p>
-        </div>
-        """, unsafe_allow_html=True)
+def render_translation_board():
+    """번역 교정 게시판 — QC 점검 이력 + 공개 뉴스 오류·수정 내역(칼라 카드 대체)."""
+    df = get_translation_corrections(days=2)
+    n = 0 if df.empty else len(df)
+    st.markdown(f"""
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <span style="font-size:1.1rem;font-weight:700;color:#1a237e;">📋 번역 교정 게시판</span>
+        <span style="font-size:0.78rem;color:#fff;background:#1565c0;border-radius:10px;padding:1px 9px;">최근 2일</span>
+        <span style="font-size:0.78rem;color:#666;">자동 교정 {n}건</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    with col8:
-        published_count = stats.get('published_reviews', 0)
-        st.markdown(f"""
-        <div class="stat-card" style="background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);">
-            <p class="stat-number">{published_count}</p>
-            <p class="stat-label">게시됨</p>
-        </div>
-        """, unsafe_allow_html=True)
+    # ── 일일 QC 점검 이력 (공개 직후 자동 점검) ──
+    _ED = {"morning": "🌅아침", "afternoon": "☀️오후", "evening": "🌙저녁", "manual": "수동"}
+    qc = get_qc_audit_runs()
+    if not qc.empty:
+        items = []
+        for _, r in qc.iterrows():
+            ts = str(r["run_at"] or "")[:16].replace("T", " ")
+            ed = _ED.get(str(r["edition"]), str(r["edition"]))
+            try:
+                bt = json.loads(r["by_type"] or "{}")
+            except Exception:
+                bt = {}
+            bt_s = ", ".join(f"{k} {v}" for k, v in bt.items()) if bt else ""
+            items.append(
+                f'<div style="font-size:0.82rem;line-height:1.5;padding:2px 0;">'
+                f'<span style="color:#666;">🕒 {html.escape(ts)}</span> '
+                f'<span style="background:#37474f;color:#fff;border-radius:4px;padding:1px 6px;font-size:0.72rem;">{ed}</span> '
+                f'점검 <b>{int(r["n_checked"])}</b>건 · 수정 <b style="color:#1b5e20;">{int(r["n_corrected"])}</b>건'
+                f'{("  ·  " + html.escape(bt_s)) if bt_s else ""}</div>')
+        st.markdown(
+            '<div style="background:#eceff1;border-radius:8px;padding:6px 12px;margin-bottom:8px;">'
+            '<div style="font-size:0.8rem;font-weight:700;color:#37474f;margin-bottom:2px;">🔍 일일 공개 직후 QC 점검 이력</div>'
+            + "".join(items) + '</div>', unsafe_allow_html=True)
 
-    with col9:
-        discarded_count = stats.get('discarded_reviews', 0)
-        st.markdown(f"""
-        <div class="stat-card" style="background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);">
-            <p class="stat-number">{discarded_count}</p>
-            <p class="stat-label">폐기함</p>
-        </div>
-        """, unsafe_allow_html=True)
+    if df.empty:
+        st.info("최근 2일간 공개된 뉴스에서 자동 교정된 번역 오류가 없습니다. "
+                "(새 뉴스가 번역·공개되면 시제·시점 오류와 수정 내용이 여기 표시됩니다.)")
+        return
+
+    rows_html = []
+    for nid, g in df.groupby("news_id", sort=False):
+        pub = str(g.iloc[0]["published_at"] or "")[:16].replace("T", " ")
+        title = html.escape(str(g.iloc[0]["title"] or "")[:60])
+        items = []
+        for _, r in g.iterrows():
+            name, color = _tc_issue_label(r["issue_type"])
+            before = html.escape(str(r["before_text"] or "").strip()) or "—"
+            after = html.escape(str(r["after_text"] or "").strip()) or "—"
+            items.append(
+                f'<div style="margin:3px 0;font-size:0.86rem;line-height:1.5;">'
+                f'<span style="background:{color};color:#fff;border-radius:4px;'
+                f'padding:1px 7px;font-size:0.72rem;margin-right:6px;">{name}</span>'
+                f'<span style="color:#b71c1c;">오류: {before}</span>'
+                f'<span style="color:#999;margin:0 6px;">→</span>'
+                f'<span style="color:#1b5e20;font-weight:600;">수정: {after}</span>'
+                f'</div>'
+            )
+        rows_html.append(
+            f'<div style="border-bottom:1px solid #eee;padding:9px 4px;">'
+            f'<div style="font-size:0.78rem;color:#666;margin-bottom:3px;">'
+            f'🕒 공개 {html.escape(pub)} &nbsp;·&nbsp; '
+            f'<b style="color:#222;">{title}</b></div>'
+            f'{"".join(items)}</div>'
+        )
+
+    st.markdown(
+        '<div style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;'
+        'padding:6px 14px;max-height:360px;overflow-y:auto;'
+        'box-shadow:0 2px 8px rgba(0,0,0,0.06);">'
+        + "".join(rows_html) + '</div>',
+        unsafe_allow_html=True)
 
 
 def render_today_overview(stats):
@@ -983,7 +1033,7 @@ def render_today_overview(stats):
             has_review = pd.notna(row.get('expert_comment')) and row.get('expert_comment')
             status = "✅" if has_review else "⏳"
 
-            title = row['translated_title'] or row['original_title'] or ''
+            title = row['original_title'] or row['translated_title'] or ''
             if len(title) > 50:
                 title = title[:50] + "…"
 
@@ -1004,6 +1054,28 @@ def render_today_overview(stats):
         )
 
 
+def _auth_token() -> str:
+    """현재 자격증명에서 파생한 로그인 토큰.
+
+    URL 쿼리파라미터에 저장해 웹소켓 재접속·새로고침에도 로그인이 유지되게 한다
+    (st.session_state는 세션마다 초기화되므로 모바일에서 연결이 끊기면 풀림).
+    비밀번호를 바꾸면 토큰도 바뀌어 기존 URL 토큰은 자동 무효화된다.
+    """
+    cfg_user = os.environ.get("DASHBOARD_USER", "")
+    cfg_pw = os.environ.get("DASHBOARD_PW", "")
+    if not cfg_pw:
+        return ""
+    import hashlib
+    return hashlib.sha256(f"{cfg_user}:{cfg_pw}:cni-dash-v1".encode()).hexdigest()[:32]
+
+
+def restore_login_from_token() -> None:
+    """URL 토큰이 유효하면 로그인 세션을 복원 (재접속 후 자동 로그인)."""
+    tok = _auth_token()
+    if tok and st.query_params.get("auth") == tok:
+        st.session_state["login"] = True
+
+
 def login_page():
     """관리자 로그인 페이지."""
     st.title("🔐 관리자 로그인")
@@ -1016,9 +1088,18 @@ def login_page():
         pw = st.text_input("PW", type="password")
 
         if st.button("로그인", use_container_width=True):
-            if user == "skhan96" and pw == "kshan0816!!":
+            # 자격증명은 환경변수에서 로드 (평문 하드코딩 제거).
+            # DASHBOARD_USER / DASHBOARD_PW 는 systemd EnvironmentFile 로 주입.
+            cfg_user = os.environ.get("DASHBOARD_USER", "")
+            cfg_pw = os.environ.get("DASHBOARD_PW", "")
+            ok = bool(cfg_pw) and hmac.compare_digest(user, cfg_user) and hmac.compare_digest(pw, cfg_pw)
+            if ok:
                 st.session_state["login"] = True
+                # URL에 로그인 토큰 저장 → 재접속/새로고침 시 자동 로그인 유지
+                st.query_params["auth"] = _auth_token()
                 st.rerun()
+            elif not cfg_pw:
+                st.error("인증이 구성되지 않았습니다 (DASHBOARD_USER/DASHBOARD_PW 미설정)")
             else:
                 st.error("ID 또는 PW가 틀렸습니다")
 
@@ -1029,7 +1110,8 @@ def main():
         page_title="한상국의 쉬운 중국경제뉴스 해설",
         page_icon="🇨🇳",
         layout="wide",
-        initial_sidebar_state="expanded"
+        # "collapsed": 데스크톱·모바일 모두 사이드바를 접은 채로 시작 (» 버튼으로 펼침)
+        initial_sidebar_state="collapsed"
     )
 
     # PWA 메타태그 + 설치 배너
@@ -1121,10 +1203,12 @@ def main():
     </script>
     """, unsafe_allow_html=True)
 
-    # 로그인 체크 비활성화 — 바로 대시보드 진입
-    # if "login" not in st.session_state or not st.session_state["login"]:
-    #     login_page()
-    #     st.stop()
+    # 로그인 체크 활성화 — 인증 통과 전까지 대시보드 차단
+    # 먼저 URL 토큰으로 세션 복원 시도 (재접속/새로고침에도 로그인 유지)
+    restore_login_from_token()
+    if "login" not in st.session_state or not st.session_state["login"]:
+        login_page()
+        st.stop()
 
     # Apply custom CSS
     apply_custom_css()
@@ -1135,8 +1219,8 @@ def main():
     # Get statistics first
     stats = get_statistics()
 
-    # Render stat cards
-    render_stat_cards(stats)
+    # 번역 교정 게시판 (기존 통계 칼라 카드 대체)
+    render_translation_board()
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Today's selected news overview
@@ -1215,10 +1299,10 @@ def main():
 
     pending_label = f"✅ 리뷰 승인 ({stats.get('pending_approval', 0)})" if stats.get('pending_approval', 0) > 0 else "✅ 리뷰 승인"
 
-    tab1, tab2, tab3, tab4, tab_approve, tab5, tab6, tab7, tab8 = st.tabs([
-        "🔥 AI 추천 뉴스", "⭐ 북마크", "📂 Markdown 리뷰",
+    tab1, tab2, tab3, tab4, tab_approve, tab5, tab6, tab7, tab8, tab_kg, tab_cni, tab_published, tab_hidden = st.tabs([
+        "📬 추천함", "⭐ 북마크", "📂 Markdown 리뷰",
         "📝 리뷰 완료", pending_label, notification_label, "📥 리포트 내보내기",
-        "📊 카테고리 분석", "📡 소스 분석"
+        "📊 카테고리 분석", "📡 소스 분석", "🧠 Knowledge Graph", "📝 CNI 번역", "📢 공개함", "🔒 비공개함"
     ])
 
     with tab1:
@@ -1245,6 +1329,18 @@ def main():
                 queued_only=True,
                 edition_filter=selected_edition if selected_edition != '전체' else None,
             )
+
+        # unpublished는 비공개함으로 분리 (선정 알고리즘 결과는 모두 표시)
+        if not df.empty and 'pipeline_status' in df.columns:
+            df = df[df['pipeline_status'] != 'unpublished']
+
+        # ── 정렬: 처리 필요한 뉴스 우선 ──
+        if not df.empty and 'pipeline_status' in df.columns:
+            _sort_order = {'selected': 0, None: 1, 'translated': 2, 'published': 3, 'skipped': 4}
+            df = df.copy()
+            df['_sort_key'] = df['pipeline_status'].map(lambda x: _sort_order.get(x, 1))
+            df = df.sort_values(['_sort_key', 'importance_score'], ascending=[True, False])
+            df = df.drop(columns=['_sort_key'])
 
         # Display persistent save feedback from session state
         if st.session_state.get("save_success_msg"):
@@ -1292,37 +1388,98 @@ def main():
 
                     status_text = " | ".join(status_badges) if status_badges else "📝 리뷰대기"
 
-                    # Title and metadata
-                    title = row['translated_title'] or row['original_title']
+                    # Title and metadata — 요약번역 전에는 중국어 원제 표시
+                    _ps = row.get('pipeline_status') or ''
+                    if _ps in ('translated', 'published') and row.get('card_headline'):
+                        title = row['card_headline']
+                    elif _ps in ('translated', 'published'):
+                        title = row['translated_title'] or row['original_title']
+                    else:
+                        title = row['original_title'] or row['translated_title']
                     is_bookmarked = row.get('is_bookmarked') or False
                     bookmark_icon = "⭐" if is_bookmarked else "☆"
 
-                    col1, col2, col3, col4, col5, col6 = st.columns([0.40, 0.16, 0.15, 0.09, 0.09, 0.11])
+                    # ── Pipeline state & stuck detection ──
+                    _ps = row.get('pipeline_status') or ''
+                    _is_stuck = False
+                    _stuck_msg = ""
+                    if _ps in ('selected', 'translated'):
+                        try:
+                            from datetime import datetime as _dt, timedelta as _td
+                            _updated = row.get('updated_at')
+                            if _updated:
+                                if isinstance(_updated, str):
+                                    _updated = _dt.strptime(_updated[:19], "%Y-%m-%d %H:%M:%S")
+                                _hours = (_dt.now() - _updated).total_seconds() / 3600
+                                if _ps == 'selected' and _hours > 3:
+                                    _is_stuck = True
+                                    _stuck_msg = f"⚠️ {_hours:.0f}시간 미처리"
+                                elif _ps == 'translated' and _hours > 6:
+                                    _is_stuck = True
+                                    _stuck_msg = f"⏰ {_hours:.0f}시간 미결정"
+                        except Exception:
+                            pass
+
+                    # ── Progress Indicator ──
+                    def _render_progress(state):
+                        steps = [
+                            ("선정됨", "selected"),
+                            ("번역완료", "translated"),
+                            ("게시완료", "published"),
+                        ]
+                        if state == 'skipped':
+                            return "<span style='color:#4CAF50'>✓ 선정됨</span> → <span style='color:#9E9E9E'>⊘ 불요처리</span>"
+                        if state == 'unpublished':
+                            return "<span style='color:#4CAF50'>✓ 선정됨</span> → <span style='color:#4CAF50'>✓ 번역완료</span> → <span style='color:#F44336'>🔒 비공개</span>"
+                        if state == 'processing':
+                            return "<span style='color:#4CAF50'>✓ 선정됨</span> → <span style='color:#FF9800;font-weight:bold'>⏳ 처리중...</span> → <span style='color:#BDBDBD'>○ 게시완료</span>"
+                        if state == 'failed':
+                            return "<span style='color:#4CAF50'>✓ 선정됨</span> → <span style='color:#F44336;font-weight:bold'>✗ 처리실패</span>"
+                        parts = []
+                        state_order = {"selected": 0, "translated": 1, "published": 2}
+                        current_idx = state_order.get(state, -1)
+                        for i, (label, _) in enumerate(steps):
+                            if i < current_idx:
+                                parts.append(f"<span style='color:#4CAF50'>✓ {label}</span>")
+                            elif i == current_idx:
+                                parts.append(f"<span style='color:#1976D2;font-weight:bold'>▶ {label}</span>")
+                            else:
+                                parts.append(f"<span style='color:#BDBDBD'>○ {label}</span>")
+                        return " → ".join(parts)
+
+                    # ── Card Header Row ──
+                    col1, col2, col3, col4, col5 = st.columns([0.38, 0.28, 0.14, 0.09, 0.11])
 
                     with col1:
-                        if has_review:
-                            st.markdown(f"<span style='opacity:0.55'>✔ {title}</span>", unsafe_allow_html=True)
+                        _title_style = ""
+                        if _ps == 'published':
+                            _title_style = "opacity:0.55"
+                        elif _ps == 'skipped':
+                            _title_style = "opacity:0.4;text-decoration:line-through"
+                        elif _is_stuck:
+                            _title_style = "border-left:3px solid #F44336;padding-left:6px"
+
+                        if _title_style:
+                            st.markdown(f"<span style='{_title_style}'>{title}</span>", unsafe_allow_html=True)
                         else:
                             st.markdown(f"**{title}**")
                     with col2:
+                        # Progress bar
+                        _prog_html = _render_progress(_ps or 'selected')
+                        if _is_stuck:
+                            _prog_html += f" <span style='color:#F44336;font-size:12px'>{_stuck_msg}</span>"
+                        st.markdown(f"<div style='font-size:12px;line-height:1.8'>{_prog_html}</div>", unsafe_allow_html=True)
+                    with col3:
                         edition_label = {'morning': '오전', 'afternoon': '오후', 'evening': '저녁'}.get(
                             row.get('edition', '') or '', ''
                         )
                         edition_tag = f"[{edition_label}판] " if edition_label else ""
-                        st.caption(f"{edition_tag}{badge} ({importance:.2f})")
-                    with col3:
-                        st.caption(status_text)
+                        st.caption(f"{edition_tag}{badge}")
                     with col4:
                         if st.button(bookmark_icon, key=f"bookmark_{news_id}", help="북마크 토글"):
                             toggle_bookmark(news_id)
                             st.rerun()
                     with col5:
-                        if not has_review:
-                            if st.button("🚫", key=f"skip_{news_id}", help="비공개 (리뷰 불필요)"):
-                                if skip_news(news_id):
-                                    st.session_state["save_success_msg"] = f"비공개 처리 완료: {(title or '')[:30]}..."
-                                    st.rerun()
-                    with col6:
                         with st.popover("📝", help="빠른 리뷰"):
                             st.markdown(f"**{(title or '')[:40]}...**")
                             stance = st.radio(
@@ -1358,9 +1515,281 @@ def main():
                                     st.session_state["save_error_msg"] = f"저장 중 오류: {e}"
                                 st.rerun()
 
-                    # Expandable details
-                    with st.expander("상세 정보 및 리뷰", expanded=False):
-                        # News details
+                    # ══════════════════════════════════════════
+                    # CNI State-Based Action Section
+                    # ══════════════════════════════════════════
+                    if _ps == 'selected':
+                        # ── STATE: selected → 큐 등록 방식 ──
+                        _sa, _sb = st.columns([0.7, 0.3])
+                        with _sa:
+                            if st.button("📋 요약번역", key=f"translate_{news_id}", type="primary", help="백그라운드 큐에 등록 (~5분 소요)"):
+                                from src.cni.process_queue import enqueue_news
+                                _eq = enqueue_news(news_id)
+                                if _eq.get("ok"):
+                                    st.session_state["save_success_msg"] = f"#{news_id} 처리 큐에 등록됨 (백그라운드 ~5분)"
+                                else:
+                                    st.session_state["save_error_msg"] = f"#{news_id} 큐 등록 실패: {_eq.get('error')}"
+                                st.rerun()
+                        with _sb:
+                            if st.button("🚫 불요", key=f"skip_{news_id}", help="요약·번역 불요 (폐기)"):
+                                if skip_news(news_id):
+                                    st.session_state["save_success_msg"] = f"#{news_id} 불요 처리 완료"
+                                    st.rerun()
+
+                    elif _ps == 'processing':
+                        # ── STATE: processing → 대기 중 표시 ──
+                        st.info(f"⏳ 백그라운드 처리 중... (헤드라인→요약→번역, ~5분 소요)")
+
+                    elif _ps == 'failed':
+                        # ── STATE: failed → 재시도/초기화 ──
+                        st.error("처리 실패")
+                        _fa, _fb = st.columns(2)
+                        with _fa:
+                            if st.button("🔄 재시도", key=f"retry_{news_id}", type="primary"):
+                                from src.cni.process_queue import enqueue_news
+                                from src.cni.pipeline_service import set_pipeline_status as _sps
+                                _sps(news_id, "selected")  # failed → selected
+                                enqueue_news(news_id)       # selected → processing
+                                st.session_state["save_success_msg"] = f"#{news_id} 재시도 큐 등록"
+                                st.rerun()
+                        with _fb:
+                            if st.button("🚫 불요", key=f"skip_{news_id}"):
+                                from src.cni.pipeline_service import set_pipeline_status as _sps
+                                _sps(news_id, "selected")  # failed → selected first
+                                skip_news(news_id)          # selected → skipped
+                                st.session_state["save_success_msg"] = f"#{news_id} 불요 처리"
+                                st.rerun()
+
+                    elif _ps == 'translated':
+                        # ── STATE: translated ──
+                        # session_state 기반: form이 텍스트 rerun 차단, 버튼은 밖에서 독립 동작
+                        try:
+                            from src.cni.pipeline_service import set_pipeline_status, publish_news, validate_quality_gate, reset_to_selected
+                            from src.cni.pipeline_service import unpublish_news as _unpub_fn
+                            from src.cni.summary_store import update_translation, update_refined, get_summary as get_cni_summary
+                            from src.cni.postprocess import refine_korean
+
+                            _cni_row = get_cni_summary(news_id)
+                            _existing_hl = row.get('card_headline') or ''
+                            _existing_ko = (_cni_row.get('summary_ko') or _cni_row.get('refined_ko') or '') if _cni_row else ''
+                            _existing_tip = row.get('hansanguk_tip') or ''
+
+                            # session_state 초기화 (최초 1회)
+                            _sk_hl = f"cni_hl_{news_id}"
+                            _sk_ko = f"cni_ko_{news_id}"
+                            _sk_tip = f"cni_tip_{news_id}"
+                            if _sk_hl not in st.session_state:
+                                st.session_state[_sk_hl] = _existing_hl
+                            if _sk_ko not in st.session_state:
+                                st.session_state[_sk_ko] = _existing_ko
+                            if _sk_tip not in st.session_state:
+                                st.session_state[_sk_tip] = _existing_tip
+
+                            # 중문 원문 참조
+                            _title_zh = row.get('title_zh') or ''
+                            _summary_zh = row.get('summary_zh') or ''
+                            if _title_zh or _summary_zh:
+                                st.caption(f"중문: {_title_zh[:50]}... | {_summary_zh[:50]}...")
+
+                            # 편집 필드 (form 없이 — 포커스 이탈 시 session_state 자동 갱신)
+                            st.text_input("📰 헤드라인 (최대 72자)", key=_sk_hl, max_chars=72)
+                            st.text_area("📝 한국어 요약", key=_sk_ko, height=150)
+                            st.text_area("💡 한상국의 팁", key=_sk_tip, height=80)
+
+                            # 품질 게이트
+                            _qg = validate_quality_gate(news_id, "published")
+                            _can_publish = _qg["ok"]
+                            if not _can_publish:
+                                for _err in _qg["errors"]:
+                                    st.error(f"게시 차단: {_err}")
+
+                            # 버튼 (form 밖 — 각각 독립 동작)
+                            _bc1, _bc2, _bc3, _bc4, _bc5 = st.columns(5)
+                            with _bc1:
+                                _btn_pub = st.button("📢 공개", key=f"cni_pub_{news_id}", type="primary", disabled=(not _can_publish))
+                            with _bc2:
+                                _btn_unpub = st.button("🔒 비공개", key=f"cni_unpub_{news_id}")
+                            with _bc3:
+                                _btn_save = st.button("💾 수정저장", key=f"cni_save_{news_id}")
+                            with _bc4:
+                                _btn_tip = st.button("💡 팁생성", key=f"cni_tip_gen_{news_id}", help="on-demand 팁 (~8초)")
+                            with _bc5:
+                                _btn_reset = st.button("🔄 초기화", key=f"cni_reset_{news_id}")
+
+                            # session_state에서 현재 값 읽기
+                            _hl_val = st.session_state.get(_sk_hl, '')
+                            _ko_val = st.session_state.get(_sk_ko, '')
+                            _tip_val = st.session_state.get(_sk_tip, '')
+
+                            def _save_fields_tr(_nid, _hl, _ko, _tip):
+                                from src.database.models import get_connection as _gc
+                                _c = _gc()
+                                if _hl and _hl.strip():
+                                    _c.execute("UPDATE news SET card_headline=? WHERE id=?", (_hl.strip()[:72], _nid))
+                                if _tip and _tip.strip():
+                                    _c.execute("UPDATE news SET hansanguk_tip=? WHERE id=?", (_tip.strip()[:500], _nid))
+                                else:
+                                    _c.execute("UPDATE news SET hansanguk_tip=NULL WHERE id=?", (_nid,))
+                                _c.commit()
+                                _c.close()
+                                if _ko and _ko.strip():
+                                    update_translation(_nid, _ko.strip())
+
+                            if _btn_pub:
+                                _save_fields_tr(news_id, _hl_val, _ko_val, _tip_val)
+                                publish_news(news_id)
+                                # refine_korean()은 Ollama LLM 호출(최대 60초)이라 클릭 핸들러에서
+                                # 동기 실행하면 웹소켓이 끊겨 로그인이 풀린다(모바일 "공개 반응 없음" 원인).
+                                # → 백그라운드 스레드로 분리해 UI는 즉시 반환. 공개 피드는
+                                #   COALESCE(refined_ko, summary_ko)라 refine 완료 전엔 summary_ko로 노출.
+                                if _ko_val and _ko_val.strip():
+                                    import threading
+                                    _ko_snap = _ko_val.strip()
+                                    def _bg_refine(_nid=news_id, _ko=_ko_snap):
+                                        try:
+                                            update_refined(_nid, refine_korean(_ko))
+                                        except Exception:
+                                            pass
+                                    threading.Thread(target=_bg_refine, daemon=True).start()
+                                st.session_state["save_success_msg"] = f"#{news_id} 공개 완료"
+                                st.rerun()
+                            elif _btn_unpub:
+                                _save_fields_tr(news_id, _hl_val, _ko_val, _tip_val)
+                                _unpub_fn(news_id)
+                                st.session_state["save_success_msg"] = f"#{news_id} 비공개 → 비공개함으로 이동"
+                                st.rerun()
+                            elif _btn_save:
+                                _save_fields_tr(news_id, _hl_val, _ko_val, _tip_val)
+                                st.session_state["save_success_msg"] = f"#{news_id} 수정 저장 완료"
+                                st.rerun()
+                            elif _btn_tip:
+                                # generate_tip_ondemand는 Ollama+Papago 동기호출(재시도 포함 최대 수 분)이라
+                                # 클릭 핸들러에서 직접 돌리면 세션 스레드가 막혀 웹소켓이 끊긴다(2026-06-16 사고).
+                                # 백그라운드 스레드로 돌리고 UI는 즉시 반환 — 결과는 DB 저장되며 새로고침 시 표시.
+                                import threading
+                                from src.cni.generate_cni_fields import generate_tip_ondemand
+
+                                def _bg_tip(nid=news_id):
+                                    try:
+                                        generate_tip_ondemand(nid)  # 내부에서 news.hansanguk_tip 저장
+                                    except Exception:
+                                        pass
+                                threading.Thread(target=_bg_tip, daemon=True).start()
+                                st.session_state["save_success_msg"] = (
+                                    f"#{news_id} 팁 생성 시작 (백그라운드 ~1분, 새로고침 후 확인)")
+                                st.rerun()
+                            elif _btn_reset:
+                                reset_to_selected(news_id)
+                                st.session_state["save_success_msg"] = f"#{news_id} 초기화 (재처리 가능)"
+                                st.rerun()
+
+                        except Exception as _cni_err:
+                            st.caption(f"CNI 로드 실패: {_cni_err}")
+
+                    elif _ps == 'published':
+                        # ── STATE: published ──
+                        with st.expander("✅ 게시완료 — 수정/비공개", expanded=False):
+                            try:
+                                from src.cni.pipeline_service import unpublish_news
+                                from src.cni.summary_store import update_translation, update_refined, get_summary as get_cni_summary
+                                from src.cni.postprocess import refine_korean
+
+                                _cni_row = get_cni_summary(news_id)
+                                _existing_hl = row.get('card_headline') or ''
+                                _existing_ko = (_cni_row.get('summary_ko') or _cni_row.get('refined_ko') or '') if _cni_row else ''
+                                _existing_tip = row.get('hansanguk_tip') or ''
+
+                                _sk_hl = f"cni_hl_{news_id}"
+                                _sk_ko = f"cni_ko_{news_id}"
+                                _sk_tip = f"cni_tip_{news_id}"
+                                if _sk_hl not in st.session_state:
+                                    st.session_state[_sk_hl] = _existing_hl
+                                if _sk_ko not in st.session_state:
+                                    st.session_state[_sk_ko] = _existing_ko
+                                if _sk_tip not in st.session_state:
+                                    st.session_state[_sk_tip] = _existing_tip
+
+                                st.text_input("📰 헤드라인", key=_sk_hl, max_chars=72)
+                                st.text_area("📝 한국어 요약", key=_sk_ko, height=120)
+                                st.text_area("💡 한상국의 팁", key=_sk_tip, height=60)
+
+                                _hl_val = st.session_state.get(_sk_hl, '')
+                                _ko_val = st.session_state.get(_sk_ko, '')
+                                _tip_val = st.session_state.get(_sk_tip, '')
+
+                                _pc1, _pc2 = st.columns(2)
+                                with _pc1:
+                                    if st.button("💾 수정저장", key=f"cni_save_{news_id}", type="primary"):
+                                        if _ko_val and _ko_val.strip():
+                                            update_translation(news_id, _ko_val.strip())
+                                        from src.database.models import get_connection as _gc
+                                        _conn = _gc()
+                                        if _hl_val and _hl_val.strip():
+                                            _conn.execute("UPDATE news SET card_headline=? WHERE id=?", (_hl_val.strip()[:72], news_id))
+                                        if _tip_val and _tip_val.strip():
+                                            _conn.execute("UPDATE news SET hansanguk_tip=? WHERE id=?", (_tip_val.strip()[:500], news_id))
+                                        else:
+                                            _conn.execute("UPDATE news SET hansanguk_tip=NULL WHERE id=?", (news_id,))
+                                        _conn.commit()
+                                        _conn.close()
+                                        # refine_korean(LLM, ~수초)은 백그라운드로 — UI 즉시 반환(연결 끊김 방지)
+                                        if _ko_val and _ko_val.strip():
+                                            import threading
+                                            _ko_snap = _ko_val.strip()
+                                            def _bg_refine2(_nid=news_id, _ko=_ko_snap):
+                                                try:
+                                                    update_refined(_nid, refine_korean(_ko))
+                                                except Exception:
+                                                    pass
+                                            threading.Thread(target=_bg_refine2, daemon=True).start()
+                                        st.session_state["save_success_msg"] = f"#{news_id} 수정 저장 완료 (즉시 반영)"
+                                        st.rerun()
+                                with _pc2:
+                                    if st.button("🔒 비공개", key=f"cni_unpub_{news_id}"):
+                                        unpublish_news(news_id)
+                                        st.session_state["save_success_msg"] = f"#{news_id} 비공개 전환"
+                                        st.rerun()
+                            except Exception as _cni_err:
+                                st.caption(f"CNI 로드 실패: {_cni_err}")
+
+                    elif _ps == 'skipped':
+                        # ── STATE: skipped → 복원만 가능 ──
+                        if st.button("🔄 복원", key=f"cni_restore_{news_id}", help="selected로 복귀 (재처리 가능)"):
+                            from src.cni.pipeline_service import restore_skipped
+                            restore_skipped(news_id)
+                            st.session_state["save_success_msg"] = f"#{news_id} 복원 완료 (재처리 가능)"
+                            st.rerun()
+
+                    elif not _ps:
+                        # ── Legacy (pipeline_status=NULL) → 요약번역/불요 선택 ──
+                        if not has_review:
+                            _la, _lb = st.columns([0.7, 0.3])
+                            with _la:
+                                if st.button("📋 요약번역", key=f"translate_{news_id}", help="백그라운드 큐 등록 (~5분)"):
+                                    from src.cni.pipeline_service import set_pipeline_selected
+                                    from src.cni.process_queue import enqueue_news
+                                    set_pipeline_selected([news_id])
+                                    enqueue_news(news_id)
+                                    st.session_state["save_success_msg"] = f"#{news_id} 처리 큐에 등록됨"
+                                    st.rerun()
+                            with _lb:
+                                if st.button("🚫 불요", key=f"skip_{news_id}", help="요약·번역 불요 (폐기)"):
+                                    from src.cni.pipeline_service import set_pipeline_selected
+                                    set_pipeline_selected([news_id])
+                                    if skip_news(news_id):
+                                        st.session_state["save_success_msg"] = f"#{news_id} 불요 처리 완료"
+                                        st.rerun()
+
+                    # Promoted original-article link (outside any expander so
+                    # reviewers can open the source in one click).
+                    if row.get('original_url'):
+                        st.markdown(f"🔗 **[원문 열람]({row['original_url']})**")
+
+                    # Advanced editing — classification, tags, radar, expert
+                    # commentary, AI review — hidden behind a nested expander.
+                    # The primary review workflow (headline/summary/tip/확정)
+                    # lives in the CNI state form above, not here.
+                    with st.expander("🛠 고급 편집", expanded=False):
                         col_detail1, col_detail2 = st.columns([0.7, 0.3])
 
                         with col_detail1:
@@ -1373,10 +1802,94 @@ def main():
 
                         with col_detail2:
                             st.markdown("**📋 분류 정보**")
-                            st.write(f"- 산업: {get_korean_label(row.get('industry_category') or '')}")
-                            st.write(f"- 유형: {row.get('content_type', '-')}")
-                            st.write(f"- 감성: {row.get('sentiment', '-')}")
-                            st.write(f"- 출처: {row.get('source', '-')}")
+
+                            # --- Editable classification section ---
+                            edit_cls_key = f"edit_cls_{news_id}"
+                            if not st.session_state.get(edit_cls_key):
+                                # Display mode
+                                cur_cat = row.get('industry_category') or ''
+                                cur_imp = row.get('importance_score') or 0
+                                st.write(f"- 산업: {get_korean_label(cur_cat)} (`{cur_cat}`)")
+                                st.write(f"- 중요도: **{cur_imp:.2f}**")
+                                st.write(f"- 유형: {row.get('content_type', '-')}")
+                                st.write(f"- 감성: {row.get('sentiment', '-')}")
+                                st.write(f"- 출처: {row.get('source', '-')}")
+                                if st.button("✏️ 분류 수정", key=f"btn_edit_cls_{news_id}"):
+                                    st.session_state[edit_cls_key] = True
+                                    st.rerun()
+                            else:
+                                # Edit mode
+                                from config.gics_taxonomy import GICS_SELECTED, GICS_EXTENSIONS
+                                all_codes = {}
+                                for code, data in GICS_SELECTED.items():
+                                    all_codes[code] = f"{data[2]} ({code})"
+                                for code, data in GICS_EXTENSIONS.items():
+                                    all_codes[code] = f"{data[0]} ({code})"
+                                code_list = list(all_codes.keys())
+                                label_list = list(all_codes.values())
+
+                                cur_cat = row.get('industry_category') or 'other'
+                                cur_idx = code_list.index(cur_cat) if cur_cat in code_list else code_list.index('other')
+
+                                new_cat = st.selectbox(
+                                    "산업 분류",
+                                    options=code_list,
+                                    format_func=lambda x: all_codes[x],
+                                    index=cur_idx,
+                                    key=f"sel_cat_{news_id}"
+                                )
+
+                                cur_imp = row.get('importance_score') or 0.5
+                                new_imp = st.slider(
+                                    "중요도 점수",
+                                    min_value=0.0, max_value=1.0,
+                                    value=float(cur_imp), step=0.05,
+                                    key=f"sl_imp_{news_id}"
+                                )
+
+                                content_types = ['policy', 'corporate', 'industry', 'market', 'opinion', 'news', 'data_release', 'research', 'macro']
+                                cur_ct = row.get('content_type', 'news') or 'news'
+                                ct_idx = content_types.index(cur_ct) if cur_ct in content_types else 0
+                                new_ct = st.selectbox(
+                                    "유형", content_types, index=ct_idx,
+                                    key=f"sel_ct_{news_id}"
+                                )
+
+                                sentiments = ['positive', 'negative', 'neutral']
+                                cur_sent = row.get('sentiment', 'neutral') or 'neutral'
+                                sent_idx = sentiments.index(cur_sent) if cur_sent in sentiments else 2
+                                new_sent = st.selectbox(
+                                    "감성", sentiments, index=sent_idx,
+                                    key=f"sel_sent_{news_id}"
+                                )
+
+                                col_save, col_cancel = st.columns(2)
+                                with col_save:
+                                    if st.button("💾 저장", key=f"btn_save_cls_{news_id}"):
+                                        changed = {}
+                                        if new_cat != cur_cat:
+                                            changed['industry_category'] = new_cat
+                                        if abs(new_imp - (row.get('importance_score') or 0.5)) > 0.01:
+                                            changed['importance_score'] = new_imp
+                                        if new_ct != cur_ct:
+                                            changed['content_type'] = new_ct
+                                        if new_sent != cur_sent:
+                                            changed['sentiment'] = new_sent
+                                        if changed:
+                                            if update_news_classification(news_id, **changed):
+                                                st.success("분류 수정 완료!")
+                                                st.session_state.pop(edit_cls_key, None)
+                                                st.rerun()
+                                            else:
+                                                st.error("저장 실패")
+                                        else:
+                                            st.info("변경 사항 없음")
+                                with col_cancel:
+                                    if st.button("취소", key=f"btn_cancel_cls_{news_id}"):
+                                        st.session_state.pop(edit_cls_key, None)
+                                        st.rerun()
+
+                                st.write(f"- 출처: {row.get('source', '-')}")
 
                             if row.get('keywords'):
                                 try:
@@ -1384,9 +1897,6 @@ def main():
                                     st.write(f"- 키워드: {', '.join(keywords)}")
                                 except:
                                     st.write(f"- 키워드: {row['keywords']}")
-
-                            if row.get('original_url'):
-                                st.markdown(f"[원문 링크]({row['original_url']})")
 
                         # Score breakdown radar chart
                         if row.get('score_breakdown'):
@@ -1454,44 +1964,6 @@ def main():
                             if set_tags(news_id, new_tags):
                                 st.success("태그가 저장되었습니다!")
                                 st.rerun()
-
-                        st.markdown("---")
-
-                        # Card headline section
-                        st.markdown("**📱 카드 헤드라인** (모바일용, 최대 18자)")
-
-                        current_headline = row.get('card_headline', '') or ''
-                        news_title = row.get('translated_title') or row.get('original_title') or ''
-
-                        col_hl1, col_hl2 = st.columns([0.8, 0.2])
-
-                        with col_hl1:
-                            headline_input = st.text_input(
-                                "헤드라인",
-                                value=current_headline,
-                                key=f"headline_{news_id}",
-                                max_chars=MAX_HEADLINE_LENGTH,
-                                placeholder="18자 이내의 관심 유발 헤드라인",
-                                label_visibility="collapsed"
-                            )
-                            char_count = len(headline_input)
-                            color = "green" if char_count <= MAX_HEADLINE_LENGTH else "red"
-                            st.caption(f":{color}[{char_count}/{MAX_HEADLINE_LENGTH}자]")
-
-                        with col_hl2:
-                            if st.button("🤖 AI 생성", key=f"gen_hl_{news_id}", help="AI로 헤드라인 자동 생성 (리뷰 우선)"):
-                                from src.utils.headline_generator import generate_and_save_headline
-                                generated = generate_and_save_headline(news_id, news_title)
-                                st.session_state[f"headline_{news_id}"] = generated
-                                st.rerun()
-
-                        if headline_input != current_headline:
-                            if st.button("💾 헤드라인 저장", key=f"save_hl_{news_id}"):
-                                if save_headline(news_id, headline_input):
-                                    st.success("헤드라인 저장 완료!")
-                                    st.rerun()
-                                else:
-                                    st.error("헤드라인 저장 실패")
 
                         st.markdown("---")
 
@@ -1741,7 +2213,7 @@ def main():
             st.info("아직 리뷰된 뉴스가 없습니다.")
         else:
             for idx, row in reviewed_df.iterrows():
-                title = row['translated_title'] or row['original_title']
+                title = row['original_title'] or row['translated_title']
                 conflict_icon = "⚠️" if row.get('opinion_conflict') else "✅"
                 news_id = row['id']
 
@@ -1893,7 +2365,7 @@ def main():
             if selected_status == 'skipped':
                 for _, row in approve_df.iterrows():
                     news_id = row['id']
-                    title = row['translated_title'] or row['original_title'] or '제목 없음'
+                    title = row['original_title'] or row['translated_title'] or '제목 없음'
                     importance = row.get('importance_score', 0) or 0
                     sk_col1, sk_col2 = st.columns([0.8, 0.2])
                     with sk_col1:
@@ -1910,7 +2382,7 @@ def main():
             if selected_status != 'skipped':
               for _, row in approve_df.iterrows():
                 news_id = row['id']
-                title = row['translated_title'] or row['original_title'] or '제목 없음'
+                title = row['original_title'] or row['translated_title'] or '제목 없음'
                 importance = row.get('importance_score', 0) or 0
 
                 if importance >= 0.8:
@@ -2477,6 +2949,386 @@ def main():
                 height=350,
             )
             st.plotly_chart(fig_trend, use_container_width=True, key="src_trend")
+
+
+    # ── KG Tab ──
+    with tab_kg:
+        st.subheader("🧠 Knowledge Graph")
+
+        try:
+            from src.kg.query import get_graph_stats, search_entity, get_entity_relations, get_entity_events
+            from src.kg.signal_engine import generate_signals, aggregate_signals
+            from src.kg.trend_scanner import scan_trends
+
+            # KG Stats
+            kg_stats = get_graph_stats()
+            col_a, col_b, col_c, col_d = st.columns(4)
+            col_a.metric("엔티티", kg_stats.get("active_entities", 0))
+            col_b.metric("이벤트", kg_stats.get("events", 0))
+            col_c.metric("관계", kg_stats.get("relations", 0))
+            col_d.metric("시그널", len(generate_signals()))
+
+            st.markdown("---")
+
+            # Entity Search
+            kg_search = st.text_input("🔍 엔티티 검색", placeholder="BYD, 국무원, 반도체...", key="kg_search")
+            if kg_search:
+                found = search_entity(kg_search, limit=10)
+                if found:
+                    for ent in found:
+                        with st.expander(f"{ent['canonical_name']} ({ent['entity_type']}) — mentions: {ent['mention_count']}"):
+                            st.write(f"**중국어:** {ent.get('canonical_name_zh', '-')}")
+                            st.write(f"**설명:** {ent.get('description', '-')}")
+
+                            # Relations
+                            rels = get_entity_relations(ent['kg_entity_id'])
+                            if rels['outgoing'] or rels['incoming']:
+                                st.write("**관계:**")
+                                for r in rels['outgoing'][:5]:
+                                    st.write(f"  → [{r['relation_type']}] {r['target_name']} ({r['target_type']})")
+                                for r in rels['incoming'][:5]:
+                                    st.write(f"  ← [{r['relation_type']}] {r['source_name']} ({r['source_type']})")
+
+                            # Events
+                            evts = get_entity_events(ent['kg_entity_id'])
+                            if evts:
+                                st.write(f"**이벤트 ({len(evts)}건):**")
+                                for ev in evts[:5]:
+                                    st.write(f"  • [{ev['magnitude']}] {ev['headline']}")
+
+                            # Signals
+                            sigs = generate_signals(ent['canonical_name'])
+                            agg = aggregate_signals(sigs)
+                            ent_agg = agg.get(ent['canonical_name'])
+                            if ent_agg:
+                                direction_color = {"POSITIVE": "🟢", "NEGATIVE": "🔴", "MIXED": "🟡", "NEUTRAL": "⚪"}
+                                st.write(f"**시그널:** {direction_color.get(ent_agg['net_direction'], '⚪')} "
+                                         f"{ent_agg['net_direction']} "
+                                         f"(+{ent_agg['positive']} -{ent_agg['negative']} ={ent_agg['neutral']}, "
+                                         f"conf: {ent_agg['avg_confidence']:.2f})")
+                else:
+                    st.info(f"'{kg_search}'에 해당하는 엔티티가 없습니다.")
+
+            st.markdown("---")
+
+            # Top Entities
+            st.write("**핵심 엔티티 (연결 중심성 Top 10)**")
+            top_connected = kg_stats.get("top_connected", [])
+            if top_connected:
+                top_df = pd.DataFrame(top_connected)
+                top_df.columns = ["이름", "유형", "언급수", "연결수"]
+                st.dataframe(top_df, use_container_width=True, hide_index=True)
+
+            # Trend Summary
+            st.markdown("---")
+            st.write("**산업 트렌드 요약**")
+            trends = scan_trends()
+            tcol1, tcol2 = st.columns(2)
+            with tcol1:
+                st.write("🟢 **성장 산업**")
+                for t in trends.get("growing", [])[:5]:
+                    st.write(f"  • {t['industry']} (+{t['positive']} signals)")
+            with tcol2:
+                st.write("🔴 **리스크 산업**")
+                for t in trends.get("at_risk", [])[:5]:
+                    st.write(f"  • {t['industry']} (-{t['negative']} signals)")
+
+        except Exception as e:
+            st.error(f"KG 모듈 로드 실패: {e}")
+            st.info("KG 테이블이 아직 생성되지 않았거나, 데이터가 없을 수 있습니다.")
+
+    # ── CNI Translation Tab ──
+    with tab_cni:
+        st.subheader("📝 CNI 번역 관리")
+
+        try:
+            from src.cni.summary_store import (
+                get_pending_translations, get_cni_stats, init_cni_tables,
+            )
+            from src.cni.translator import save_manual_translation
+            from src.cni.cni_pipeline import run_post_translation
+
+            init_cni_tables()
+            cni_stats = get_cni_stats()
+
+            # Stats
+            sc1, sc2, sc3, sc4 = st.columns(4)
+            sc1.metric("전체", cni_stats.get("total", 0))
+            sc2.metric("번역 대기", cni_stats.get("pending", 0))
+            sc3.metric("번역 완료", cni_stats.get("translated", 0))
+            sc4.metric("후처리 완료", cni_stats.get("refined", 0))
+
+            st.markdown("---")
+
+            # Pending translations
+            pending = get_pending_translations(10)
+            if pending:
+                st.write(f"**번역 대기 ({len(pending)}건)** — 중문 요약을 Papago로 번역 후 붙여넣기")
+
+                for item in pending:
+                    nid = item["news_id"]
+                    with st.expander(f"#{nid} — {item.get('original_title', '')[:50]}"):
+                        st.write(f"**출처:** {item.get('source', '-')}")
+                        st.write(f"**중문 요약:**")
+                        st.code(item.get("summary_zh", ""), language=None)
+
+                        # Copy helper
+                        st.caption("위 중문 요약을 복사 → Papago에서 번역 → 아래에 붙여넣기")
+
+                        ko_input = st.text_area(
+                            "한국어 번역 입력",
+                            key=f"cni_ko_{nid}",
+                            height=120,
+                            placeholder="Papago 번역 결과를 여기에 붙여넣으세요..."
+                        )
+
+                        col_save, col_refine = st.columns(2)
+                        with col_save:
+                            if st.button("💾 번역 저장", key=f"cni_save_{nid}"):
+                                if ko_input and ko_input.strip():
+                                    result = save_manual_translation(nid, ko_input)
+                                    if result.get("status") == "ok":
+                                        st.success(f"#{nid} 번역 저장 완료")
+                                        st.rerun()
+                                    else:
+                                        st.error(result.get("error", "저장 실패"))
+                                else:
+                                    st.warning("번역을 입력해주세요")
+
+                        with col_refine:
+                            if st.button("✨ 저장+후처리", key=f"cni_refine_{nid}"):
+                                if ko_input and ko_input.strip():
+                                    save_manual_translation(nid, ko_input)
+                                    result = run_post_translation(nid)
+                                    if result.get("status") == "ok":
+                                        st.success(f"#{nid} 후처리 완료")
+                                        st.rerun()
+                                    else:
+                                        st.error(result.get("error", "후처리 실패"))
+                                else:
+                                    st.warning("번역을 입력해주세요")
+            else:
+                st.info("번역 대기 항목이 없습니다. CNI 파이프라인을 먼저 실행하세요.")
+
+        except Exception as e:
+            st.error(f"CNI 모듈 로드 실패: {e}")
+            st.info("CNI 테이블이 아직 생성되지 않았을 수 있습니다.")
+
+    # ── Published News Tab (공개함) ──
+    with tab_published:
+        st.subheader("📢 공개된 뉴스 관리")
+
+        if st.session_state.get("pub_success_msg"):
+            st.success(st.session_state.pop("pub_success_msg"))
+
+        try:
+            from src.cni.pipeline_service import unpublish_news as _unpub_cni
+            from src.database.models import get_connection as _pub_gc
+
+            _pub_conn = _pub_gc()
+
+            # CNI published — 최근 30건만 렌더 (전체 렌더 시 수백 건×폼위젯으로 rerun이 수십 초 걸림)
+            _cni_pub = _pub_conn.execute("""
+                SELECT n.id, n.card_headline, n.hansanguk_tip, n.pipeline_status, n.updated_at,
+                       cs.summary_ko
+                FROM news n
+                LEFT JOIN cni_summaries cs ON n.id = cs.news_id
+                WHERE n.pipeline_status = 'published'
+                ORDER BY n.updated_at DESC
+                LIMIT 30
+            """).fetchall()
+            _cni_pub_total = _pub_conn.execute(
+                "SELECT COUNT(*) FROM news WHERE pipeline_status = 'published'"
+            ).fetchone()[0]
+
+            # Legacy published
+            _leg_pub = _pub_conn.execute("""
+                SELECT n.id, n.card_headline, n.translated_title,
+                       er.publish_status, er.publish_status_updated_at
+                FROM news n
+                JOIN expert_reviews er ON n.id = er.news_id
+                WHERE er.publish_status = 'published'
+                ORDER BY er.publish_status_updated_at DESC
+                LIMIT 30
+            """).fetchall()
+
+            _pub_conn.close()
+
+            total_pub = _cni_pub_total + len(_leg_pub)
+            st.metric("공개 뉴스 총", total_pub, f"CNI {_cni_pub_total} + Legacy {len(_leg_pub)}")
+            st.markdown("---")
+
+            # CNI Published (수정 가능)
+            if _cni_pub:
+                _more = f" — 최근 30건 표시 (총 {_cni_pub_total}건)" if _cni_pub_total > len(_cni_pub) else ""
+                st.write(f"**📦 자동번역 공개 ({len(_cni_pub)}건){_more}**")
+                for r in _cni_pub:
+                    _nid = r['id']
+                    _hl = r['card_headline'] or '(제목 없음)'
+                    _ko = r['summary_ko'] or ''
+
+                    with st.expander(f"#{_nid} — {_hl[:40]}"):
+                        _edit_hl = st.text_input("헤드라인 수정", value=_hl, key=f"pub_hl_{_nid}")
+                        _edit_ko = st.text_area("번역 수정", value=_ko, key=f"pub_ko_{_nid}", height=120)
+                        _existing_tip = r['hansanguk_tip'] or ''
+                        _edit_tip = st.text_area("💡 한상국의 팁", value=_existing_tip, key=f"pub_tip_{_nid}", height=80)
+
+                        _pc1, _pc2, _pc3 = st.columns(3)
+                        with _pc1:
+                            if st.button("💾 수정 저장", key=f"pub_save_{_nid}"):
+                                from src.cni.summary_store import update_translation as _pub_ut, update_refined as _pub_ur
+                                _pub_ut(_nid, _edit_ko.strip())
+                                _pub_ur(_nid, _edit_ko.strip())
+                                _puc = _pub_gc()
+                                _puc.execute("UPDATE news SET card_headline=? WHERE id=?", (_edit_hl[:72], _nid))
+                                if _edit_tip and _edit_tip.strip():
+                                    _puc.execute("UPDATE news SET hansanguk_tip=? WHERE id=?", (_edit_tip.strip()[:500], _nid))
+                                else:
+                                    _puc.execute("UPDATE news SET hansanguk_tip=NULL WHERE id=?", (_nid,))
+                                _puc.commit()
+                                _puc.close()
+                                st.session_state["pub_success_msg"] = f"#{_nid} 수정 저장 (즉시 반영)"
+                                st.rerun()
+                        with _pc2:
+                            if st.button("🔒 비공개", key=f"unpub_cni_{_nid}"):
+                                _unpub_cni(_nid)
+                                st.session_state["pub_success_msg"] = f"#{_nid} 비공개 전환"
+                                st.rerun()
+
+            st.markdown("---")
+
+            # Legacy Published
+            if _leg_pub:
+                st.write(f"**📋 기존 리뷰 공개 (최근 {len(_leg_pub)}건)**")
+                for r in _leg_pub:
+                    _nid = r['id']
+                    _hl = r['card_headline'] or r['translated_title'] or '(제목 없음)'
+                    _col1, _col2 = st.columns([0.8, 0.2])
+                    with _col1:
+                        st.write(f"**#{_nid}** — {_hl[:50]}")
+                    with _col2:
+                        if st.button("🔒 비공개", key=f"unpub_leg_{_nid}"):
+                            _uc = _pub_gc()
+                            _uc.execute("""
+                                UPDATE expert_reviews
+                                SET publish_status = 'draft',
+                                    publish_status_updated_at = CURRENT_TIMESTAMP
+                                WHERE news_id = ?
+                            """, (_nid,))
+                            _uc.commit()
+                            _uc.close()
+                            st.session_state["pub_success_msg"] = f"#{_nid} 비공개 전환 완료"
+                            st.rerun()
+
+        except Exception as e:
+            st.error(f"공개함 로드 실패: {e}")
+
+    # ── 비공개함 Tab ──
+    with tab_hidden:
+        st.subheader("🔒 비공개 뉴스")
+
+        if st.session_state.get("hidden_success_msg"):
+            st.success(st.session_state.pop("hidden_success_msg"))
+
+        try:
+            from src.cni.pipeline_service import set_pipeline_status as _hidden_sps, publish_news as _hidden_pub
+            from src.cni.summary_store import update_translation as _hidden_ut, update_refined as _hidden_ur
+            from src.database.models import get_connection as _hidden_gc
+
+            _hconn = _hidden_gc()
+
+            # CNI unpublished + skipped — 최근 30건만 렌더 (전체 렌더 시 rerun 지연)
+            _hidden_cni = _hconn.execute("""
+                SELECT n.id, n.card_headline, n.pipeline_status, n.title_zh, n.summary_zh,
+                       cs.summary_ko, cs.refined_ko
+                FROM news n
+                LEFT JOIN cni_summaries cs ON n.id = cs.news_id
+                WHERE n.pipeline_status IN ('unpublished', 'skipped')
+                ORDER BY n.updated_at DESC
+                LIMIT 30
+            """).fetchall()
+            _hidden_cni_total = _hconn.execute(
+                "SELECT COUNT(*) FROM news WHERE pipeline_status IN ('unpublished', 'skipped')"
+            ).fetchone()[0]
+
+            # Legacy draft/discarded
+            _hidden_leg = _hconn.execute("""
+                SELECT n.id, n.card_headline, n.translated_title,
+                       er.publish_status, er.expert_comment
+                FROM news n
+                JOIN expert_reviews er ON n.id = er.news_id
+                WHERE er.publish_status IN ('draft', 'discarded')
+                ORDER BY er.publish_status_updated_at DESC
+                LIMIT 20
+            """).fetchall()
+
+            _hconn.close()
+
+            st.metric("비공개 뉴스", _hidden_cni_total + len(_hidden_leg))
+            st.markdown("---")
+
+            # CNI 비공개
+            if _hidden_cni:
+                _hmore = f" — 최근 30건 표시 (총 {_hidden_cni_total}건)" if _hidden_cni_total > len(_hidden_cni) else ""
+                st.write(f"**📦 자동번역 비공개 ({len(_hidden_cni)}건){_hmore}**")
+                for r in _hidden_cni:
+                    _nid = r['id']
+                    _hl = r['card_headline'] or r['title_zh'] or '(제목 없음)'
+                    _ko = r['summary_ko'] or r['refined_ko'] or ''
+                    _status = r['pipeline_status']
+
+                    with st.expander(f"#{_nid} [{_status}] — {_hl[:40]}"):
+                        # 수정 가능한 헤드라인
+                        _new_hl = st.text_input("헤드라인 수정", value=_hl, key=f"hid_hl_{_nid}")
+                        # 수정 가능한 번역
+                        _new_ko = st.text_area("번역 수정", value=_ko, key=f"hid_ko_{_nid}", height=120)
+
+                        _hc1, _hc2, _hc3 = st.columns(3)
+                        with _hc1:
+                            if st.button("📢 재공개", key=f"hid_repub_{_nid}", type="primary"):
+                                if _new_ko and _new_ko.strip():
+                                    _hidden_ut(_nid, _new_ko.strip())
+                                    _hidden_ur(_nid, _new_ko.strip())
+                                    _uc = _hidden_gc()
+                                    _uc.execute("UPDATE news SET card_headline=? WHERE id=?", (_new_hl[:72], _nid))
+                                    _uc.commit()
+                                    _uc.close()
+                                    _hidden_sps(_nid, "translated")
+                                    _hidden_pub(_nid)
+                                    st.session_state["hidden_success_msg"] = f"#{_nid} 재공개 완료"
+                                    st.rerun()
+                                else:
+                                    st.warning("번역을 입력하세요")
+                        with _hc2:
+                            if st.button("💾 수정 저장", key=f"hid_save_{_nid}"):
+                                _hidden_ut(_nid, _new_ko.strip() if _new_ko else '')
+                                _uc = _hidden_gc()
+                                _uc.execute("UPDATE news SET card_headline=? WHERE id=?", (_new_hl[:72], _nid))
+                                _uc.commit()
+                                _uc.close()
+                                st.session_state["hidden_success_msg"] = f"#{_nid} 수정 저장 완료"
+                                st.rerun()
+                        with _hc3:
+                            if st.button("🗑 삭제", key=f"hid_del_{_nid}"):
+                                _hidden_sps(_nid, "skipped")
+                                st.session_state["hidden_success_msg"] = f"#{_nid} 삭제 처리"
+                                st.rerun()
+
+            # Legacy 비공개
+            if _hidden_leg:
+                st.markdown("---")
+                st.write(f"**📋 기존 리뷰 비공개 ({len(_hidden_leg)}건)**")
+                for r in _hidden_leg:
+                    _nid = r['id']
+                    _hl = r['card_headline'] or r['translated_title'] or '(제목 없음)'
+                    st.write(f"  #{_nid} [{r['publish_status']}] — {_hl[:50]}")
+
+            if not _hidden_cni and not _hidden_leg:
+                st.info("비공개 뉴스가 없습니다.")
+
+        except Exception as e:
+            st.error(f"비공개함 로드 실패: {e}")
+
 
 
 if __name__ == "__main__":
