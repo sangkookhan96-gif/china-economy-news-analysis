@@ -1,5 +1,11 @@
 # 뉴스 제목 번역 품질 개선 계획
 
+> **[2026-06-08 갱신 노트 — 대부분 구현 완료 / 엔진 변경됨]**
+> - 본 문서는 **최초 번역 단계(주로 제목)** 개선 계획이며, 핵심 항목은 이미 구현됨:
+>   `src/utils/title_postprocessor.py`(규칙 후처리), `src/utils/chinese_dictionary.py`(인명·용어 사전 500+), 관점 치환(我国→중국).
+> - **번역 엔진은 Google Translate가 아니라 Ollama `qwen2.5:7b`로 이미 교체됨.** 방안 B/C의 Claude API는 비활성 → 로컬 Ollama로 대체. 아래 본문의 Google/Claude 전제는 과거 기록이다.
+> - **공개 후 사후 보완**(요약·헤드라인·팁을 원문 중국어와 대조해 재번역하여 누락·오역·경어체를 잡는 안전망)은 별도 설계 `docs/onpublish_refine_design.md` 참조. 본 문서와 시점·대상이 다른 상호 보완 관계다.
+
 **작성일**: 2026-02-07
 **현황**: Google Translate(무료) 직역 → 사용자 수용성 저하
 
