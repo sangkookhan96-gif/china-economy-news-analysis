@@ -1,0 +1,15 @@
+[Unit]
+Description=KG Daily Pipeline — Extract + Signal + Report
+After=network.target
+
+[Service]
+Type=oneshot
+User=jeozeohan
+WorkingDirectory=/home/jeozeohan/vibe_temp/China Economy News Analysis
+ExecStart=/home/jeozeohan/vibe_temp/China Economy News Analysis/run_kg_daily.sh
+StandardOutput=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/kg_daily.log
+StandardError=append:/home/jeozeohan/vibe_temp/China Economy News Analysis/logs/kg_daily.log
+TimeoutStartSec=7200
+
+[Install]
+WantedBy=multi-user.target
