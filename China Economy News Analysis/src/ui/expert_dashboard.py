@@ -1591,10 +1591,17 @@ def main():
                             if _title_zh or _summary_zh:
                                 st.caption(f"중문: {_title_zh[:50]}... | {_summary_zh[:50]}...")
 
-                            # 편집 필드 (form 없이 — 포커스 이탈 시 session_state 자동 갱신)
-                            st.text_input("📰 헤드라인 (최대 72자)", key=_sk_hl, max_chars=72)
-                            st.text_area("📝 한국어 요약", key=_sk_ko, height=150)
-                            st.text_area("💡 한상국의 팁", key=_sk_tip, height=80)
+                            # 편집 필드 — st.form으로 감싸 blur(포커스 이탈)마다 전체 페이지가
+                            # rerun되는 것을 차단한다. form 없이 두면 칸을 벗어날 때마다 rerun→
+                            # 위젯 노드 재생성→커서·스크롤이 튀어 선택/복사/붙여넣기가 불가능했다.
+                            # 폼 안에서는 '입력 확정' 클릭 시점에만 한 번 commit된다.
+                            # (공개/비공개 등 액션 버튼은 폼 밖에 두어 독립 동작 — CLAUDE.md §9)
+                            with st.form(key=f"cni_edit_form_{news_id}", border=False):
+                                st.text_input("📰 헤드라인 (최대 72자)", key=_sk_hl, max_chars=72)
+                                st.text_area("📝 한국어 요약", key=_sk_ko, height=150)
+                                st.text_area("💡 한상국의 팁", key=_sk_tip, height=80)
+                                _btn_confirm = st.form_submit_button(
+                                    "✏️ 입력 확정 (저장)", type="primary", use_container_width=True)
 
                             # 품질 게이트
                             _qg = validate_quality_gate(news_id, "published")
@@ -1681,6 +1688,11 @@ def main():
                             elif _btn_reset:
                                 reset_to_selected(news_id)
                                 st.session_state["save_success_msg"] = f"#{news_id} 초기화 (재처리 가능)"
+                                st.rerun()
+                            elif _btn_confirm:
+                                # 폼 제출 = 3개 필드 일괄 저장(공개는 별도 버튼)
+                                _save_fields_tr(news_id, _hl_val, _ko_val, _tip_val)
+                                st.session_state["save_success_msg"] = f"#{news_id} 입력 확정 저장 완료"
                                 st.rerun()
 
                         except Exception as _cni_err:
