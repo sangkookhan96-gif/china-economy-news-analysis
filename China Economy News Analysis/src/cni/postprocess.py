@@ -84,6 +84,11 @@ TERM_EXPLAIN = {
     '신질생산력': '신질생산력(새로운 품질의 생산력)',
     '십오오': '제15차 5개년 계획',
     '十五五': '제15차 5개년 계획',
+    '十四五': '제14차 5개년 계획(2021~2025년)',
+    '首发车': '신차(전시회 최초 공개 차량)',
+    '事先告知书': '사전 통지서',
+    '退市风险警示': '상장폐지 위험 경고',
+    '退市': '상장폐지',
     '체인 박람회': '공급망박람회(链博会)',
     '체인박람회': '공급망박람회(链博会)',
     '链博会': '공급망박람회(链博会)',
@@ -141,13 +146,28 @@ def remove_structure_tags(text: str) -> str:
     return result.strip()
 
 
+def _registry_keys() -> set:
+    """proper_nouns가 소유한 zh 키 집합(고유명사 표기는 canonicalizer가 단일 관리)."""
+    try:
+        from src.utils.proper_nouns import PEOPLE, COMPANIES, AGENCIES, PLACES
+        return set(PEOPLE) | set(COMPANIES) | set(AGENCIES) | set(PLACES)
+    except Exception:
+        return set()
+
+
 def replace_company_names(text: str) -> str:
-    """Replace Chinese company/institution names with Korean standard names."""
+    """정책·기술 용어만 보정한다. 고유명사(기업/인명/기관/지명) 표기 통일은
+    proper_noun_formatter.format_proper_nouns()가 단일 권위로 처리하므로,
+    proper_nouns 사전에 등재된 키는 여기서 건드리지 않는다(표기·포맷 분열 방지).
+    """
     if not text:
         return text
+    owned = _registry_keys()
     result = text
     # 긴 이름부터 먼저 치환 (부분 매칭 방지)
     for zh, ko in sorted(COMPANY_NAME_MAP.items(), key=lambda x: -len(x[0])):
+        if zh in owned:
+            continue  # 정본 사전 소유 → canonicalizer에 위임
         result = result.replace(zh, ko)
     return result
 
@@ -164,6 +184,48 @@ def fix_currency(text: str) -> str:
     return result
 
 
+# 종목명 뒤에 바로 붙는 한국어 조사 (풀이는 조사 앞에 넣어야 자연스러움)
+_ST_JOSA = ("으로서", "으로써", "에서", "에게", "부터", "까지", "으로", "보다",
+            "처럼", "만큼", "은", "는", "이", "가", "을", "를", "의", "에",
+            "와", "과", "도", "로", "만")
+
+
+def _strip_trailing_josa(name: str) -> tuple:
+    """종목명 끝의 조사를 분리. 남는 이름이 2자 이상일 때만 분리(짧은 이름 보호)."""
+    for j in sorted(_ST_JOSA, key=len, reverse=True):
+        if name.endswith(j) and len(name) - len(j) >= 2:
+            return name[: -len(j)], j
+    return name, ""
+
+
+def explain_st_terms(text: str) -> str:
+    """中 A주 상장폐지 위험 종목 표기 *ST / ST를 한국 독자용으로 첫 등장 1회 풀이.
+
+    *ST = 상장폐지 위험 경고(退市风险警示), ST = 특별관리 종목(Special Treatment).
+    종목명에 접두로 붙으므로(예: *ST송파) 이름 뒤·조사 앞에 풀이를 단다.
+    EAST/FAST 등 단어 내부의 'ST'는 경계 검사로 제외한다.
+    """
+    if not text:
+        return text
+
+    def _mk(expl):
+        def _sub(m):
+            name, josa = _strip_trailing_josa(m.group(0))
+            return f"{name}({expl}){josa}"
+        return _sub
+
+    # *ST: 첫 '*ST{종목명}'에 풀이 1회. ST 뒤에 영문자가 오면(STAR 등) 제외 — 종목명은 한글.
+    if "*ST" in text and "상장폐지 위험" not in text:
+        text = re.sub(r"\*ST(?![A-Za-z])[가-힣]*", _mk("상장폐지 위험 경고"),
+                      text, count=1)
+    # ST(별표 없음): 앞이 영문자·'*'가 아니고 뒤도 영문자가 아닌 첫 'ST{한글종목명}'에 풀이 1회.
+    # EAST/STAR/START 등 영어단어 속 ST 제외, 이미 '특별관리' 풀이 있으면 스킵.
+    if "특별관리" not in text and re.search(r"(?<![A-Za-z*])ST(?![A-Za-z])", text):
+        text = re.sub(r"(?<![A-Za-z*])ST(?![A-Za-z])[가-힣]*", _mk("특별관리 종목"),
+                      text, count=1)
+    return text
+
+
 def explain_terms(text: str) -> str:
     """Expand Chinese internal terms for Korean readers."""
     if not text:
@@ -175,6 +237,8 @@ def explain_terms(text: str) -> str:
         if explanation in result:
             continue
         result = result.replace(term, explanation)
+    # 상장폐지 위험 종목(*ST/ST) 풀이 (첫 등장 1회)
+    result = explain_st_terms(result)
     return result
 
 

@@ -9,9 +9,14 @@ from config.settings import DATABASE_PATH
 
 
 def get_connection() -> sqlite3.Connection:
-    """Get database connection."""
-    conn = sqlite3.connect(DATABASE_PATH)
+    """Get database connection.
+
+    WAL 모드(영구 설정) + busy_timeout 30s로 동시 쓰기 경합 시 즉시
+    'database is locked' 대신 대기하게 한다(2026-06-15 팁 백필 락 사고 대응).
+    """
+    conn = sqlite3.connect(DATABASE_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout=30000")
     return conn
 
 
