@@ -235,6 +235,46 @@ def set_tags(news_id: int, tags: list) -> bool:
         conn.close()
 
 
+def update_news_classification(news_id: int, industry_category: str = None,
+                               importance_score: float = None,
+                               content_type: str = None,
+                               sentiment: str = None) -> bool:
+    """Update news classification fields (expert override)."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        fields = []
+        values = []
+        if industry_category is not None:
+            fields.append("industry_category = ?")
+            values.append(industry_category)
+        if importance_score is not None:
+            fields.append("importance_score = ?")
+            values.append(max(0.0, min(1.0, importance_score)))
+        if content_type is not None:
+            fields.append("content_type = ?")
+            values.append(content_type)
+        if sentiment is not None:
+            fields.append("sentiment = ?")
+            values.append(sentiment)
+        if not fields:
+            return False
+        fields.append("updated_at = ?")
+        values.append(datetime.now())
+        values.append(news_id)
+        cursor.execute(
+            f"UPDATE news SET {', '.join(fields)} WHERE id = ?",
+            values
+        )
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error updating classification: {e}")
+        return False
+    finally:
+        conn.close()
+
+
 def get_tags(news_id: int) -> list:
     """Get tags for a news item."""
     conn = get_connection()
