@@ -2,3 +2,7 @@
 enableCORS = false
 enableXsrfProtection = false
 runOnSave = false
+# 웹소켓 유지용 서버 핑 (Cloudflare 100초 유휴 타임아웃보다 짧게).
+# 폰에서 잠깐 보다가 버튼 눌러도 연결이 살아있도록 — 무반응 방지.
+websocketPingInterval = 20
+enableWebsocketCompression = false
