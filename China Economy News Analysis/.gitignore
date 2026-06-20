@@ -9,3 +9,11 @@ logs/
 data/backup_*.db
 monitoring/.watchdog_state.json
 data/news.db
+data/kg.db
+.env
+.env.bak*
+nohup.out
+*_nohup.out
+*.png
+backups/
+test_result_*.txt
