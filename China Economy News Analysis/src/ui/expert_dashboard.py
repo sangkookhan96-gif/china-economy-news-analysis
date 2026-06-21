@@ -1968,14 +1968,16 @@ def main():
                             except:
                                 pass
 
-                        tag_input = st.text_input(
-                            "태그 입력 (쉼표로 구분)",
-                            value=", ".join(current_tags),
-                            key=f"tags_{news_id}",
-                            placeholder="예: 반도체, SMIC, 미중관계"
-                        )
-
-                        if st.button("태그 저장", key=f"save_tags_{news_id}"):
+                        # st.form: 편집 중 blur마다 rerun되어 커서가 튀는 문제 방지
+                        with st.form(key=f"tags_form_{news_id}", border=False):
+                            tag_input = st.text_input(
+                                "태그 입력 (쉼표로 구분)",
+                                value=", ".join(current_tags),
+                                key=f"tags_{news_id}",
+                                placeholder="예: 반도체, SMIC, 미중관계"
+                            )
+                            _tag_save = st.form_submit_button("태그 저장", use_container_width=True)
+                        if _tag_save:
                             new_tags = [t.strip() for t in tag_input.split(",") if t.strip()]
                             if set_tags(news_id, new_tags):
                                 st.success("태그가 저장되었습니다!")
@@ -2476,8 +2478,11 @@ def main():
                                     st.session_state["approve_success_msg"] = f"#{news_id} 승인 완료"
                                     st.rerun()
                         with action_cols[2]:
-                            reject_note = st.text_input("반려 사유", key=f"ap_reject_note_{news_id}", placeholder="사유 입력")
-                            if st.button("🗑 반려 (폐기함)", key=f"ap_reject_{news_id}"):
+                            # st.form: 편집 중 blur마다 rerun되어 커서가 튀는 문제 방지
+                            with st.form(key=f"reject_form_{news_id}", border=False):
+                                reject_note = st.text_input("반려 사유", key=f"ap_reject_note_{news_id}", placeholder="사유 입력")
+                                _do_reject = st.form_submit_button("🗑 반려 (폐기함)", use_container_width=True)
+                            if _do_reject:
                                 if update_publish_status(news_id, 'discarded', reject_note or '반려'):
                                     st.session_state["approve_success_msg"] = f"#{news_id} 반려 → 폐기함 이동"
                                     st.rerun()
