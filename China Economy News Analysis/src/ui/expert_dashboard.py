@@ -1482,18 +1482,21 @@ def main():
                     with col5:
                         with st.popover("📝", help="빠른 리뷰"):
                             st.markdown(f"**{(title or '')[:40]}...**")
-                            stance = st.radio(
-                                "AI 분석 평가",
-                                ["동의", "부분동의", "반대"],
-                                key=f"stance_{news_id}",
-                                horizontal=True,
-                            )
-                            quick_comment = st.text_input(
-                                "한줄 코멘트",
-                                key=f"qcomment_{news_id}",
-                                placeholder="핵심 의견을 입력하세요",
-                            )
-                            if st.button("저장", key=f"qsave_{news_id}", type="primary"):
+                            # st.form: 편집 중 blur마다 rerun되어 커서가 튀는 문제 방지
+                            with st.form(key=f"quick_review_form_{news_id}", border=False):
+                                stance = st.radio(
+                                    "AI 분석 평가",
+                                    ["동의", "부분동의", "반대"],
+                                    key=f"stance_{news_id}",
+                                    horizontal=True,
+                                )
+                                quick_comment = st.text_input(
+                                    "한줄 코멘트",
+                                    key=f"qcomment_{news_id}",
+                                    placeholder="핵심 의견을 입력하세요",
+                                )
+                                _qsave = st.form_submit_button("저장", type="primary", use_container_width=True)
+                            if _qsave:
                                 full_comment = f"[{stance}] {quick_comment}" if quick_comment else f"[{stance}]"
                                 try:
                                     db_ok = save_expert_comment(news_id, full_comment)
