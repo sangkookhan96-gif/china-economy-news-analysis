@@ -1721,46 +1721,50 @@ def main():
                                 if _sk_tip not in st.session_state:
                                     st.session_state[_sk_tip] = _existing_tip
 
-                                st.text_input("📰 헤드라인", key=_sk_hl, max_chars=72)
-                                st.text_area("📝 한국어 요약", key=_sk_ko, height=120)
-                                st.text_area("💡 한상국의 팁", key=_sk_tip, height=60)
+                                # st.form: 편집 중 blur마다 rerun되어 커서가 튀는 문제 방지
+                                with st.form(key=f"cni_pub_form_{news_id}", border=False):
+                                    st.text_input("📰 헤드라인", key=_sk_hl, max_chars=72)
+                                    st.text_area("📝 한국어 요약", key=_sk_ko, height=120)
+                                    st.text_area("💡 한상국의 팁", key=_sk_tip, height=60)
+                                    _pcf1, _pcf2 = st.columns(2)
+                                    with _pcf1:
+                                        _pub_save = st.form_submit_button("💾 수정저장", type="primary", use_container_width=True)
+                                    with _pcf2:
+                                        _pub_unpub = st.form_submit_button("🔒 비공개", use_container_width=True)
 
                                 _hl_val = st.session_state.get(_sk_hl, '')
                                 _ko_val = st.session_state.get(_sk_ko, '')
                                 _tip_val = st.session_state.get(_sk_tip, '')
 
-                                _pc1, _pc2 = st.columns(2)
-                                with _pc1:
-                                    if st.button("💾 수정저장", key=f"cni_save_{news_id}", type="primary"):
-                                        if _ko_val and _ko_val.strip():
-                                            update_translation(news_id, _ko_val.strip())
-                                        from src.database.models import get_connection as _gc
-                                        _conn = _gc()
-                                        if _hl_val and _hl_val.strip():
-                                            _conn.execute("UPDATE news SET card_headline=? WHERE id=?", (_hl_val.strip()[:72], news_id))
-                                        if _tip_val and _tip_val.strip():
-                                            _conn.execute("UPDATE news SET hansanguk_tip=? WHERE id=?", (_tip_val.strip()[:500], news_id))
-                                        else:
-                                            _conn.execute("UPDATE news SET hansanguk_tip=NULL WHERE id=?", (news_id,))
-                                        _conn.commit()
-                                        _conn.close()
-                                        # refine_korean(LLM, ~수초)은 백그라운드로 — UI 즉시 반환(연결 끊김 방지)
-                                        if _ko_val and _ko_val.strip():
-                                            import threading
-                                            _ko_snap = _ko_val.strip()
-                                            def _bg_refine2(_nid=news_id, _ko=_ko_snap):
-                                                try:
-                                                    update_refined(_nid, refine_korean(_ko))
-                                                except Exception:
-                                                    pass
-                                            threading.Thread(target=_bg_refine2, daemon=True).start()
-                                        st.session_state["save_success_msg"] = f"#{news_id} 수정 저장 완료 (즉시 반영)"
-                                        st.rerun()
-                                with _pc2:
-                                    if st.button("🔒 비공개", key=f"cni_unpub_{news_id}"):
-                                        unpublish_news(news_id)
-                                        st.session_state["save_success_msg"] = f"#{news_id} 비공개 전환"
-                                        st.rerun()
+                                if _pub_save:
+                                    if _ko_val and _ko_val.strip():
+                                        update_translation(news_id, _ko_val.strip())
+                                    from src.database.models import get_connection as _gc
+                                    _conn = _gc()
+                                    if _hl_val and _hl_val.strip():
+                                        _conn.execute("UPDATE news SET card_headline=? WHERE id=?", (_hl_val.strip()[:72], news_id))
+                                    if _tip_val and _tip_val.strip():
+                                        _conn.execute("UPDATE news SET hansanguk_tip=? WHERE id=?", (_tip_val.strip()[:500], news_id))
+                                    else:
+                                        _conn.execute("UPDATE news SET hansanguk_tip=NULL WHERE id=?", (news_id,))
+                                    _conn.commit()
+                                    _conn.close()
+                                    # refine_korean(LLM, ~수초)은 백그라운드로 — UI 즉시 반환(연결 끊김 방지)
+                                    if _ko_val and _ko_val.strip():
+                                        import threading
+                                        _ko_snap = _ko_val.strip()
+                                        def _bg_refine2(_nid=news_id, _ko=_ko_snap):
+                                            try:
+                                                update_refined(_nid, refine_korean(_ko))
+                                            except Exception:
+                                                pass
+                                        threading.Thread(target=_bg_refine2, daemon=True).start()
+                                    st.session_state["save_success_msg"] = f"#{news_id} 수정 저장 완료 (즉시 반영)"
+                                    st.rerun()
+                                if _pub_unpub:
+                                    unpublish_news(news_id)
+                                    st.session_state["save_success_msg"] = f"#{news_id} 비공개 전환"
+                                    st.rerun()
                             except Exception as _cni_err:
                                 st.caption(f"CNI 로드 실패: {_cni_err}")
 
@@ -1999,13 +2003,18 @@ def main():
 
                         comment_key = f"comment_{news_id}"
 
-                        expert_comment_input = st.text_area(
-                            "Markdown 형식으로 논평을 입력하세요",
-                            value=expert_comment,
-                            height=150,
-                            key=comment_key,
-                            placeholder="## 핵심 분석\n- 포인트 1\n- 포인트 2\n\n## 투자 시사점\n..."
-                        )
+                        # st.form: 편집 중 blur마다 rerun되어 커서가 튀는 문제 방지.
+                        # '논평 확정' 클릭 시점에만 commit → 아래 저장/AI 버튼은 확정값 사용.
+                        with st.form(key=f"comment_form_{news_id}", border=False):
+                            st.text_area(
+                                "Markdown 형식으로 논평을 입력하세요",
+                                value=expert_comment,
+                                height=150,
+                                key=comment_key,
+                                placeholder="## 핵심 분석\n- 포인트 1\n- 포인트 2\n\n## 투자 시사점\n..."
+                            )
+                            st.form_submit_button("✏️ 논평 확정", use_container_width=True)
+                        expert_comment_input = st.session_state.get(comment_key, expert_comment)
 
                         col_btn1, col_btn2, col_btn3 = st.columns([0.25, 0.25, 0.5])
 
@@ -3180,32 +3189,36 @@ def main():
                     _ko = r['summary_ko'] or ''
 
                     with st.expander(f"#{_nid} — {_hl[:40]}"):
-                        _edit_hl = st.text_input("헤드라인 수정", value=_hl, key=f"pub_hl_{_nid}")
-                        _edit_ko = st.text_area("번역 수정", value=_ko, key=f"pub_ko_{_nid}", height=120)
                         _existing_tip = r['hansanguk_tip'] or ''
-                        _edit_tip = st.text_area("💡 한상국의 팁", value=_existing_tip, key=f"pub_tip_{_nid}", height=80)
+                        # st.form: 편집 중 blur마다 rerun되어 커서가 튀는 문제 방지
+                        with st.form(key=f"pub_edit_form_{_nid}", border=False):
+                            _edit_hl = st.text_input("헤드라인 수정", value=_hl, key=f"pub_hl_{_nid}")
+                            _edit_ko = st.text_area("번역 수정", value=_ko, key=f"pub_ko_{_nid}", height=120)
+                            _edit_tip = st.text_area("💡 한상국의 팁", value=_existing_tip, key=f"pub_tip_{_nid}", height=80)
+                            _pcf1, _pcf2 = st.columns(2)
+                            with _pcf1:
+                                _pub_do_save = st.form_submit_button("💾 수정 저장", type="primary", use_container_width=True)
+                            with _pcf2:
+                                _pub_do_unpub = st.form_submit_button("🔒 비공개", use_container_width=True)
 
-                        _pc1, _pc2, _pc3 = st.columns(3)
-                        with _pc1:
-                            if st.button("💾 수정 저장", key=f"pub_save_{_nid}"):
-                                from src.cni.summary_store import update_translation as _pub_ut, update_refined as _pub_ur
-                                _pub_ut(_nid, _edit_ko.strip())
-                                _pub_ur(_nid, _edit_ko.strip())
-                                _puc = _pub_gc()
-                                _puc.execute("UPDATE news SET card_headline=? WHERE id=?", (_edit_hl[:72], _nid))
-                                if _edit_tip and _edit_tip.strip():
-                                    _puc.execute("UPDATE news SET hansanguk_tip=? WHERE id=?", (_edit_tip.strip()[:500], _nid))
-                                else:
-                                    _puc.execute("UPDATE news SET hansanguk_tip=NULL WHERE id=?", (_nid,))
-                                _puc.commit()
-                                _puc.close()
-                                st.session_state["pub_success_msg"] = f"#{_nid} 수정 저장 (즉시 반영)"
-                                st.rerun()
-                        with _pc2:
-                            if st.button("🔒 비공개", key=f"unpub_cni_{_nid}"):
-                                _unpub_cni(_nid)
-                                st.session_state["pub_success_msg"] = f"#{_nid} 비공개 전환"
-                                st.rerun()
+                        if _pub_do_save:
+                            from src.cni.summary_store import update_translation as _pub_ut, update_refined as _pub_ur
+                            _pub_ut(_nid, _edit_ko.strip())
+                            _pub_ur(_nid, _edit_ko.strip())
+                            _puc = _pub_gc()
+                            _puc.execute("UPDATE news SET card_headline=? WHERE id=?", (_edit_hl[:72], _nid))
+                            if _edit_tip and _edit_tip.strip():
+                                _puc.execute("UPDATE news SET hansanguk_tip=? WHERE id=?", (_edit_tip.strip()[:500], _nid))
+                            else:
+                                _puc.execute("UPDATE news SET hansanguk_tip=NULL WHERE id=?", (_nid,))
+                            _puc.commit()
+                            _puc.close()
+                            st.session_state["pub_success_msg"] = f"#{_nid} 수정 저장 (즉시 반영)"
+                            st.rerun()
+                        if _pub_do_unpub:
+                            _unpub_cni(_nid)
+                            st.session_state["pub_success_msg"] = f"#{_nid} 비공개 전환"
+                            st.rerun()
 
             st.markdown("---")
 
@@ -3290,41 +3303,44 @@ def main():
                     _status = r['pipeline_status']
 
                     with st.expander(f"#{_nid} [{_status}] — {_hl[:40]}"):
-                        # 수정 가능한 헤드라인
-                        _new_hl = st.text_input("헤드라인 수정", value=_hl, key=f"hid_hl_{_nid}")
-                        # 수정 가능한 번역
-                        _new_ko = st.text_area("번역 수정", value=_ko, key=f"hid_ko_{_nid}", height=120)
+                        # st.form: 편집 중 blur마다 rerun되어 커서가 튀는 문제 방지
+                        with st.form(key=f"hid_edit_form_{_nid}", border=False):
+                            _new_hl = st.text_input("헤드라인 수정", value=_hl, key=f"hid_hl_{_nid}")
+                            _new_ko = st.text_area("번역 수정", value=_ko, key=f"hid_ko_{_nid}", height=120)
+                            _hcf1, _hcf2, _hcf3 = st.columns(3)
+                            with _hcf1:
+                                _hid_repub = st.form_submit_button("📢 재공개", type="primary", use_container_width=True)
+                            with _hcf2:
+                                _hid_save = st.form_submit_button("💾 수정 저장", use_container_width=True)
+                            with _hcf3:
+                                _hid_del = st.form_submit_button("🗑 삭제", use_container_width=True)
 
-                        _hc1, _hc2, _hc3 = st.columns(3)
-                        with _hc1:
-                            if st.button("📢 재공개", key=f"hid_repub_{_nid}", type="primary"):
-                                if _new_ko and _new_ko.strip():
-                                    _hidden_ut(_nid, _new_ko.strip())
-                                    _hidden_ur(_nid, _new_ko.strip())
-                                    _uc = _hidden_gc()
-                                    _uc.execute("UPDATE news SET card_headline=? WHERE id=?", (_new_hl[:72], _nid))
-                                    _uc.commit()
-                                    _uc.close()
-                                    _hidden_sps(_nid, "translated")
-                                    _hidden_pub(_nid)
-                                    st.session_state["hidden_success_msg"] = f"#{_nid} 재공개 완료"
-                                    st.rerun()
-                                else:
-                                    st.warning("번역을 입력하세요")
-                        with _hc2:
-                            if st.button("💾 수정 저장", key=f"hid_save_{_nid}"):
-                                _hidden_ut(_nid, _new_ko.strip() if _new_ko else '')
+                        if _hid_repub:
+                            if _new_ko and _new_ko.strip():
+                                _hidden_ut(_nid, _new_ko.strip())
+                                _hidden_ur(_nid, _new_ko.strip())
                                 _uc = _hidden_gc()
                                 _uc.execute("UPDATE news SET card_headline=? WHERE id=?", (_new_hl[:72], _nid))
                                 _uc.commit()
                                 _uc.close()
-                                st.session_state["hidden_success_msg"] = f"#{_nid} 수정 저장 완료"
+                                _hidden_sps(_nid, "translated")
+                                _hidden_pub(_nid)
+                                st.session_state["hidden_success_msg"] = f"#{_nid} 재공개 완료"
                                 st.rerun()
-                        with _hc3:
-                            if st.button("🗑 삭제", key=f"hid_del_{_nid}"):
-                                _hidden_sps(_nid, "skipped")
-                                st.session_state["hidden_success_msg"] = f"#{_nid} 삭제 처리"
-                                st.rerun()
+                            else:
+                                st.warning("번역을 입력하세요")
+                        if _hid_save:
+                            _hidden_ut(_nid, _new_ko.strip() if _new_ko else '')
+                            _uc = _hidden_gc()
+                            _uc.execute("UPDATE news SET card_headline=? WHERE id=?", (_new_hl[:72], _nid))
+                            _uc.commit()
+                            _uc.close()
+                            st.session_state["hidden_success_msg"] = f"#{_nid} 수정 저장 완료"
+                            st.rerun()
+                        if _hid_del:
+                            _hidden_sps(_nid, "skipped")
+                            st.session_state["hidden_success_msg"] = f"#{_nid} 삭제 처리"
+                            st.rerun()
 
             # Legacy 비공개
             if _hidden_leg:
